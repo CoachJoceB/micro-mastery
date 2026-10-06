@@ -7,156 +7,160 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --navy:#0A0A0A; --navy-2:#1A1A1A; --ink:#111111; --ink-soft:#5B5955;
+    --chalk:#F7F5EF; --paper:#FFFFFF; --ink:#111111; --ink-soft:#5B5955;
     --orange:#E8622A; --orange-deep:#B34A1E; --amber:#F2A93C; --green:#3F8F5F;
-    --chalk:#F7F5EF; --line-dark:rgba(247,245,239,.14); --line-light:rgba(17,17,17,.14);
+    --line:rgba(17,17,17,.14); --navy:#0A0A0A;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  body{margin:0;font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(--chalk);min-height:100vh;}
+  body{margin:0;font-family:'Inter',system-ui,sans-serif;background:var(--chalk);color:var(--ink);min-height:100vh;}
   .demo-banner{background:var(--green);color:#fff;text-align:center;padding:10px 16px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.08em;text-transform:uppercase;}
-  .wrap{max-width:680px;margin:0 auto;padding:24px 20px 64px;}
-  h1{font-family:'Oswald',sans-serif;font-size:28px;text-transform:uppercase;letter-spacing:.02em;margin:0 0 8px;}
-  .sub{color:rgba(247,245,239,.7);font-size:15px;line-height:1.6;margin-bottom:24px;}
-  .card{background:var(--navy-2);border:1px solid var(--line-dark);border-radius:16px;padding:20px;margin-bottom:16px;}
-  .card h2{font-family:'Oswald',sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:.08em;color:var(--orange);margin:0 0 12px;}
-  .reading{font-size:15px;line-height:1.7;color:rgba(247,245,239,.85);}
-  .reading strong{color:#fff;}
-  .q{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--line-dark);}
+  .wrap{max-width:1100px;margin:0 auto;padding:24px 20px 64px;}
+  h1{font-family:'Oswald',sans-serif;font-size:30px;text-transform:uppercase;letter-spacing:.02em;margin:0 0 8px;}
+  .sub{color:var(--ink-soft);font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;}
+  .phase{margin-bottom:28px;}
+  .phase-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  .phase-num{font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;background:var(--orange);color:#fff;border-radius:20px;padding:4px 14px;letter-spacing:.06em;text-transform:uppercase;}
+  .phase-title{font-family:'Oswald',sans-serif;font-size:20px;text-transform:uppercase;letter-spacing:.03em;margin:0;}
+  .phase-time{font-size:13px;color:var(--ink-soft);margin-left:auto;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.06);}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  @media(max-width:800px){.cols{grid-template-columns:1fr;}}
+  .reading{font-size:15px;line-height:1.7;color:#333;}
+  .reading strong{color:var(--ink);}
+  .q{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--line);}
   .q:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
   .q-text{font-size:15.5px;font-weight:600;margin-bottom:10px;line-height:1.5;}
-  .q input[type=text]{width:100%;background:var(--navy);border:2px solid var(--line-dark);color:var(--chalk);border-radius:10px;padding:12px;font-size:16px;font-family:'Inter',sans-serif;}
+  .q input[type=text]{width:100%;background:var(--chalk);border:2px solid var(--line);color:var(--ink);border-radius:10px;padding:12px;font-size:16px;font-family:'Inter',sans-serif;}
   .q input[type=text]:focus{outline:none;border-color:var(--orange);}
-  .tf-btns{display:flex;gap:10px;}
-  .tf-btn{flex:1;padding:12px;border:2px solid var(--line-dark);background:var(--navy);color:var(--chalk);border-radius:10px;font-family:'Oswald',sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;}
-  .tf-btn.sel{border-color:var(--orange);background:rgba(232,98,42,.15);}
   .check-btn{margin-top:10px;background:var(--orange);color:#fff;border:none;border-radius:10px;padding:10px 24px;font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;}
   .check-btn:disabled{opacity:.4;cursor:default;}
   .fb{margin-top:8px;font-size:14px;font-weight:600;min-height:20px;}
   .fb.ok{color:var(--green);}
-  .fb.no{color:#fca5a5;}
-  .fb .ans{color:var(--amber);}
-  .tries{font-size:12px;color:rgba(247,245,239,.5);margin-top:6px;}
-  .btn{border:2px solid var(--line-dark);background:var(--navy);color:var(--chalk);border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;}
-  .btn-primary{border-color:var(--green);background:rgba(63,143,95,.2);}
-  .btn-ghost{background:var(--navy);}
+  .fb.no{color:#c0392b;}
+  .fb .ans{color:var(--orange-deep);}
+  .tries{font-size:12px;color:var(--ink-soft);margin-top:6px;}
+  .btn{border:2px solid var(--line);background:var(--paper);color:var(--ink);border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;}
+  .btn-primary{border-color:var(--green);background:rgba(63,143,95,.12);}
   .btn:disabled{opacity:.4;cursor:default;}
+  .vocab{font-size:14px;color:var(--ink-soft);margin-top:8px;}
+  .vocab strong{color:var(--orange-deep);}
 </style>
 </head>
 <body>
-<div class="demo-banner">🎮 Live demo — this is the actual Micro Mastery worksheet</div>
+<div class="demo-banner">🎮 Live demo — the actual Micro Mastery morning routine</div>
 <div class="wrap">
-  <h1>Try a real worksheet</h1>
-  <p class="sub">This is History Day 1 from Unit 1, running the actual self-checking worksheet. Answer, check, and see how it grades. Your tries save in this browser only.</p>
+  <h1>The 15-minute morning routine</h1>
+  <p class="sub">This is exactly what your kid sees every morning. Warm up with a current event, build life skills, then drill the worksheet — all self-checking. Try it below.</p>
 
-  <div class="card">
-    <h2>📖 Reading</h2>
-    <div class="reading">Spain's rulers, <strong>Ferdinand and Isabella</strong>, paid for Christopher Columbus's voyage. He wanted to sail west to find a new sea route to Asia — Europeans were desperate to avoid the dangerous, expensive land crossings and heavy tolls on the old spice routes. In <strong>1492</strong>, Columbus landed on an island he named San Salvador, thinking he had reached Asia. Because of his discoveries, Europe found out about America.</div>
-  </div>
-
-  <div class="card">
-    <h2>✏️ Questions</h2>
-
-    <div class="q" id="q1">
-      <div class="q-text">1. Ferdinand and Isabella, rulers of ___________, agreed to pay for Columbus' voyage.</div>
-      <input type="text" id="q1-input" placeholder="Type your answer..." autocomplete="off">
-      <button class="check-btn" onclick="checkQ('q1')">Check</button>
-      <div class="fb" id="q1-fb"></div>
-      <div class="tries" id="q1-tries"></div>
+  <!-- WARM UP -->
+  <div class="phase">
+    <div class="phase-head">
+      <span class="phase-num">Warm Up</span>
+      <h2 class="phase-title">Today's Current Event</h2>
+      <span class="phase-time">~3 min</span>
     </div>
-
-    <div class="q" id="q2">
-      <div class="q-text">2. Because of the discoveries of Christopher Columbus, Europe found out about America.</div>
-      <div class="tf-btns">
-        <button class="tf-btn" id="q2-true" onclick="pickTF('q2',true)">True</button>
-        <button class="tf-btn" id="q2-false" onclick="pickTF('q2',false)">False</button>
+    <div class="card">
+      <div class="reading"><strong>The Nasdaq hits a new record high.</strong> The Nasdaq is where people buy and sell stock in companies, especially tech companies. This week it reached its highest point ever, mostly because of excitement about artificial intelligence (AI) companies. When people believe a group of companies will do well in the future, they buy more of their stock, which pushes prices up.</div>
+      <div class="q" style="margin-top:16px;border:none;padding:0;">
+        <div class="q-text">What's something you're excited about that you think will be a big deal in the future?</div>
+        <input type="text" id="wu-input" placeholder="Type your thought..." autocomplete="off">
+        <div class="vocab">No wrong answers here — this is thinking practice.</div>
       </div>
-      <button class="check-btn" onclick="checkQ('q2')">Check</button>
-      <div class="fb" id="q2-fb"></div>
-      <div class="tries" id="q2-tries"></div>
     </div>
   </div>
 
-  <div class="card">
-    <h2>🔬 Interactive: Label the cell</h2>
-    <p style="font-size:13px;color:rgba(247,245,239,.6);margin:0 0 12px;">From Science Day 2. Tap a label, then tap the part of the diagram it names.</p>
-    <div id="demo-activity"></div>
-    <button class="check-btn" onclick="checkActivity()">Check labels</button>
-    <div class="fb" id="act-fb"></div>
-    <div class="tries" id="act-tries"></div>
+  <!-- LIFE SKILLS -->
+  <div class="phase">
+    <div class="phase-head">
+      <span class="phase-num">Life Skills</span>
+      <h2 class="phase-title">Financial Literacy</h2>
+      <span class="phase-time">~5 min</span>
+    </div>
+    <div class="card">
+      <div class="cols">
+        <div>
+          <div class="reading"><strong>Interest</strong> is extra money a bank pays you for keeping your savings with them. If you put $100 in a savings account that pays 5% interest per year, after one year you'll have $105 — the bank pays you $5 just for keeping your money there. That's your money making money.</div>
+          <div class="vocab" style="margin-top:12px;"><strong>Word:</strong> Interest — extra money earned on savings.</div>
+        </div>
+        <div>
+          <div class="q" id="ls1">
+            <div class="q-text">When a bank pays you extra money for keeping your savings with them, that's called ______.</div>
+            <input type="text" id="ls1-input" placeholder="Type your answer..." autocomplete="off">
+            <button class="check-btn" onclick="checkQ('ls1')">Check</button>
+            <div class="fb" id="ls1-fb"></div>
+            <div class="tries" id="ls1-tries"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="card" style="text-align:center;">
-    <h2>Want the full system?</h2>
-    <p style="color:rgba(247,245,239,.7);font-size:15px;line-height:1.6;">This is one day. Micro Mastery has a full year of self-checking history and science, plus the 15-minute morning routine.</p>
+  <!-- DRILLS -->
+  <div class="phase">
+    <div class="phase-head">
+      <span class="phase-num">Drills</span>
+      <h2 class="phase-title">Science Worksheet</h2>
+      <span class="phase-time">~7 min</span>
+    </div>
+    <div class="card">
+      <div class="cols">
+        <div>
+          <div class="reading"><strong>Cells</strong> are the building blocks of all living things. A typical cell has three main parts: the <strong>cell membrane</strong> (the outer boundary that controls what goes in and out), the <strong>cytoplasm</strong> (the jelly-like filling where activity happens), and the <strong>nucleus</strong> (the control center that holds DNA).</div>
+        </div>
+        <div>
+          <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">Tap a label, then tap the part of the diagram it names.</p>
+          <div id="demo-activity"></div>
+          <button class="check-btn" onclick="checkActivity()">Check labels</button>
+          <div class="fb" id="act-fb"></div>
+          <div class="tries" id="act-tries"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="text-align:center;background:var(--navy);color:var(--chalk);border:none;">
+    <h2 style="font-family:'Oswald',sans-serif;font-size:20px;text-transform:uppercase;margin:0 0 12px;color:#fff;">Want the full system?</h2>
+    <p style="color:rgba(247,245,239,.7);font-size:15px;line-height:1.6;">A full year of self-checking history and science, plus the 15-minute morning routine. Founding members lock in $25/month for life.</p>
     <a href="/waitlist/" style="display:inline-block;background:var(--orange);color:#fff;text-decoration:none;border-radius:12px;padding:14px 32px;font-family:'Oswald',sans-serif;font-size:17px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Join the waitlist</a>
   </div>
 </div>
 
 <script>
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
-function escAttr(s){return esc(s);}
 </script>
+
 <script>
-/* === DEMO CHECK LOGIC (3 tries, like the real app) === */
-const demoState = JSON.parse(localStorage.getItem('mm-demo') || '{}');
-
-function saveDemo(){ localStorage.setItem('mm-demo', JSON.stringify(demoState)); }
-
+const demoState = JSON.parse(localStorage.getItem('mm-demo2') || '{}');
+function saveDemo(){ localStorage.setItem('mm-demo2', JSON.stringify(demoState)); }
 function normLoose(s){ return (s||'').trim().toLowerCase().replace(/\s+/g,' '); }
-
 function updateTries(id, used, max){
   const el = document.getElementById(id+'-tries');
-  if(used >= max){
-    el.textContent = 'No tries left.';
-  } else {
-    el.textContent = `Try ${used+1} of ${max}`;
-  }
+  el.textContent = used >= max ? 'No tries left.' : `Try ${used+1} of ${max}`;
 }
-
 function checkQ(id){
   const maxTries = 3;
   const st = demoState[id] || (demoState[id] = {tries:0, done:false});
   if(st.done || st.tries >= maxTries) return;
-
-  let val, correct, answerText;
-  if(id === 'q1'){
-    val = document.getElementById('q1-input').value;
-    correct = normLoose(val) === 'spain';
-    answerText = 'Spain';
-    if(!val.trim()){
-      document.getElementById('q1-fb').innerHTML = '<span style="color:rgba(247,245,239,.6);">Type an answer first.</span>';
-      return;
-    }
-  } else if(id === 'q2'){
-    const picked = demoState.q2picked;
-    if(picked === undefined){
-      document.getElementById('q2-fb').innerHTML = '<span style="color:rgba(247,245,239,.6);">Pick True or False first.</span>';
-      return;
-    }
-    correct = picked === true;
-    answerText = 'True';
+  const val = document.getElementById(id+'-input').value;
+  if(!val.trim()){
+    document.getElementById(id+'-fb').innerHTML = '<span style="color:var(--ink-soft);">Type an answer first.</span>';
+    return;
   }
-
+  const correct = normLoose(val) === 'interest';
   st.tries++;
   const fb = document.getElementById(id+'-fb');
   const finalTry = st.tries >= maxTries;
-
   if(correct){
     st.done = true;
     fb.className = 'fb ok';
     fb.textContent = '✓ Correct! Nice work.';
     document.querySelector(`#${id} .check-btn`).disabled = true;
-    if(id === 'q1') document.getElementById('q1-input').disabled = true;
-    if(id === 'q2'){
-      document.getElementById('q2-true').disabled = true;
-      document.getElementById('q2-false').disabled = true;
-    }
+    document.getElementById(id+'-input').disabled = true;
   } else {
     fb.className = 'fb no';
     if(finalTry){
-      fb.innerHTML = `✗ The answer is: <span class="ans">${answerText}</span>`;
+      fb.innerHTML = '✗ The answer is: <span class="ans">Interest</span>';
       document.querySelector(`#${id} .check-btn`).disabled = true;
-      if(id === 'q1') document.getElementById('q1-input').disabled = true;
     } else {
       fb.textContent = '✗ Not quite. Try again.';
     }
@@ -164,30 +168,12 @@ function checkQ(id){
   updateTries(id, st.tries, maxTries);
   saveDemo();
 }
-
-function pickTF(id, val){
-  const st = demoState[id] || (demoState[id] = {tries:0, done:false});
-  if(st.done || st.tries >= 3) return;
-  demoState.q2picked = val;
-  document.getElementById('q2-true').classList.toggle('sel', val === true);
-  document.getElementById('q2-false').classList.toggle('sel', val === false);
-  saveDemo();
-}
-
-// Restore state on load
 (function(){
-  ['q1','q2'].forEach(id=>{
-    const st = demoState[id];
-    if(st) updateTries(id, st.tries, 3);
-  });
-  if(demoState.q2picked !== undefined){
-    document.getElementById('q2-true').classList.toggle('sel', demoState.q2picked === true);
-    document.getElementById('q2-false').classList.toggle('sel', demoState.q2picked === false);
-  }
+  const st = demoState.ls1;
+  if(st) updateTries('ls1', st.tries, 3);
 })();
 </script>
 <script>
-/* === INTERACTIVE ACTIVITY === */
 function wsSvgCell(){
   return `<svg viewBox="0 0 220 220" style="width:100%;max-width:300px;display:block;margin:0 auto;user-select:none;-webkit-user-select:none;" data-wsdiagram>
     <circle cx="110" cy="110" r="78" fill="#eaf5ea"/>
@@ -567,45 +553,39 @@ function wsActivityAnswerText(activityId){
   spec.explorers.forEach(e=>parts.push(e.text + ': ' + e.route.join(' \u2192 ')));
   return parts.join('; ');
 }
-</script>
 
+
+</script>
 <script>
 (function(){
   const container = document.getElementById('demo-activity');
   container.innerHTML = wsActivityHTML({type:'interactive'}, {id:'demo-cell', activity:'label-cell', prompt:'Label the cell membrane, the cytoplasm, and the nucleus.'}, 'demo_cell', demoState.cell || '', false);
   const actEl = container.querySelector('[data-wsact]');
-  // Override save to use demoState instead of dispatching to app storage
   const origSave = wsActSave;
   wsActSave = function(el, st){
     demoState.cell = JSON.stringify(st);
     saveDemo();
-    // Update the hidden input without triggering app handlers
     const inp = el.querySelector('input[data-wsfield]');
     if(inp) inp.value = JSON.stringify(st);
   };
   wsWireActivity(actEl);
-  // Restore saved placements visually (wsWireActivity already does this via the input value)
 })();
 
 function checkActivity(){
   const maxTries = 3;
   const st = demoState.act || (demoState.act = {tries:0, done:false});
   if(st.done || st.tries >= maxTries) return;
-
   const actEl = document.querySelector('#demo-activity [data-wsact]');
   const spec = WS_ACTIVITIES['label-cell'];
   const placements = JSON.parse(demoState.cell || '{}');
   const result = wsGradeActivity(spec, placements);
-
   st.tries++;
   const fb = document.getElementById('act-fb');
   const finalTry = st.tries >= maxTries;
-
   if(result.ok){
     st.done = true;
     fb.className = 'fb ok';
     fb.textContent = '✓ All labels correct! Great work.';
-    document.querySelector('#demo-activity').closest('.card').querySelector('.check-btn').disabled = true;
     actEl.setAttribute('data-wslocked','1');
   } else {
     fb.className = 'fb no';
@@ -613,19 +593,16 @@ function checkActivity(){
       fb.innerHTML = '✗ The answers are: <span class="ans">' + esc(wsActivityAnswerText('label-cell')) + '</span>';
       actEl.setAttribute('data-wslocked','1');
     } else {
-      fb.innerHTML = '✗ Not quite. Try again. Look again at: <strong>' + result.wrong.map(esc).join(', ') + '</strong>.';
+      fb.innerHTML = '✗ Not quite. Look again at: <strong>' + result.wrong.map(esc).join(', ') + '</strong>.';
     }
   }
   updateTries('act', st.tries, maxTries);
   saveDemo();
 }
-
-// Restore activity tries
 (function(){
   const st = demoState.act;
   if(st) updateTries('act', st.tries, 3);
 })();
-</script>
 </script>
 </body>
 </html>
