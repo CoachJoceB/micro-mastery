@@ -390,6 +390,13 @@
       <div class="sub">How many tries each student gets on a worksheet section before their answers lock in.</div>
       <label>Number of tries per section</label>
       <input type="number" id="maxTriesInput" min="1" max="5" step="1" style="font-family:'Oswald',sans-serif;font-size:18px;padding:10px;width:110px;">
+      <hr class="divider">
+      <h3 style="font-size:20px;">Devotional</h3>
+      <div class="sub">Choose what appears in the morning devotional.</div>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:14px;margin:6px 0;">
+        <input type="checkbox" id="devoScriptureInput" style="width:16px;height:16px;"> Include Scripture</label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:14px;margin:6px 0;">
+        <input type="checkbox" id="devoPrayerInput" style="width:16px;height:16px;"> Include Prayer</label>
       <div class="modal-actions">
         <button class="btn btn-ghost" data-close>Close</button>
         <button class="btn btn-primary" id="saveBuzzer">Save settings</button>
@@ -775,7 +782,8 @@ function mmBhmTitle(lesson, dayPart){
 }
 function mmLessonTitle(lesson, dayPart){
   const t = mmBhmTitle(lesson, dayPart);
-  const base = (lesson && lesson.topic) || '';
+  let base = (lesson && lesson.topic) || '';
+  base = base.replace(/^\s*(?:history|science)?\s*unit\s*\d+\s*[:\u2014\u2013\-]?\s*/i, '');
   return t ? base + ': ' + t : base;
 }
 function mmShowDevo(part){
@@ -3673,6 +3681,8 @@ function openBuzzerModal(){
   tzSelect.innerHTML = TIMEZONE_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===state.timezone?'selected':''}>${o.label}</option>`).join('');
 
   document.getElementById('maxTriesInput').value = wsMaxTries();
+  document.getElementById('devoScriptureInput').checked = mmShowDevo('scripture');
+  document.getElementById('devoPrayerInput').checked = mmShowDevo('prayer');
 
 
   showSettingsPanel('day');
@@ -3687,9 +3697,13 @@ document.getElementById('saveBuzzer').addEventListener('click', async ()=>{
   state.buzzerTime = bt;
   state.timezone = tz;
   state.maxTries = mt;
+  const dvo = { scripture:document.getElementById('devoScriptureInput').checked,
+                prayer:document.getElementById('devoPrayerInput').checked };
+  state.devoOpts = dvo;
   await storageSet(buzzerKey(), bt);
   await storageSet(timezoneKey(), tz);
   await storageSet(maxTriesKey(), mt);
+  await storageSet(devoOptsKey(), dvo);
   closeAllModals(); showToast('Day settings saved');
   await loadAndRender();
 });
