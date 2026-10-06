@@ -102,7 +102,7 @@
   .intention-tag{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;}
   .intention-text{font-family:'Oswald',sans-serif;font-size:clamp(20px,2.2vw,26px);line-height:1.3;font-weight:500;}
 
-  .students-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .students-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:16px;align-items:start;}
   @media (max-width:1100px){.students-grid{grid-template-columns:1fr;}}
   .student-card{background:var(--chalk);border:1.5px solid var(--line-light);border-radius:14px;overflow:hidden;}
   .student-head{background:var(--navy-2);color:var(--chalk);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
@@ -390,21 +390,6 @@
       <div class="sub">How many tries each student gets on a worksheet section before their answers lock in.</div>
       <label>Number of tries per section</label>
       <input type="number" id="maxTriesInput" min="1" max="5" step="1" style="font-family:'Oswald',sans-serif;font-size:18px;padding:10px;width:110px;">
-      <hr class="divider">
-      <h3 style="font-size:20px;">AI Material Reader</h3>
-      <div class="sub">Upload a lesson PDF or a clear photo/scan of a worksheet. AI extracts a lesson summary and turns worksheet questions into interactive, student-specific answer forms.</div>
-      <label>AI access code</label><input type="password" id="aiAccessCode" autocomplete="off" placeholder="Set by your administrator">
-      <div class="field-grid">
-        <div><label>Subject</label><select id="aiSubject"><option value="history">History</option><option value="science">Science</option><option value="math">Math</option><option value="language arts">Language Arts</option><option value="bible">Bible</option><option value="other">Other</option></select></div>
-        <div><label>Week number</label><input type="number" id="aiWeek" min="1" value="1"></div>
-      </div>
-      <label>Material type</label><select id="aiMaterialType"><option value="lesson">Lesson material + worksheet</option><option value="worksheet">Worksheet only</option></select>
-      <label>Students who should receive the digital worksheet</label><div id="aiStudentChoices" class="sub"></div>
-      <label>PDF, text file, or worksheet image (PNG/JPEG/WebP)</label><input type="file" id="aiMaterialFile" accept="application/pdf,.txt,image/png,image/jpeg,image/webp">
-      <button type="button" class="btn btn-ghost" id="aiAnalyzeMaterial" style="margin-top:8px;">Read and parse material</button>
-      <div id="aiMaterialStatus" class="sub" aria-live="polite"></div>
-      <div id="aiMaterialPreview" class="card" style="display:none;max-height:220px;overflow:auto;"></div>
-      <button type="button" class="btn btn-primary" id="aiSaveMaterial" style="display:none;">Save parsed material</button>
       <div class="modal-actions">
         <button class="btn btn-ghost" data-close>Close</button>
         <button class="btn btn-primary" id="saveBuzzer">Save settings</button>
@@ -419,6 +404,7 @@
       <hr class="divider">
       <div class="modal-tabs" id="studentTabs"></div>
       <div id="studentPanels"></div>
+      <button type="button" class="btn btn-ghost" id="addStudentBtn" style="margin:4px 0 8px;">+ Add student</button>
       <div class="modal-actions">
         <button class="btn btn-ghost" data-close>Close</button>
         <button class="btn btn-primary" id="saveStudents">Save profiles</button>
@@ -603,15 +589,14 @@ function defaultFieldLabels(){
 }
 function defaultStudents(){
   return [
-    { id:'s1', name:'Student One', grade:'5th', addr:{a1:'',a2:'',a3:''}, phone:{p1:'',p2:'',p3:'',p4:''}, excludedSubjects:[], showSeu:false },
-    { id:'s2', name:'Student Two', grade:'8th', addr:{a1:'',a2:'',a3:''}, phone:{p1:'',p2:'',p3:'',p4:''}, excludedSubjects:[], showSeu:false },
-    { id:'s3', name:'Student Three', grade:'10th', addr:{a1:'',a2:'',a3:''}, phone:{p1:'',p2:'',p3:'',p4:''}, excludedSubjects:[], showSeu:false },
+    { id:'s1', name:'Student One', grade:'5th', addr:{a1:'',a2:'',a3:''}, phone:{p1:'',p2:'',p3:'',p4:''}, excludedSubjects:[] },
+    { id:'s2', name:'Student Two', grade:'8th', addr:{a1:'',a2:'',a3:''}, phone:{p1:'',p2:'',p3:'',p4:''}, excludedSubjects:[] },
+    { id:'s3', name:'Student Three', grade:'10th', addr:{a1:'',a2:'',a3:''}, phone:{p1:'',p2:'',p3:'',p4:''}, excludedSubjects:[] },
   ];
 }
 function normalizeStudent(s){
   if(s.addr && s.phone){
     if(!s.excludedSubjects) s.excludedSubjects = [];
-    if(s.showSeu === undefined) s.showSeu = false;
     if(s.lessonSize !== 'light') s.lessonSize = 'full';
     return s;
   }
@@ -621,7 +606,6 @@ function normalizeStudent(s){
     addr:{ a1: s.addresses?.home||'', a2: s.addresses?.mom||'', a3: s.addresses?.dad||'' },
     phone:{ p1: s.phones?.guardian||'', p2: s.phones?.mom||'', p3: s.phones?.dad||'', p4: s.phones?.own||'' },
     excludedSubjects: s.excludedSubjects || [],
-    showSeu: s.showSeu || false,
     lessonSize: s.lessonSize === 'light' ? 'light' : 'full'
   };
 }
@@ -1590,32 +1574,6 @@ async function renderBoard(){
     weekSubjectName: weekSubject==='history' ? 'History' : (weekSubject==='science' ? 'Science' : ''),
     lessonTopic: sharedLesson && sharedLesson.topic,
   });
-  const seuGroups = await loadSeuToday();
-  function seuCardsHTML(groups){
-    return groups.map(g=>{
-      if(g.tasks.length === 1){
-        const t = g.tasks[0];
-        const checked = !!t.done;
-        const od = t._overdue && !t.done ? `<span style="display:inline-block;background:var(--red);color:#fff;font-size:10.5px;font-weight:700;border-radius:8px;padding:1px 8px;margin-left:6px;vertical-align:middle;">OVERDUE</span>` : '';
-        return `<div class="subj-card ${checked?'done':''}" data-seucourse="${escAttr(g.course.id)}">
-          <div class="subj-top">
-            <div class="subj-name">${esc(g.course.name)}${od}</div>
-            <div class="check ${checked?'checked':''}" data-seucourse="${escAttr(g.course.id)}" data-seutask="${escAttr(t.id)}">${checked?'✓':''}</div>
-          </div>
-          <div class="subj-topic">${esc(t.title)}</div>
-        </div>`;
-      }
-      return `<div class="subj-card">
-        <div class="subj-top"><div class="subj-name">${esc(g.course.name)}</div></div>
-        ${g.tasks.map(t=>`
-          <div class="info-line" style="cursor:pointer;align-items:center;" data-seucourse="${escAttr(g.course.id)}" data-seutask="${escAttr(t.id)}">
-            <span style="${t.done?'text-decoration:line-through;color:var(--ink-soft);':''}">${esc(t.title)}${t._overdue && !t.done ? ' <strong style="color:var(--red);font-size:11px;">OVERDUE</strong>' : ''}</span>
-            <span class="check-mini ${t.done?'checked':''}">${t.done?'✓':''}</span>
-          </div>
-        `).join('')}
-      </div>`;
-    }).join('');
-  }
 
   const currentEventResponses = {};
   if(!isTestDay){
@@ -1660,7 +1618,6 @@ async function renderBoard(){
       .filter(sub => !excluded.includes(sub.name))
       .map(sub => (sub.id==='vocabulary' && gradeWord) ? Object.assign({}, sub, {topic:gradeWord}) : sub);
     const studentChecks = state.checks[s.id] || {};
-    const studentSeuHTML = (s.showSeu && seuGroups.length) ? seuCardsHTML(seuGroups) : '';
     const studentLessonHTML = buildLessonCardHTML(s.id);
     const ceResp = currentEventResponses[s.id] || {headline:'', summary:''};
     const currentEventFieldsHTML = isTestDay ? '' : `
@@ -1689,7 +1646,6 @@ async function renderBoard(){
               <div class="subj-topic">${esc(sub.topic)||'No topic set'}</div>
             </div>`;
           }).join('') || `<p style="color:var(--ink-soft);font-size:12px;margin-top:4px;">No subjects assigned — add some in \u{1f464} Profiles.</p>`}
-          ${studentSeuHTML}
         </div>`;
 
     return `<div class="student-card">
@@ -1773,11 +1729,11 @@ async function renderBoard(){
   if(isTestDay) afterTestSectionRender();
 
   // ---- Progress strip: "X of Y checked off" + warm-up CTA ----
-  // Per-student progress: each card counts its own subject + SEU task check-offs.
+  // Per-student progress: each card counts its own subject check-offs.
   (function updateProgress(){
     document.querySelectorAll('.student-card').forEach(card=>{
-      const total = card.querySelectorAll('.check[data-subj], .check[data-seutask], .check-mini').length;
-      const done = card.querySelectorAll('.check[data-subj].checked, .check[data-seutask].checked, .check-mini.checked').length;
+      const total = card.querySelectorAll('.check[data-subj], .check-mini').length;
+      const done = card.querySelectorAll('.check[data-subj].checked, .check-mini.checked').length;
       const pct = total ? Math.round(done/total*100) : 0;
       const doneEl = card.querySelector('[data-sp-done]');
       const totalEl = card.querySelector('[data-sp-total]');
@@ -1877,26 +1833,13 @@ async function renderBoard(){
       if(e.key===' '||e.key==='Enter'){ e.preventDefault(); el.click(); }
     });
     el.addEventListener('click', async ()=>{
-      if(el.dataset.seutask){
-        await toggleSeuTask(el.dataset.seucourse, el.dataset.seutask);
-      } else if(el.dataset.student){
+      if(el.dataset.student){
         const studentId = el.dataset.student;
         const key = el.dataset.subj;
         if(!state.checks[studentId]) state.checks[studentId] = {};
         state.checks[studentId][key] = !state.checks[studentId][key];
         await storageSet(checksKey(state.dateStr), state.checks);
       }
-      await renderBoard();
-    });
-  });
-  board.querySelectorAll('.info-line[data-seutask]').forEach(el=>{
-    el.setAttribute('role','checkbox');
-    el.setAttribute('tabindex','0');
-    el.addEventListener('keydown', (e)=>{
-      if(e.key===' '||e.key==='Enter'){ e.preventDefault(); el.click(); }
-    });
-    el.addEventListener('click', async ()=>{
-      await toggleSeuTask(el.dataset.seucourse, el.dataset.seutask);
       await renderBoard();
     });
   });
@@ -1978,46 +1921,6 @@ async function moveSubject(name, direction, studentId){
   state.subjectOrders[studentId] = order;
   await storageSet(subjectOrderKey(studentId), order);
   await renderBoard();
-}
-
-/* ========================= SEU COLLEGE COURSEWORK (integrated) =========================
-   Reads from the same shared cloud table, keys prefixed "seu:", and shows
-   anything due today right inside the daily board. Tapping a task toggles
-   it done in the shared data. (The standalone courses page is not part of
-   this multifamily build, so these keys stay empty for new families.) */
-async function seuGet(key){ return storageGet(famKey('seu:'+key)); }
-async function seuSet(key, val){ return storageSet(famKey('seu:'+key), val); }
-
-async function loadSeuToday(){
-  const courses = (await seuGet('courses')) || [];
-  if(!courses.length) return [];
-  const todayStr = state.dateStr;
-  const groups = [];
-  for(const course of courses){
-    const tasks = (await seuGet('tasks:'+course.id)) || [];
-    const relevant = tasks.filter(t=>{
-      // Interpret the task's due date through the same timezone-aware
-      // "school date" logic the rest of the app uses, so it only ever
-      // shows on the one day it's actually due here — plus any overdue
-      // (past-due and not done) items, which roll forward to today.
-      try{
-        const dueStr = toDateStr(getSchoolDate(new Date(t.dueDate)));
-        if(dueStr === todayStr) return true;
-        if(!t.done && dueStr < todayStr){ t._overdue = true; return true; }
-        return false;
-      }catch(e){ return false; }
-    });
-    if(relevant.length) groups.push({ course, tasks: relevant });
-  }
-  return groups;
-}
-
-async function toggleSeuTask(courseId, taskId){
-  const tasks = (await seuGet('tasks:'+courseId)) || [];
-  const t = tasks.find(x=>x.id===taskId);
-  if(!t) return;
-  t.done = !t.done;
-  await seuSet('tasks:'+courseId, tasks);
 }
 
 /* ========================= WEEKLY FILLABLE TEST =========================
@@ -3244,7 +3147,7 @@ function openStudentsModal(){
 
   const tabsEl = document.getElementById('studentTabs');
   const panelsEl = document.getElementById('studentPanels');
-  tabsEl.innerHTML = state.students.map((s,i)=>`<div class="modal-tab ${i===0?'active':''}" data-stab="stu-${s.id}">${esc(s.name)||'Student '+(i+1)}</div>`).join('');
+  tabsEl.innerHTML = state.students.map((s,i)=>`<div class="modal-tab ${i===0?'active':''}" data-stab="stu-${s.id}">${esc(s.name)||'Student '+(i+1)}${state.students.length>1?` <span class="tab-rm" data-rmstudent="${escAttr(s.id)}" title="Remove student" aria-label="Remove ${escAttr(s.name||'student')}" style="opacity:.55;margin-left:6px;">×</span>`:''}</div>`).join('');
 
   panelsEl.innerHTML = state.students.map((s,i)=>{
     const pool = allSubjects(todayContent() || {subjects:{}, extraSubjects:[]});
@@ -3276,10 +3179,6 @@ function openStudentsModal(){
       <div class="mini-lbl" style="margin-top:14px">Subjects for ${esc(s.name)}</div>
       <div class="sub" style="margin:2px 0 6px;">Uncheck any this student doesn't do. New subjects can be added via the 🗓️ 4-week plan or ✏️ today editors — they'll show up here to turn on or off per student.</div>
       <div id="p-${s.id}-subjects">${subjectChecklist}</div>
-      <label style="display:flex;align-items:center;gap:8px;font-weight:400;text-transform:none;letter-spacing:0;font-size:13.5px;margin-top:10px;">
-        <input type="checkbox" id="p-${s.id}-showseu" ${s.showSeu ? 'checked' : ''} style="width:16px;height:16px;">
-        Show College Coursework (SEU) under this student
-      </label>
       <div class="mini-lbl" style="margin-top:14px">Lesson size</div>
       <div class="sub" style="margin:2px 0 6px;">Light keeps the reading and the core work; extra practice moves into an optional bonus area. Each student keeps their own setting.</div>
       <label style="display:flex;align-items:center;gap:8px;font-weight:400;text-transform:none;letter-spacing:0;font-size:13.5px;margin:6px 0;">
@@ -3305,7 +3204,9 @@ function openStudentsModal(){
   });
 
   tabsEl.querySelectorAll('.modal-tab').forEach(t=>{
-    t.addEventListener('click', ()=>{
+    t.addEventListener('click', (e)=>{
+      const rm = e.target.closest('.tab-rm');
+      if(rm){ e.stopPropagation(); removeSettingsStudent(rm.dataset.rmstudent); return; }
       tabsEl.querySelectorAll('.modal-tab').forEach(x=>x.classList.remove('active'));
       panelsEl.querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));
       t.classList.add('active');
@@ -3313,7 +3214,25 @@ function openStudentsModal(){
     });
   });
 
+  document.getElementById('addStudentBtn').onclick = ()=>{
+    if(state.students.length >= 8){ showToast('Up to 8 students per family space.'); return; }
+    state.fieldLabels = collectFieldLabels();
+    state.students = collectStudentsForm();
+    const nums = state.students.map(s=>{ const m = /^s(\d+)$/.exec(s.id||''); return m ? +m[1] : 0; });
+    state.students.push(normalizeStudent({ id:'s'+(Math.max(0,...nums)+1), name:'', grade:'5th' }));
+    openStudentsModal();
+    showToast('Student added — fill in the name, then Save profiles.');
+  };
+
   showSettingsPanel('students');
+}
+function removeSettingsStudent(id){
+  if(state.students.length <= 1) return;
+  const s = state.students.find(x=>x.id===id);
+  if(!confirm(`Remove ${s && s.name ? s.name : 'this student'} from this family space? Their saved answers stay in the cloud.`)) return;
+  state.fieldLabels = collectFieldLabels();
+  state.students = collectStudentsForm().filter(x=>x.id!==id);
+  openStudentsModal();
 }
 function collectFieldLabels(){
   return {
@@ -3326,7 +3245,6 @@ function collectStudentsForm(){
   return state.students.map(s=>{
     const allBoxes = document.querySelectorAll(`[data-subjtoggle="${s.id}"]`);
     const excludedSubjects = [...allBoxes].filter(b=>!b.checked).map(b=>b.value);
-    const showSeu = document.getElementById(`p-${s.id}-showseu`)?.checked || false;
     const lessonSizeEl = document.querySelector(`input[name="p-${s.id}-lessonsize"]:checked`);
     const lessonSize = lessonSizeEl ? lessonSizeEl.value : 'full';
     return {
@@ -3334,7 +3252,7 @@ function collectStudentsForm(){
       addr:{ a1:document.getElementById(`p-${s.id}-addr-a1`).value, a2:document.getElementById(`p-${s.id}-addr-a2`).value, a3:document.getElementById(`p-${s.id}-addr-a3`).value },
       phone:{ p1:document.getElementById(`p-${s.id}-phone-p1`).value, p2:document.getElementById(`p-${s.id}-phone-p2`).value,
         p3:document.getElementById(`p-${s.id}-phone-p3`).value, p4:document.getElementById(`p-${s.id}-phone-p4`).value },
-      excludedSubjects, showSeu, lessonSize
+      excludedSubjects, lessonSize
     };
   });
 }
@@ -3711,16 +3629,6 @@ function openBuzzerModal(){
 
   document.getElementById('maxTriesInput').value = wsMaxTries();
 
-  try{ document.getElementById('aiAccessCode').value = lsGet('ll_ai_access_code') || ''; }catch(e){ document.getElementById('aiAccessCode').value = ''; }
-  document.getElementById('aiWeek').value = actualWeekForDate(state.schoolDate);
-  document.getElementById('aiMaterialFile').value = '';
-  document.getElementById('aiMaterialStatus').textContent = '';
-  document.getElementById('aiMaterialPreview').style.display = 'none';
-  document.getElementById('aiMaterialPreview').innerHTML = '';
-  document.getElementById('aiSaveMaterial').style.display = 'none';
-  document.getElementById('aiMaterialPreview').style.display = 'none';
-  document.getElementById('aiMaterialPreview').innerHTML = '';
-  document.getElementById('aiStudentChoices').innerHTML = state.students.map(s=>`<label style="display:inline-flex;align-items:center;gap:6px;margin:2px 12px 6px 0;"><input type="checkbox" data-ai-student="${escAttr(s.id)}" checked> ${esc(s.name)}</label>`).join('') || 'Add students before creating a student worksheet.';
 
   showSettingsPanel('day');
 }
@@ -3734,7 +3642,6 @@ document.getElementById('saveBuzzer').addEventListener('click', async ()=>{
   state.buzzerTime = bt;
   state.timezone = tz;
   state.maxTries = mt;
-  try{ lsSet('ll_ai_access_code', document.getElementById('aiAccessCode').value.trim()); }catch(e){ /* storage unavailable here — access code just won't persist */ }
   await storageSet(buzzerKey(), bt);
   await storageSet(timezoneKey(), tz);
   await storageSet(maxTriesKey(), mt);
@@ -3745,82 +3652,7 @@ document.getElementById('saveBuzzer').addEventListener('click', async ()=>{
 /* ========================= CURRICULUM PDF UPLOAD ========================= */
 let curriculumPendingDataUrl = null;
 let curriculumPendingFilename = null;
-let pendingAiMaterial = null;
 
-function fileAsDataUrl(file){
-  return new Promise((resolve,reject)=>{
-    const reader = new FileReader();
-    reader.onload = ()=>resolve(reader.result);
-    reader.onerror = ()=>reject(new Error('Could not read the selected file.'));
-    reader.readAsDataURL(file);
-  });
-}
-
-document.getElementById('aiAnalyzeMaterial').addEventListener('click', async ()=>{
-  const file = document.getElementById('aiMaterialFile').files[0];
-  const code = document.getElementById('aiAccessCode').value.trim();
-  const status = document.getElementById('aiMaterialStatus');
-  document.getElementById('aiSaveMaterial').style.display = 'none';
-  pendingAiMaterial = null;
-  if(!file){ status.textContent = 'Choose a PDF, text file, or worksheet image first.'; return; }
-  if(file.size > 4 * 1024 * 1024){ status.textContent = 'Files must be 4 MB or smaller so the secure AI request can process them.'; return; }
-  if(!code){ status.textContent = 'Enter your AI access code. The code is saved only in this browser.'; return; }
-  if(!sb){ status.textContent = 'Cloud storage is not configured, so AI parsing is unavailable.'; return; }
-  const selectedIds = [...document.querySelectorAll('[data-ai-student]:checked')].map(el=>el.dataset.aiStudent);
-  if(!selectedIds.length){ status.textContent = 'Select at least one student for the worksheet.'; return; }
-  const selectedStudents = state.students.filter(s=>selectedIds.includes(s.id));
-  status.textContent = 'Reading material and building the lesson…';
-  try{
-    const fileDataUrl = await fileAsDataUrl(file);
-    const subject = document.getElementById('aiSubject').value;
-    const mode = document.getElementById('aiMaterialType').value;
-    const {data,error} = await sb.functions.invoke('parse-material', {
-      body:{fileName:file.name, mimeType:file.type, fileDataUrl, subject, mode, grades:[...new Set(selectedStudents.map(s=>s.grade))]},
-      headers:{'x-ai-access-code':code}
-    });
-    if(error) throw new Error(error.message || 'AI parsing failed.');
-    if(data?.error) throw new Error(data.error);
-    pendingAiMaterial = {data,fileDataUrl,fileName:file.name,subject,mode,week:Number(document.getElementById('aiWeek').value),studentIds:selectedIds};
-    const qCount = (data.worksheet?.groups||[]).reduce((n,g)=>n+(g.items||[]).length,0);
-    status.textContent = `Ready: ${data.topic||file.name}${qCount?` · ${qCount} digital questions for ${selectedStudents.map(s=>s.name).join(', ')}`:''}. Review, then save.`;
-    const previewItems=(data.worksheet?.groups||[]).flatMap(g=>(g.items||[]).map(item=>item.prompt||item.statement||item.term||''));
-    const preview=document.getElementById('aiMaterialPreview');
-    preview.innerHTML=`<strong>${esc(data.topic||file.name)}</strong>${data.summary?`<p>${esc(data.summary)}</p>`:''}${previewItems.length?`<ol>${previewItems.slice(0,8).map(q=>`<li>${esc(q)}</li>`).join('')}</ol>`:'<p>No worksheet questions were detected.</p>'}`;
-    preview.style.display='block';
-    document.getElementById('aiSaveMaterial').style.display = 'inline-block';
-  }catch(e){ console.error('AI material parsing failed',e); status.textContent = e.message || 'Could not parse this file.'; }
-});
-
-document.getElementById('aiSaveMaterial').addEventListener('click', async ()=>{
-  if(!pendingAiMaterial) return;
-  const {data,fileDataUrl,fileName,subject,mode,week,studentIds} = pendingAiMaterial;
-  if(!week || week<1){ document.getElementById('aiMaterialStatus').textContent='Enter a valid week number.'; return; }
-  const previous = await getMaterialWeek(subject,week);
-  const lesson = {
-    ...(previous||{}),
-    topic:data.topic || previous?.topic || fileName,
-    summary:data.summary || '',
-    pdfDataUrl:fileDataUrl,
-    pdfFilename:fileName,
-    worksheet:data.worksheet || previous?.worksheet || null,
-    worksheetStudentIds:studentIds
-  };
-  if(subject==='history' && data.blackHistoryMoment) lesson.blackHistoryMoment=data.blackHistoryMoment;
-  const lessonKey=subject==='history' ? historyWeekKey(week) : subject==='science' ? scienceWeekKey(week) : customMaterialWeekKey(subject,week);
-  await storageSet(lessonKey, lesson);
-  if(week===actualWeekForDate(state.schoolDate)){
-    const today = todayContent() || {};
-    state.todayOverride=stampSnap({...today,lesson:JSON.parse(JSON.stringify(lesson)),lessonType:materialSubjectLabel(subject)});
-    state.todayOverride.students=state.todayOverride.students||JSON.parse(JSON.stringify(state.students));
-    state.todayOverride.fieldLabels=state.todayOverride.fieldLabels||JSON.parse(JSON.stringify(state.fieldLabels));
-    await storageSet(dayKey(state.dateStr),state.todayOverride);
-    await loadAndRender();
-  }
-  document.getElementById('aiMaterialStatus').textContent=`Saved Week ${week} ${materialSubjectLabel(subject)} and ${week===actualWeekForDate(state.schoolDate)?'applied it to today.':'added it to the lesson picker.'}`;
-  document.getElementById('aiSaveMaterial').style.display='none';
-  pendingAiMaterial=null;
-  showToast('AI lesson and digital worksheet saved');
-});
 
 function openCurriculumModal(){
   const aw = actualWeekForDate(state.schoolDate);
@@ -4228,6 +4060,15 @@ function showCreateStep1(){
   ['obFamName','obFamCode','obFamPin','obParPin'].forEach(id=>{
     document.getElementById(id).addEventListener('keydown', e=>{ if(e.key==='Enter') obStep1Next(); });
   });
+  /* Auth lockdown: the family code is assigned by invite claim, not chosen.
+     Lock the field when a claimed code is present. */
+  if(window.MM_CLAIMED_CODE){
+    const _cc = document.getElementById('obFamCode');
+    _cc.value = window.MM_CLAIMED_CODE;
+    _cc.disabled = true;
+    obCodeState = { code: window.MM_CLAIMED_CODE, ok: true };
+    document.getElementById('obCodeMsg').innerHTML = '<span class="ob-ok">Your assigned family code — all set.</span>';
+  }
   document.getElementById('obFamName').focus();
 }
 
@@ -4239,6 +4080,11 @@ async function obCheckCode(){
   obCodeState = { code, ok:false };
   if(code === 'master'){ msg.innerHTML = '<span class="ob-err">That code is reserved — pick another one.</span>'; return false; }
   if(!FAM_CODE_RE.test(code)){ msg.innerHTML = '<span class="ob-err">Use 3–24 lowercase letters, numbers, or dashes.</span>'; return false; }
+  /* Auth lockdown: only the claimed invite code may be used. */
+  if(window.MM_CLAIMED_CODE && code !== window.MM_CLAIMED_CODE){
+    msg.innerHTML = '<span class="ob-err">Please use your assigned family code: <b>'+esc(window.MM_CLAIMED_CODE)+'</b></span>';
+    return false;
+  }
   if(!sb){ msg.innerHTML = '<span class="ob-err">We can’t reach the cloud right now — connect to the internet, then check again.</span>'; return false; }
   msg.innerHTML = '<span class="ob-hint">Checking…</span>';
   const taken = await storageGet('mmf:'+code+':pin:family');
@@ -4394,6 +4240,11 @@ function showOpenForm(){
     const code = (document.getElementById('obOpenCode').value||'').trim().toLowerCase();
     err.textContent = '';
     if(!FAM_CODE_RE.test(code)){ err.textContent = 'That doesn’t look like a family code — 3–24 lowercase letters, numbers, or dashes.'; return; }
+    /* Auth lockdown: only the claimed invite code may be opened. */
+    if(window.MM_CLAIMED_CODE && code !== window.MM_CLAIMED_CODE){
+      err.textContent = 'Please use your assigned family code: ' + window.MM_CLAIMED_CODE;
+      return;
+    }
     if(!sb){ err.textContent = 'We can’t reach the cloud right now — check your internet connection and try again.'; return; }
     const btn = document.getElementById('obOpenNext');
     btn.disabled = true; btn.textContent = 'Looking…';
@@ -4475,17 +4326,174 @@ function bootApp(){
    exclusive with this condition. Locked visitors get the PIN screen;
    unlocked sessions boot straight in. PINs load first so a changed
    family PIN applies on the very first try. */
+/* ========================= AUTH GATE (Oct 2026) =========================
+   Supabase Auth + invite-code gate. RLS denies all anonymous access, so:
+     1. No session -> family sign-in screen (email + password).
+     2. Signed in but no family code -> invite-code screen; the code is
+        claimed server-side via claim_family_code() and bound to the account.
+     3. Family code present -> it becomes the ONLY code the onboarding may
+        use (window.MM_CLAIMED_CODE). The space is opened or created under
+        mmf:<code>:, enforced server-side by RLS.
+   Sessions persist in localStorage, so families stay signed in. */
+function mmAuthStyle(){
+  if(document.getElementById('mmAuthStyle')) return;
+  const st = document.createElement('style');
+  st.id = 'mmAuthStyle';
+  st.textContent = [
+    '.mm-auth-card{text-align:center;max-width:440px;margin:10vh auto;}',
+    '.mm-auth-field{text-align:left;max-width:300px;margin:0 auto 12px;}',
+    '.mm-auth-field>label{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}',
+    '.mm-auth-input{width:100%;padding:11px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:15px;box-sizing:border-box;font-family:inherit;}',
+    '.mm-auth-err{display:none;color:#B45309;font-size:13px;margin:0 0 12px;}',
+    '.mm-auth-note{font-size:12px;color:#5A6B84;margin:14px 0 0;}'
+  ].join('\n');
+  document.head.appendChild(st);
+}
+function friendlyAuthError(error){
+  const m = (error && error.message) || 'Sign-in failed. Try again.';
+  if(/invalid login credentials/i.test(m)) return 'Wrong email or password. Try again.';
+  if(/email not confirmed/i.test(m)) return 'Check your email for the confirmation link first, then sign in.';
+  if(/user already registered/i.test(m)) return 'That email already has an account — just sign in.';
+  if(/password/i.test(m) && /short|weak|length/i.test(m)) return 'Use a longer password (at least 6 characters).';
+  return m;
+}
+function showLoginScreen(msg){
+  mmAuthStyle();
+  document.body.classList.add('locked');
+  document.getElementById('board').innerHTML = `
+    <div class="weekend-card mm-auth-card">
+      <div style="font-size:44px;line-height:1;" aria-hidden="true">🏠</div>
+      <h2>Family sign-in</h2>
+      <p style="margin:0 0 18px;">Sign in to open your Micro Mastery space.</p>
+      <div class="mm-auth-field">
+        <label for="mmAuthEmail">Email</label>
+        <input id="mmAuthEmail" class="mm-auth-input" type="email" autocomplete="username" />
+      </div>
+      <div class="mm-auth-field" style="margin-bottom:16px;">
+        <label for="mmAuthPass">Password</label>
+        <input id="mmAuthPass" class="mm-auth-input" type="password" autocomplete="current-password" />
+      </div>
+      <p id="mmAuthErr" class="mm-auth-err"></p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button type="button" class="btn-warmup" id="mmSignInBtn">Sign in</button>
+        <button type="button" class="btn-warmup" id="mmSignUpBtn" style="background:#fff;color:#1B2A4E;border:1.5px solid #1B2A4E;">Create account</button>
+      </div>
+      <p class="mm-auth-note">New here? Create an account — you will enter your family invite code next.</p>
+    </div>`;
+  const emailEl = document.getElementById('mmAuthEmail');
+  const passEl = document.getElementById('mmAuthPass');
+  const errEl = document.getElementById('mmAuthErr');
+  function showErr(m){ errEl.textContent = m; errEl.style.display = 'block'; }
+  async function afterAuth(){ document.body.classList.remove('locked'); startOnboarding(); }
+  document.getElementById('mmSignInBtn').addEventListener('click', async ()=>{
+    errEl.style.display = 'none';
+    const {error} = await sb.auth.signInWithPassword({email: emailEl.value.trim(), password: passEl.value});
+    if(error){ showErr(friendlyAuthError(error)); return; }
+    await afterAuth();
+  });
+  document.getElementById('mmSignUpBtn').addEventListener('click', async ()=>{
+    errEl.style.display = 'none';
+    const {data, error} = await sb.auth.signUp({email: emailEl.value.trim(), password: passEl.value});
+    if(error){ showErr(friendlyAuthError(error)); return; }
+    if(data.session){ await afterAuth(); }
+    else { showErr('Account created! Check your email for the confirmation link, then sign in.'); }
+  });
+  passEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') document.getElementById('mmSignInBtn').click(); });
+  emailEl.focus();
+  if(msg) showErr(msg);
+}
+function showClaimScreen(msg){
+  mmAuthStyle();
+  document.body.classList.add('locked');
+  document.getElementById('board').innerHTML = `
+    <div class="weekend-card mm-auth-card">
+      <div style="font-size:44px;line-height:1;" aria-hidden="true">✉️</div>
+      <h2>Your family invite code</h2>
+      <p style="margin:0 0 18px;">Enter the code Jocelyn gave you — it activates your family’s private space.</p>
+      <div class="mm-auth-field" style="margin-bottom:16px;">
+        <input id="mmClaimCode" class="mm-auth-input" maxlength="24" placeholder="e.g. rivera-family" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" style="font-family:monospace;text-align:center;" />
+      </div>
+      <p id="mmClaimErr" class="mm-auth-err"></p>
+      <button type="button" class="btn-warmup" id="mmClaimBtn" style="width:100%;max-width:300px;">Activate my family</button>
+      <p class="mm-auth-note">One code per family — each code can only be used once.</p>
+    </div>`;
+  const input = document.getElementById('mmClaimCode');
+  const errEl = document.getElementById('mmClaimErr');
+  const btn = document.getElementById('mmClaimBtn');
+  function showErr(m){ errEl.textContent = m; errEl.style.display = 'block'; }
+  async function claim(){
+    errEl.style.display = 'none';
+    const code = (input.value||'').trim().toLowerCase();
+    if(!/^[a-z0-9-]{3,24}$/.test(code)){ showErr('That doesn’t look like a family code — 3–24 lowercase letters, numbers, or dashes.'); return; }
+    btn.disabled = true; btn.textContent = 'Activating…';
+    try{
+      const {data, error} = await sb.rpc('claim_family_code', {p_code: code});
+      if(error) throw error;
+      window.MM_CLAIMED_CODE = data;
+      document.body.classList.remove('locked');
+      startOnboarding();
+    }catch(e){
+      console.error('claim failed', e);
+      showErr((e && e.message) || 'That code didn’t work — check the spelling and try again.');
+      btn.disabled = false; btn.textContent = 'Activate my family';
+    }
+  }
+  btn.addEventListener('click', claim);
+  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') claim(); });
+  input.focus();
+  if(msg) showErr(msg);
+}
+function addSignOutButton(){
+  if(document.getElementById('mmSignOutBtn')) return;
+  const b = document.createElement('button');
+  b.id = 'mmSignOutBtn'; b.type = 'button'; b.textContent = 'Sign out';
+  b.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:60;font-size:12px;padding:8px 12px;border-radius:8px;border:1px solid #CBD5E1;background:#fff;color:#5A6B84;cursor:pointer;';
+  b.addEventListener('click', async ()=>{
+    try{ sessionStorage.clear(); }catch(e){}
+    try{ await sb.auth.signOut(); }catch(e){}
+    showLoginScreen();
+  });
+  document.body.appendChild(b);
+}
 async function startOnboarding(){
-  let saved = null;
-  try{ saved = sessionStorage.getItem(FAM_SESSION_KEY); }catch(e){}
-  if(isUnlocked() && saved && saved.indexOf('mmf:')===0 && FAM_CODE_RE.test(saved.slice(4))){
-    FAM = saved;
-    await loadPins();
-    bootApp();
+  if(typeof supabase === 'undefined' || !sb){
+    document.getElementById('board').innerHTML = `<div class="weekend-card"><h2>Couldn't load the cloud library</h2><p style="margin-bottom:16px;">The page couldn't reach its cloud connection. Check your internet connection, then try again.</p><button type="button" class="btn-warmup" onclick="location.reload()">Try again</button></div>`;
     return;
   }
-  showWelcomeScreen();
+  addSignOutButton();
+  if(!window.MM_AUTH_LISTENER){
+    window.MM_AUTH_LISTENER = true;
+    sb.auth.onAuthStateChange((event)=>{
+      if(event === 'SIGNED_OUT'){ try{ sessionStorage.clear(); }catch(e){} showLoginScreen(); }
+    });
+  }
+  let session = null;
+  try{ session = (await sb.auth.getSession()).data.session; }catch(e){ console.error('auth session check failed', e); }
+  if(!session){ showLoginScreen(); return; }
+  let code = null;
+  try{
+    const r = await sb.rpc('my_family_code');
+    if(r.error) throw r.error;
+    code = (r.data || '').trim().toLowerCase() || null;
+  }catch(e){
+    console.error('family code lookup failed', e);
+    showClaimScreen('We couldn’t reach the cloud — check your connection and try again.');
+    return;
+  }
+  if(!code){ showClaimScreen(); return; }
+  window.MM_CLAIMED_CODE = code;
+  setFam(code);
+  let hasSpace = false;
+  try{ hasSpace = !!(await storageGet(pinFamilyKey())); }catch(e){ console.error('space check failed', e); }
+  if(!hasSpace){ showCreateStep1(); return; }
+  let saved = null;
+  try{ saved = sessionStorage.getItem(FAM_SESSION_KEY); }catch(e){}
+  await loadPins();
+  if(isUnlocked() && saved === 'mmf:'+code){ bootApp(); return; }
+  try{ OB_FAM_NAME = (await storageGet(famKey('family-name'))) || ''; }catch(e){}
+  showLockScreen();
 }
+
 </script>
 </body>
 </html>
