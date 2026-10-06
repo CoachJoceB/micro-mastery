@@ -178,7 +178,17 @@
   }
   .modal-overlay.open{display:flex;}
   .modal{background:var(--chalk);border-radius:16px;max-width:780px;width:100%;padding:26px 26px 22px;margin:auto;}
-  .modal.wide{max-width:980px;}
+  .modal.wide{max-width:1120px;}
+  /* Worksheet modal: side-by-side reading + questions on wide screens,
+     stacked on narrow. */
+  .ws-cols{display:block;}
+  #worksheetReading{margin-bottom:12px;}
+  @media (min-width:900px){
+    .ws-cols{display:grid;grid-template-columns:minmax(280px,5fr) minmax(0,7fr);gap:14px;align-items:start;}
+    #worksheetReading{position:sticky;top:0;max-height:72vh;overflow-y:auto;margin-bottom:0;}
+  }
+  /* Fill-in-the-blank word bank: struck-through terms are used up. */
+  .wb-used{text-decoration:line-through;opacity:.45;}
   .modal h3{font-family:'Oswald',sans-serif;text-transform:uppercase;margin:0 0 4px;font-size:22px;}
   .modal .sub{color:var(--ink-soft);font-size:13px;margin-bottom:18px;}
   .modal label{display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin:12px 0 4px;}
@@ -389,7 +399,7 @@
       <div class="sub" style="margin-top:8px;margin-bottom:0;">Days switch over at midnight in this timezone, and the buzzer countdown runs on it too — the same for every device, no matter where it's opened.</div>
       <hr class="divider">
       <h3 style="font-size:20px;">Worksheet Self-Check</h3>
-      <div class="sub">How many tries each student gets on a worksheet section before their answers lock in.</div>
+      <div class="sub">How many tries each student gets on a worksheet section before the answers are revealed and lock in.</div>
       <label>Number of tries per section</label>
       <input type="number" id="maxTriesInput" min="1" max="5" step="1" style="font-family:'Oswald',sans-serif;font-size:18px;padding:10px;width:110px;">
       <hr class="divider">
@@ -534,9 +544,11 @@
   <div class="modal wide">
     <h3 id="worksheetTitle">Worksheet</h3>
     <div class="sub" id="worksheetSub">Answers autosave as you go.</div>
-    <div id="worksheetReading" class="card" style="display:none;margin-bottom:12px;"></div>
     <div class="modal-tabs" id="worksheetStudentTabs"></div>
-    <div id="worksheetFormArea"></div>
+    <div class="ws-cols">
+      <div id="worksheetReading" class="card" style="display:none;"></div>
+      <div id="worksheetFormArea"></div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" data-close>Close</button>
     </div>
@@ -569,9 +581,10 @@ function defaultBuzzerTime(){ return {hour:14, minute:30}; } // 2:30 PM
 
 function timezoneKey(){ return famKey('timezone-setting'); }
 function defaultTimezone(){ return 'America/Chicago'; } // Pensacola, FL
-// Worksheet self-check: how many tries each section allows before locking.
+// Worksheet self-check: how many tries each section allows before the
+// answers are revealed and lock in.
 function maxTriesKey(){ return famKey('worksheet-max-tries'); }
-function defaultMaxTries(){ return 2; }
+function defaultMaxTries(){ return 3; }
 function wsMaxTries(){
   const n = parseInt(state.maxTries, 10);
   return (n >= 1 && n <= 5) ? n : defaultMaxTries();
@@ -579,6 +592,11 @@ function wsMaxTries(){
 function wsTriesUsedText(){
   const m = wsMaxTries();
   return (m === 2 ? 'Both' : 'All ' + m) + (m === 1 ? ' try' : ' tries') + ' used — answers are locked in.';
+}
+function wsOrdinal(n){
+  n = parseInt(n, 10) || 0;
+  const s = ['th','st','nd','rd'], v = n % 100;
+  return n + (s[(v-20)%10] || s[v] || s[0]);
 }
 function subjectOrderKey(studentId){ return famKey('subject-order:'+studentId); }
 const TIMEZONE_OPTIONS = [
@@ -2685,7 +2703,7 @@ function renderWorksheetFormHTML(entry, checks){
     const instr = (isLight && g.instructionsLight) ? g.instructionsLight : (g.instructions||('Part '+(gi+1)));
     const head = `<div class="mini-lbl" style="margin-top:0;">${highlightKeyInfo(esc(instr))}</div>`
       + (g.subtitle ? `<p style="font-size:12.5px;color:var(--ink-soft);margin:4px 0 8px;">${esc(g.subtitle)}</p>` : '')
-      + (g.wordBank ? `<div style="margin:8px 0 12px;padding:10px 12px;background:#fff;border:2px solid var(--orange);border-radius:10px;"><div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:6px;">📚 WORD BANK — use these words below</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${g.wordBank.map(w=>`<span style="font-size:12.5px;font-weight:600;background:var(--bg-soft,#f4f1ea);border:1px solid var(--line-light);border-radius:12px;padding:3px 12px;">${esc(w)}</span>`).join('')}</div></div>` : '');
+      + (g.wordBank ? `<div data-wswordbank style="margin:8px 0 12px;padding:10px 12px;background:#fff;border:2px solid var(--orange);border-radius:10px;"><div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:6px;">📚 WORD BANK — use these words below</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${g.wordBank.map(w=>`<span data-wbterm="${escAttr(String(w).trim().toLowerCase())}" style="font-size:12.5px;font-weight:600;background:var(--bg-soft,#f4f1ea);border:1px solid var(--line-light);border-radius:12px;padding:3px 12px;">${esc(w)}</span>`).join('')}</div></div>` : '');
     let body = '';
     if(g.type==='checklist'){
       // Light students may get reworded plan items (data: g.itemsLight).
@@ -2850,6 +2868,42 @@ function wsClearMark(container, itemId, entry, checks, studentId){
   wsUpdateProgress(container, worksheet, entry, checks);
 }
 
+/* Auto-scroll the reading pane to the paragraph most relevant to the group
+   just checked, so the student does not have to scroll back up to find the
+   answer. Scroll only — no highlight or flash on the target paragraph. */
+function wsScrollReadingToGroup(container, g){
+  const readingEl = document.getElementById('worksheetReading');
+  if(!readingEl || readingEl.style.display === 'none') return;
+  const STOP = new Set(['which','what','where','when','these','those','their','about','would','could','should','there','them','then','than','that','with','from']);
+  const keywords = [];
+  (g.items||[]).forEach(it=>{
+    String(it.text||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/)
+      .forEach(w=>{ if(w.length>=5 && !STOP.has(w) && !keywords.includes(w)) keywords.push(w); });
+  });
+  const paras = readingEl.querySelectorAll('p[data-wspar]');
+  // Best-match: the paragraph containing the most keywords wins (ties go
+  // to the earliest), so generic words like "world" don't pull the pane
+  // to an unrelated early paragraph.
+  let target = null, bestHits = 0;
+  for(const p of paras){
+    const t = p.textContent.toLowerCase();
+    const hits = keywords.reduce((n,k)=> n + (t.includes(k) ? 1 : 0), 0);
+    if(hits > bestHits){ bestHits = hits; target = p; }
+  }
+  const wide = window.matchMedia && window.matchMedia('(min-width:900px)').matches;
+  if(target){
+    if(wide){
+      // Sticky pane: scroll inside it so the questions stay put.
+      const top = target.offsetTop - readingEl.clientHeight/2 + target.clientHeight/2;
+      readingEl.scrollTo({top: Math.max(0, top), behavior:'smooth'});
+    } else {
+      target.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+  } else if(wide){
+    readingEl.scrollTo({top: 0, behavior:'smooth'});
+  }
+}
+
 // Matching: cross used letters off the word bank as kids type them. Scoped
 // per section (data-wsgroup) so two matching sections never share cross-offs.
 function wsRefreshMatchBanks(container){
@@ -2865,6 +2919,24 @@ function wsRefreshMatchBanks(container){
       opt.style.textDecoration = on ? 'line-through' : '';
       opt.style.opacity = on ? '0.45' : '';
     });
+  });
+}
+
+// Fill-in-the-blank: strike through word-bank terms as kids type them into
+// blanks, so used-up terms are visible at a glance. Scoped per section
+// (data-wsgroup) so two word banks never share cross-offs. Case-insensitive,
+// trimmed; empty blanks never count as used.
+function wsRefreshWordBank(groupEl){
+  if(!groupEl) return;
+  const bank = groupEl.querySelector('[data-wswordbank]');
+  if(!bank) return;
+  const used = {};
+  groupEl.querySelectorAll('input[type="text"][data-wsfield]').forEach(inp=>{
+    const v = (inp.value||'').trim().toLowerCase();
+    if(v) used[v] = true;
+  });
+  bank.querySelectorAll('[data-wbterm]').forEach(chip=>{
+    chip.classList.toggle('wb-used', !!used[chip.getAttribute('data-wbterm')||'']);
   });
 }
 function wsRunGroupCheck(container, studentId, gi){
@@ -2901,10 +2973,18 @@ function wsRunGroupCheck(container, studentId, gi){
     else if(res==='ok'){ okCount++; checks[it.id]='ok'; wsMarkHTML(it.id,'ok'); wsNoteHTML(it.id,'<span style="color:var(--green);">✓ Nice.</span>'); }
     else {
       badCount++; checks[it.id]='bad'; wsMarkHTML(it.id,'bad');
-      let fb = '<span style="color:var(--red);">✗ The answer is: <strong>'+esc(wsCorrectText(g,it))+'</strong></span>';
-      if(g.type==='truefalse' && it.correction) fb += '<div style="color:var(--ink-soft);margin-top:2px;">'+esc(it.correction)+'</div>';
-      else if(g.type==='truefalse' && it.note) fb += '<div style="color:var(--ink-soft);margin-top:2px;">'+esc(it.note)+'</div>';
-      else if(it.note && g.type!=='truefalse') fb += '<div style="color:var(--ink-soft);margin-top:2px;">'+esc(it.note)+'</div>';
+      let fb;
+      if(finalTry){
+        // Last try: reveal the correct answer, then lock the section below.
+        fb = '<span style="color:var(--red);">✗ The answer is: <strong>'+esc(wsCorrectText(g,it))+'</strong></span>';
+        if(g.type==='truefalse' && it.correction) fb += '<div style="color:var(--ink-soft);margin-top:2px;">'+esc(it.correction)+'</div>';
+        else if(g.type==='truefalse' && it.note) fb += '<div style="color:var(--ink-soft);margin-top:2px;">'+esc(it.note)+'</div>';
+        else if(it.note && g.type!=='truefalse') fb += '<div style="color:var(--ink-soft);margin-top:2px;">'+esc(it.note)+'</div>';
+      } else {
+        // Tries remain: mark it wrong but keep the answer hidden so the
+        // student can try again. Inputs stay enabled (locked on finalTry only).
+        fb = '<span style="color:var(--red);">✗ Not quite. Try again.</span>';
+      }
       wsNoteHTML(it.id, fb);
     }
   });
@@ -2923,8 +3003,11 @@ function wsRunGroupCheck(container, studentId, gi){
     } else {
       let msg = 'You got <strong>'+okCount+' of '+total+'</strong> right.';
       if(skipCount) msg += ' ' + skipCount + ' still blank.';
-      if(finalTry) msg += ' <strong>That was your 2nd try</strong> — the answers above are locked in. Study them and move on.';
-      else if(badCount) msg += ' Fix the ✗ ones and check again — 1 try left.';
+      if(finalTry) msg += ' <strong>That was your '+wsOrdinal(attemptsUsed)+' try</strong> — the answers above are locked in. Study them and move on.';
+      else if(badCount){
+        const triesLeft = maxTries - attemptsUsed;
+        msg += ' Fix the ✗ ones and check again — ' + triesLeft + (triesLeft === 1 ? ' try' : ' tries') + ' left.';
+      }
       resEl.innerHTML = msg;
     }
   }
@@ -2936,6 +3019,7 @@ function wsRunGroupCheck(container, studentId, gi){
     if(btn) btn.outerHTML = '<div style="font-size:12.5px;margin-top:8px;color:var(--ink-soft);font-weight:700;">' + wsTriesUsedText() + '</div>';
   }
   wsUpdateProgress(container, worksheet, entry, checks);
+  wsScrollReadingToGroup(container, g);
 }
 
 function wireWorksheetFormInputs(container, studentId){
@@ -2975,7 +3059,11 @@ function wireWorksheetFormInputs(container, studentId){
   // (sequence-guarded: an edit that predates the latest check never wipes it)
   container.querySelectorAll('[data-wsfield]').forEach(el=>{
     if(el.type==='checkbox') return; // handled above
-    el.addEventListener('input', ()=>{ if(el.hasAttribute('data-wsmatchletter')) wsRefreshMatchBanks(container); });
+    el.addEventListener('input', ()=>{
+      if(el.hasAttribute('data-wsmatchletter')) wsRefreshMatchBanks(container);
+      const ge = el.closest('[data-wsgroup]');
+      if(ge) wsRefreshWordBank(ge);
+    });
     el.addEventListener('change', async ()=>{
       const editSeq = ++wsSeq;
       const itemId = el.dataset.wsitem;
@@ -3043,6 +3131,8 @@ function wireWorksheetFormInputs(container, studentId){
 
   // Restore matching word-bank cross-offs from saved answers on open.
   wsRefreshMatchBanks(container);
+  // Restore fill-in-the-blank word-bank strike-throughs from saved answers.
+  container.querySelectorAll('[data-wsgroup]').forEach(wsRefreshWordBank);
 }
 
 /* Split a lesson reading into { text, vocab[] }: the source readings end with
@@ -3066,7 +3156,7 @@ function highlightKeyTerms(escapedHTML, terms){
   const sorted = terms.filter(Boolean).sort((a,b)=>b.length-a.length);
   if(!sorted.length) return escapedHTML;
   const rx = new RegExp('\\b(' + sorted.map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|') + ')\\b', 'gi');
-  return escapedHTML.replace(rx, '<mark style="background:#fff3c4;border-radius:3px;padding:0 2px;font-weight:700;">$1</mark>');
+  return escapedHTML.replace(rx, '<strong>$1</strong>');
 }
 
 /* Read-to-me for the lesson reading (Web Speech API). Toggles speak/stop. */
@@ -3090,29 +3180,31 @@ function wsToggleReadAloud(btn, plainText){
 }
 window.wsToggleReadAloud = wsToggleReadAloud;
 
-/* Key-information highlighting for ADHD-friendly reading: ==text== in the
-   source becomes a soft green highlight. Works in both Full and Light mode.
-   The span content may already contain the yellow vocab <mark> HTML (which
-   includes "=" in style="..."), so the body class must allow "=" — pairs
-   are sequential and non-interleaved by authorship. */
+/* Key-information emphasis for ADHD-friendly reading: ==text== in the
+   source becomes bold. Works in both Full and Light mode. */
 function highlightKeyInfo(escapedHTML){
-  return String(escapedHTML).replace(/==([\s\S]+?)==/g,
-    '<mark style="background:#d9f0e0;border-radius:3px;padding:0 2px;font-weight:700;">$1</mark>');
+  return String(escapedHTML).replace(/==([\s\S]+?)==/g, '<strong>$1</strong>');
 }
 /* Strip == key markers for plain-text uses (read-aloud, archive fallback). */
 function stripKeyInfo(text){ return String(text||'').replace(/==/g,''); }
 
-/* Build the reading card HTML. useLight picks dayPart.readingLight when present. */
+/* Build the reading card HTML. useLight picks dayPart.readingLight when present.
+   The reading is split into paragraphs (data-wspar) so the worksheet can
+   auto-scroll the pane to the paragraph relevant to each question group. */
 function worksheetReadingHTML(dayPart, useLight, forceDayNum){
   if(!dayPart || !dayPart.reading) return '';
   const src = (useLight && dayPart.readingLight) ? dayPart.readingLight : dayPart.reading;
   const parsed = parseReadingVocab(src);
   const terms = parsed.vocab.map(v=>v.term);
-  const highlighted = highlightKeyInfo(highlightKeyTerms(esc(parsed.text), terms));
+  const paras = String(parsed.text).split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
+  const paraHTML = paras.map((p,i)=>{
+    const highlighted = highlightKeyInfo(highlightKeyTerms(esc(p), terms));
+    return `<p data-wspar="${i}" style="margin:0 0 10px;white-space:pre-wrap;">${highlighted}</p>`;
+  }).join('');
   const readBtnId = 'wsReadAloud';
   let html = `<div class="word-badge">${forceDayNum ? 'Before you start' : "Today's Reading"}</div>
       <div style="margin-top:8px;"><button type="button" class="btn btn-ghost" id="${readBtnId}" style="font-size:12.5px;padding:6px 14px;">&#128266; Read to me</button></div>
-      <div style="font-size:13.5px;line-height:1.6;margin-top:8px;white-space:pre-wrap;">${highlighted}</div>`;
+      <div style="font-size:13.5px;line-height:1.6;margin-top:8px;">${paraHTML}</div>`;
   if(parsed.vocab.length){
     html += `<div style="margin-top:12px;padding:10px 12px;background:#fff;border:2px solid var(--green);border-radius:10px;">
         <div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:8px;">&#128214; NEW WORDS — learn these</div>
