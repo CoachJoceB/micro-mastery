@@ -4354,6 +4354,7 @@ function friendlyAuthError(error){
   if(/invalid login credentials/i.test(m)) return 'Wrong email or password. Try again.';
   if(/email not confirmed/i.test(m)) return 'Check your email for the confirmation link first, then sign in.';
   if(/user already registered/i.test(m)) return 'That email already has an account — just sign in.';
+  if(/anonymous sign/i.test(m)) return 'Enter your email and password first.';
   if(/password/i.test(m) && /short|weak|length/i.test(m)) return 'Use a longer password (at least 6 characters).';
   return m;
 }
@@ -4387,13 +4388,17 @@ function showLoginScreen(msg){
   async function afterAuth(){ document.body.classList.remove('locked'); startOnboarding(); }
   document.getElementById('mmSignInBtn').addEventListener('click', async ()=>{
     errEl.style.display = 'none';
-    const {error} = await sb.auth.signInWithPassword({email: emailEl.value.trim(), password: passEl.value});
+    const email = emailEl.value.trim(), pass = passEl.value;
+    if(!email || !pass){ showErr('Enter your email and password first.'); (!email ? emailEl : passEl).focus(); return; }
+    const {error} = await sb.auth.signInWithPassword({email, password: pass});
     if(error){ showErr(friendlyAuthError(error)); return; }
     await afterAuth();
   });
   document.getElementById('mmSignUpBtn').addEventListener('click', async ()=>{
     errEl.style.display = 'none';
-    const {data, error} = await sb.auth.signUp({email: emailEl.value.trim(), password: passEl.value});
+    const email = emailEl.value.trim(), pass = passEl.value;
+    if(!email || !pass){ showErr('Enter your email and choose a password first.'); (!email ? emailEl : passEl).focus(); return; }
+    const {data, error} = await sb.auth.signUp({email, password: pass});
     if(error){ showErr(friendlyAuthError(error)); return; }
     if(data.session){ await afterAuth(); }
     else { showErr('Account created! Check your email for the confirmation link, then sign in.'); }
