@@ -187,6 +187,11 @@
     .ws-cols{display:grid;grid-template-columns:minmax(280px,5fr) minmax(0,7fr);gap:14px;align-items:start;}
     #worksheetReading{position:sticky;top:0;max-height:72vh;overflow-y:auto;margin-bottom:0;}
   }
+  /* Worksheet utility bar: new words + progress + today's plan, moved to the
+     top of the modal and sticky while scrolling. In-flow (never a fixed
+     overlay) so it can never cover readable text. */
+  #wsUtilBar{position:sticky;top:0;z-index:20;background:var(--chalk);padding:10px 2px 12px;margin-bottom:12px;border-bottom:2px solid var(--line-light);}
+  #wsUtilBody.collapsed{display:none;}
   /* Fill-in-the-blank word bank: struck-through terms are used up. */
   .wb-used{text-decoration:line-through;opacity:.45;}
   .modal h3{font-family:'Oswald',sans-serif;text-transform:uppercase;margin:0 0 4px;font-size:22px;}
@@ -545,6 +550,17 @@
     <h3 id="worksheetTitle">Worksheet</h3>
     <div class="sub" id="worksheetSub">Answers autosave as you go.</div>
     <div class="modal-tabs" id="worksheetStudentTabs"></div>
+    <div id="wsUtilBar" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+        <div class="mini-lbl" style="margin:0;">&#128218; New words &middot; Progress &middot; Today&rsquo;s plan</div>
+        <button type="button" id="wsUtilToggle" class="btn btn-ghost" style="font-size:12px;padding:5px 14px;">Hide</button>
+      </div>
+      <div id="wsUtilBody">
+        <div id="wsUtilVocab" style="margin-bottom:10px;"></div>
+        <div id="wsUtilProgress" style="margin-bottom:10px;"></div>
+        <div id="wsUtilPlan"></div>
+      </div>
+    </div>
     <div class="ws-cols">
       <div id="worksheetReading" class="card" style="display:none;"></div>
       <div id="worksheetFormArea"></div>
@@ -2827,13 +2843,22 @@ function renderWorksheetFormHTML(entry, checks){
            <div data-wsresult="${gi}" style="font-size:12.5px;margin-top:8px;"></div>`) : '';
     return `<div class="card" data-wsgroup="${gi}" style="margin-bottom:10px;background:${altBg};">${head}${body}${checkBtn}</div>`;
   };
-  let groupsHTML = coreIdx.map(renderGroupCard).join('');
-  if(bonusIdx.length){
-    groupsHTML += `<details class="card" style="margin-bottom:10px;background:#fff8ec;border:2px dashed var(--orange);">`
+  // The "today's plan" checklist moves to the floating utility bar at the top
+  // of the modal. Pull it out of the question flow here (original group
+  // indices are preserved so saved answers keep working).
+  const isPlanGroup = (g)=> g.type==='checklist' && /today's plan/i.test(g.instructions||'');
+  const planIdx = [];
+  const keepCore = coreIdx.filter(gi=>{ if(isPlanGroup(worksheet.groups[gi])){ planIdx.push(gi); return false; } return true; });
+  const keepBonus = bonusIdx.filter(gi=>{ if(isPlanGroup(worksheet.groups[gi])){ planIdx.push(gi); return false; } return true; });
+  const planHTML = planIdx.map(renderGroupCard).join('');
+  let restHTML = keepCore.map(renderGroupCard).join('');
+  if(keepBonus.length){
+    restHTML += `<details class="card" style="margin-bottom:10px;background:#fff8ec;border:2px dashed var(--orange);">`
       + `<summary style="cursor:pointer;font-weight:700;font-size:14px;list-style:none;">⭐ Bonus — optional extra practice <span style="font-weight:400;color:var(--ink-soft);font-size:12px;">(tap to open; not required)</span></summary>`
-      + `<div style="margin-top:10px;">${bonusIdx.map(renderGroupCard).join('')}</div></details>`;
+      + `<div style="margin-top:10px;">${keepBonus.map(renderGroupCard).join('')}</div></details>`;
   }
-  return progressHTML + groupsHTML + bhmWorksheetSection();
+  restHTML += bhmWorksheetSection();
+  return { progressHTML, planHTML, groupsHTML: restHTML };
 
   // Black History Connection + reflection: the last section of the worksheet,
   // per student (the reflection autosaves with the rest of the worksheet answers).
@@ -2903,6 +2928,33 @@ function wsScrollReadingToGroup(container, g){
     readingEl.scrollTo({top: 0, behavior:'smooth'});
   }
 }
+
+// Floating utility bar: collapse/expand, and keep the sticky reading pane
+// from sliding under the bar on wide screens. The bar is in-flow (sticky,
+// never fixed) so it can never cover readable text.
+function wsSetUtilCollapsed(collapsed){
+  const body = document.getElementById('wsUtilBody');
+  const btn = document.getElementById('wsUtilToggle');
+  if(!body || !btn) return;
+  body.classList.toggle('collapsed', !!collapsed);
+  btn.textContent = collapsed ? 'Show tools' : 'Hide tools';
+  wsSyncStickyOffsets();
+}
+function wsSyncStickyOffsets(){
+  const bar = document.getElementById('wsUtilBar');
+  const reading = document.getElementById('worksheetReading');
+  if(!bar || !reading) return;
+  const wide = window.matchMedia && window.matchMedia('(min-width:900px)').matches;
+  if(wide && bar.style.display !== 'none' && reading.style.display !== 'none'){
+    reading.style.top = bar.offsetHeight + 'px';
+  } else {
+    reading.style.top = '';
+  }
+}
+document.getElementById('wsUtilToggle').addEventListener('click', ()=>{
+  wsSetUtilCollapsed(!document.getElementById('wsUtilBody').classList.contains('collapsed'));
+});
+window.addEventListener('resize', wsSyncStickyOffsets);
 
 // Matching: cross used letters off the word bank as kids type them. Scoped
 // per section (data-wsgroup) so two matching sections never share cross-offs.
@@ -3188,9 +3240,23 @@ function highlightKeyInfo(escapedHTML){
 /* Strip == key markers for plain-text uses (read-aloud, archive fallback). */
 function stripKeyInfo(text){ return String(text||'').replace(/==/g,''); }
 
+/* New-words box for the floating utility bar (moved out of the reading card
+   so it stays visible while scrolling). */
+function worksheetVocabBoxHTML(dayPart, useLight){
+  if(!dayPart || !dayPart.reading) return '';
+  const src = (useLight && dayPart.readingLight) ? dayPart.readingLight : dayPart.reading;
+  const parsed = parseReadingVocab(src);
+  if(!parsed.vocab.length) return '';
+  return `<div style="padding:10px 12px;background:#fff;border:2px solid var(--green);border-radius:10px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:8px;">&#128214; NEW WORDS — learn these</div>
+      ${parsed.vocab.map(v=>`<div style="font-size:13px;line-height:1.5;margin-bottom:6px;"><strong style="color:var(--green);">${esc(v.term)}</strong> — ${esc(v.def)}</div>`).join('')}
+    </div>`;
+}
+
 /* Build the reading card HTML. useLight picks dayPart.readingLight when present.
    The reading is split into paragraphs (data-wspar) so the worksheet can
-   auto-scroll the pane to the paragraph relevant to each question group. */
+   auto-scroll the pane to the paragraph relevant to each question group.
+   (The new-words box now lives in the floating utility bar, not here.) */
 function worksheetReadingHTML(dayPart, useLight, forceDayNum){
   if(!dayPart || !dayPart.reading) return '';
   const src = (useLight && dayPart.readingLight) ? dayPart.readingLight : dayPart.reading;
@@ -3205,12 +3271,6 @@ function worksheetReadingHTML(dayPart, useLight, forceDayNum){
   let html = `<div class="word-badge">${forceDayNum ? 'Before you start' : "Today's Reading"}</div>
       <div style="margin-top:8px;"><button type="button" class="btn btn-ghost" id="${readBtnId}" style="font-size:12.5px;padding:6px 14px;">&#128266; Read to me</button></div>
       <div style="font-size:13.5px;line-height:1.6;margin-top:8px;">${paraHTML}</div>`;
-  if(parsed.vocab.length){
-    html += `<div style="margin-top:12px;padding:10px 12px;background:#fff;border:2px solid var(--green);border-radius:10px;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:8px;">&#128214; NEW WORDS — learn these</div>
-        ${parsed.vocab.map(v=>`<div style="font-size:13px;line-height:1.5;margin-bottom:6px;"><strong style="color:var(--green);">${esc(v.term)}</strong> — ${esc(v.def)}</div>`).join('')}
-      </div>`;
-  }
   // Wire the read-aloud button after insert (plain text, vocab included).
   setTimeout(()=>{
     const btn = document.getElementById(readBtnId);
@@ -3245,9 +3305,12 @@ async function openWorksheetModal(subject, lesson, preferredStudentId, weekdayNu
   // day-part provides one. (Key-info == markers render in both modes.)
   const paintReading = (studentId)=>{
     const st = state.students.find(s=>s.id===studentId);
-    const html = worksheetReadingHTML(dayPart, !!st && st.lessonSize==='light', forceDayNum);
+    const useLight = !!st && st.lessonSize==='light';
+    const html = worksheetReadingHTML(dayPart, useLight, forceDayNum);
     if(html){ readingEl.style.display = 'block'; readingEl.innerHTML = html; }
     else { readingEl.style.display = 'none'; readingEl.innerHTML = ''; }
+    // New words live in the floating utility bar now (per-student vocab).
+    document.getElementById('wsUtilVocab').innerHTML = worksheetVocabBoxHTML(dayPart, useLight);
   };
   // The Black History Connection + reflection now live inside the per-student
   // worksheet form (below), not in the shared reading area.
@@ -3273,8 +3336,18 @@ async function openWorksheetModal(subject, lesson, preferredStudentId, weekdayNu
     paintReading(id);
     tabsWrap.querySelectorAll('.modal-tab').forEach(t=>t.classList.toggle('active', t.dataset.wstab===id));
     const formArea = document.getElementById('worksheetFormArea');
-    formArea.innerHTML = renderWorksheetFormHTML(worksheetCache[id], wsChecksCache[id]);
-    wireWorksheetFormInputs(formArea, id);
+    const parts = renderWorksheetFormHTML(worksheetCache[id], wsChecksCache[id]);
+    // Utility bar: progress + today's plan float at the top while scrolling.
+    document.getElementById('wsUtilProgress').innerHTML = parts.progressHTML;
+    document.getElementById('wsUtilPlan').innerHTML = parts.planHTML;
+    document.getElementById('wsUtilBar').style.display = 'block';
+    // Collapsed by default on narrow screens where space is tight.
+    wsSetUtilCollapsed(window.innerWidth < 900);
+    formArea.innerHTML = parts.groupsHTML;
+    // Wire against the whole modal so the utility-bar checklist and progress
+    // stay connected to the same handlers.
+    wireWorksheetFormInputs(document.querySelector('#worksheetOverlay .modal'), id);
+    wsSyncStickyOffsets();
   }
   tabsWrap.querySelectorAll('.modal-tab').forEach(t=>{ t.addEventListener('click', ()=> showStudent(t.dataset.wstab)); });
   showStudent(defaultId);
