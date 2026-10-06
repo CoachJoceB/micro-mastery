@@ -309,6 +309,8 @@
   .btn-warmup{background:var(--orange);color:#fff;border:none;border-radius:9px;padding:11px 20px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;}
   .btn-warmup:hover{background:var(--orange-deep);}
   .warmup-row{max-width:1400px;margin:0 auto 20px;display:flex;justify-content:center;}
+  .warmup-flash{animation:warmupFlash 1.6s ease-out;}
+  @keyframes warmupFlash{0%{box-shadow:0 0 0 0 rgba(232,98,42,.0);}25%{box-shadow:0 0 0 5px rgba(232,98,42,.55);}100%{box-shadow:0 0 0 0 rgba(232,98,42,0);}}
   .student-progress{padding:10px 14px 2px;}
   .sp-count{font-size:12.5px;color:var(--ink-soft);font-weight:600;}
   .sp-count b{color:var(--orange-deep);font-size:16px;}
@@ -369,13 +371,13 @@
 <div class="modal-overlay" id="settingsOverlay">
   <div class="modal wide">
     <h3>Settings</h3>
-    <div class="modal-tabs" id="settingsTabs">
-      <div class="modal-tab active" data-settingstab="day">Day Settings</div>
-      <div class="modal-tab" data-settingstab="students">Students</div>
-      <div class="modal-tab" data-settingstab="curriculum">Curriculum</div>
-      <div class="modal-tab" data-settingstab="grading">Grading</div>
-      <div class="modal-tab" data-settingstab="plan">4-Week Plan</div>
-      <div class="modal-tab" data-settingstab="pins">PINs</div>
+    <div class="modal-tabs" id="settingsTabs" role="tablist" aria-label="Settings sections">
+      <div class="modal-tab active" role="tab" tabindex="0" aria-selected="true" data-settingstab="day">Day Settings</div>
+      <div class="modal-tab" role="tab" tabindex="0" aria-selected="false" data-settingstab="students">Students</div>
+      <div class="modal-tab" role="tab" tabindex="0" aria-selected="false" data-settingstab="curriculum">Curriculum</div>
+      <div class="modal-tab" role="tab" tabindex="0" aria-selected="false" data-settingstab="grading">Grading</div>
+      <div class="modal-tab" role="tab" tabindex="0" aria-selected="false" data-settingstab="plan">4-Week Plan</div>
+      <div class="modal-tab" role="tab" tabindex="0" aria-selected="false" data-settingstab="pins">PINs</div>
     </div>
 
     <div class="settings-panel" data-settingspanel="day">
@@ -541,7 +543,7 @@
   </div>
 </div>
 
-<div class="save-toast" id="toast">Saved</div>
+<div class="save-toast" id="toast">All changes saved</div>
 
 
 <!-- PIN DIALOG -->
@@ -591,8 +593,8 @@ const TIMEZONE_OPTIONS = [
 ];
 
 function defaultFieldLabels(){
-  return { addr1:"Home Address", addr2:"Mom's Address", addr3:"Dad's Address",
-           phone1:'Guardian', phone2:'Mom', phone3:'Dad', phone4:'My Phone' };
+  return { addr1:"Home Address", addr2:"Parent/Guardian 1 Address", addr3:"Parent/Guardian 2 Address",
+           phone1:'Guardian', phone2:'Parent/Guardian 1', phone3:'Parent/Guardian 2', phone4:'My Phone' };
 }
 function defaultStudents(){
   return [
@@ -618,6 +620,277 @@ function normalizeStudent(s){
 }
 
 function v(word,def,sent,syn,ant){ return {word,def,sent,syn,ant}; }
+const MM_EXTRA_VOCAB = {
+  '1': {
+    '1': {
+      'PreK': v('Tough','Strong enough to keep going when something is hard.','He was tough and tried the slide again.','strong','weak'),
+      'K': v('Brave','Not giving up even when you feel scared.','She was brave and joined the new team.','bold','scared'),
+      '1st': v('Steady','Staying calm and strong when things go wrong.','He stayed steady after missing the shot.','firm','shaky'),
+      '2nd': v('Recover','To get better after something bad happens.','She recovered after falling off her bike.','heal','worsen'),
+      '3rd': v('Endure','To keep going through something hard.','They endured the long practice without quitting.','last','quit'),
+      '4th': v('Sturdy','Strong and not easily broken or beaten.','A sturdy player does not give up after one loss.','solid','fragile'),
+      '6th': v('Grit','Tough courage that keeps you going through hard times.','It took grit to finish the race with a hurt ankle.','determination','weakness'),
+      '7th': v('Resolute','Firmly decided and not changing your mind.','She was resolute about making the team this year.','determined','wavering'),
+      '9th': v('Indomitable','Too strong to be beaten or crushed.','Her indomitable spirit lifted the whole team.','unconquerable','yielding'),
+      '11th': v('Stoic','Bearing pain or trouble without complaining.','He stayed stoic through the long losing streak.','unflinching','emotional'),
+      '12th': v('Adamant','Refusing to give in or be moved.','She was adamant about returning stronger next season.','unshakable','flexible')
+    },
+    '2': {
+      'PreK': v('Listen','Paying attention and doing what you are told.','He listened to the coach during practice.','obey','ignore'),
+      'K': v('Practice','Doing something again and again to get better.','Daily practice made her free throws better.','drill','neglect'),
+      '1st': v('Routine','The steps you follow in the same order each time.','His morning routine starts with making his bed.','pattern','disorder'),
+      '2nd': v('Control','Keeping your body and feelings in check.','He showed control when the other team teased him.','restraint','wildness'),
+      '3rd': v('Obey','To do what you are told to do.','The players obeyed the coach and ran the drill.','follow','disobey'),
+      '4th': v('Train','To practice a skill until it becomes strong.','He trained all summer to make the team.','exercise','neglect'),
+      '6th': v('Diligent','Working hard and carefully over time.','A diligent student finishes homework before playing.','industrious','lazy'),
+      '7th': v('Temperance','Control over your actions and desires.','Temperance kept him from arguing with the ref.','moderation','indulgence'),
+      '9th': v('Methodical','Done in a careful and orderly way.','Her methodical warm-up prevented injuries all season.','systematic','haphazard'),
+      '11th': v('Rigorous','Very strict and careful, demanding hard work.','The rigorous training schedule built real discipline.','stringent','lax'),
+      '12th': v('Unswerving','Not turning aside; steady and true.','His unswerving focus on grades earned a scholarship.','steadfast','wavering')
+    },
+    '3': {
+      'PreK': v('Honest','Telling the truth.','She was honest and said she broke the cup.','truthful','dishonest'),
+      'K': v('Truth','What is real, not a lie.','He told the truth about the missing ball.','fact','lie'),
+      '1st': v('Fair','Treating everyone the same way.','It was fair to let everyone take a turn.','just','unfair'),
+      '2nd': v('Trust','Believing someone will do the right thing.','The coach earned the team\'s trust.','faith','doubt'),
+      '3rd': v('Sincere','Truly meaning what you say.','His sincere apology made things right.','genuine','fake'),
+      '4th': v('Loyal','Staying true to your friends and team.','She was loyal and never blamed her teammates.','faithful','disloyal'),
+      '6th': v('Candid','Honest and plain in what you say.','The coach was candid about what we must fix.','frank','evasive'),
+      '7th': v('Principled','Guided by strong ideas of right and wrong.','He was principled and returned the lost wallet.','upright','corrupt'),
+      '9th': v('Veracity','The habit of telling the truth.','Her veracity made her the team\'s trusted captain.','truthfulness','deceit'),
+      '11th': v('Rectitude','Rightness of principle; moral goodness.','His rectitude showed when he admitted the error.','morality','corruption'),
+      '12th': v('Probity','Complete honesty and strong moral character.','The ref\'s probity kept the game fair.','honor','dishonor')
+    },
+    '4': {
+      'PreK': v('Try','To make an effort to do something.','She tried again after falling down.','attempt','quit'),
+      'K': v('Strong','Not giving up when things are hard.','He stayed strong and finished the race.','tough','weak'),
+      '1st': v('Finish','To keep going until the job is done.','He finished the puzzle even though it was hard.','complete','abandon'),
+      '2nd': v('Determined','Deciding firmly not to give up.','She was determined to learn the new play.','firm','weak'),
+      '3rd': v('Persist','To keep trying without giving up.','He persisted until he made the basket.','continue','quit'),
+      '4th': v('Steadfast','Staying firm and not giving up.','Her steadfast effort paid off at tryouts.','firm','faltering'),
+      '6th': v('Relentless','Not stopping or giving up, no matter what.','Their relentless defense won the championship.','unyielding','yielding'),
+      '7th': v('Dogged','Stubbornly refusing to give up.','His dogged practice paid off at the free-throw line.','tenacious','halfhearted'),
+      '9th': v('Indefatigable','Never getting tired; always persevering.','Her indefatigable work ethic inspired the team.','tireless','weary'),
+      '11th': v('Pertinacious','Holding firmly to a purpose; persistent.','His pertinacious training led to a scholarship.','persistent','irresolute'),
+      '12th': v('Sedulous','Working hard with steady care.','Her sedulous study habits raised every grade.','diligent','negligent')
+    },
+    '5': {
+      'PreK': v('Tough','Strong enough to keep going when something is hard.','He was tough and tried the slide again.','strong','weak'),
+      'K': v('Brave','Not giving up even when you feel scared.','She was brave and joined the new team.','bold','scared'),
+      '1st': v('Steady','Staying calm and strong when things go wrong.','He stayed steady after missing the shot.','firm','shaky'),
+      '2nd': v('Recover','To get better after something bad happens.','She recovered after falling off her bike.','heal','worsen'),
+      '3rd': v('Endure','To keep going through something hard.','They endured the long practice without quitting.','last','quit'),
+      '4th': v('Sturdy','Strong and not easily broken or beaten.','A sturdy player does not give up after one loss.','solid','fragile'),
+      '6th': v('Grit','Tough courage that keeps you going through hard times.','It took grit to finish the race with a hurt ankle.','determination','weakness'),
+      '7th': v('Resolute','Firmly decided and not changing your mind.','She was resolute about making the team this year.','determined','wavering'),
+      '9th': v('Indomitable','Too strong to be beaten or crushed.','Her indomitable spirit lifted the whole team.','unconquerable','yielding'),
+      '11th': v('Stoic','Bearing pain or trouble without complaining.','He stayed stoic through the long losing streak.','unflinching','emotional'),
+      '12th': v('Adamant','Refusing to give in or be moved.','She was adamant about returning stronger next season.','unshakable','flexible')
+    }
+  },
+  '2': {
+    '1': {
+      'PreK': v('Look','Pointing your eyes at what matters.','Look at the ball when you catch it.','watch','ignore'),
+      'K': v('Watch','Looking carefully at something.','Watch the coach to learn the drill.','observe','ignore'),
+      '1st': v('Careful','Paying close attention to what you do.','Be careful when you dribble near the line.','cautious','careless'),
+      '2nd': v('Notice','To see or become aware of something.','She noticed the open teammate and passed.','spot','miss'),
+      '3rd': v('Attend','To pay attention to what is happening.','Attend to the coach during the huddle.','heed','ignore'),
+      '4th': v('Concentrate','To give all your attention to one thing.','He concentrated on his free throws and made both.','focus','distraction'),
+      '6th': v('Attentive','Watching and listening closely.','An attentive player hears every call.','alert','inattentive'),
+      '7th': v('Intent','Having your mind fixed on something.','She was intent on blocking every shot.','focused','distracted'),
+      '9th': v('Engrossed','Giving all your attention to something.','He was engrossed in film study all evening.','absorbed','disinterested'),
+      '11th': v('Single-minded','Fixed on one goal without wavering.','Her single-minded drive led to a starting spot.','dedicated','scattered'),
+      '12th': v('Rapt','Deeply absorbed and fully focused.','The team was rapt during the championship speech.','enthralled','bored')
+    },
+    '2': {
+      'PreK': v('Proud','Feeling good about what you did.','She felt proud after scoring her first basket.','pleased','ashamed'),
+      'K': v('Bold','Not afraid to try something new.','He was bold and raised his hand first.','daring','timid'),
+      '1st': v('Sure','Knowing you can do something.','She felt sure she could make the shot.','certain','unsure'),
+      '2nd': v('Believe','Trusting that you can do it.','Believe in yourself before the big game.','trust','doubt'),
+      '3rd': v('Poise','Calm and sure of yourself.','She showed poise at the free-throw line.','composure','nervousness'),
+      '4th': v('Certain','Knowing something is true.','He was certain the extra practice would help.','sure','doubtful'),
+      '6th': v('Self-assured','Confident in your own abilities.','The self-assured guard called for the ball.','confident','insecure'),
+      '7th': v('Assertive','Stating what you want with confidence.','Be assertive and call for the pass.','bold','meek'),
+      '9th': v('Aplomb','Calm confidence under pressure.','She handled the final seconds with aplomb.','assurance','self-doubt'),
+      '11th': v('Audacity','Bold courage; daring confidence.','It took audacity to take the last shot.','boldness','timidity'),
+      '12th': v('Conviction','Strong belief in yourself or your ideas.','He spoke with conviction at the team meeting.','certainty','uncertainty')
+    },
+    '3': {
+      'PreK': v('Wait','Staying calm until it is your turn.','We wait in line for the slide.','pause','rush'),
+      'K': v('Calm','Quiet and peaceful inside.','Take a breath and stay calm.','peaceful','wild'),
+      '1st': v('Gentle','Soft and patient, not rough.','Be gentle when you help your little brother.','tender','rough'),
+      '2nd': v('Quiet','Waiting without fuss or noise.','She sat quiet until her name was called.','still','noisy'),
+      '3rd': v('Tolerant','Putting up with things without getting upset.','He was tolerant when practice ran long.','understanding','intolerant'),
+      '4th': v('Composed','Calm and in control of your feelings.','She stayed composed during the long delay.','collected','agitated'),
+      '6th': v('Forbearing','Patient when others annoy you.','The forbearing coach never yelled at mistakes.','tolerant','irritable'),
+      '7th': v('Phlegmatic','Calm and hard to upset.','His phlegmatic nature steadied the team.','unflappable','excitable'),
+      '9th': v('Equanimity','Calmness of mind in hard times.','Her equanimity kept the team steady.','composure','agitation'),
+      '11th': v('Imperturbable','Impossible to upset or disturb.','The imperturbable ref ignored the angry crowd.','serene','volatile'),
+      '12th': v('Impassive','Not showing feelings; calm and controlled.','She stayed impassive through the endless overtime.','unmoved','reactive')
+    },
+    '4': {
+      'PreK': v('Push','Trying hard to keep going.','Push through the last lap!','drive','quit'),
+      'K': v('Hard','With a lot of effort.','She worked hard on her spelling.','tough','easy'),
+      '1st': v('Hustle','Moving fast and working hard.','Hustle back on defense!','rush','loaf'),
+      '2nd': v('Strain','Pushing hard with your body or mind.','She strained to lift the heavy box.','struggle','relax'),
+      '3rd': v('Labor','Hard work with your hands or body.','The team\'s labor built a new court.','work','rest'),
+      '4th': v('Endeavor','A serious attempt to do something.','Their endeavor to win took all season.','attempt','neglect'),
+      '6th': v('Exertion','The use of energy to do hard work.','The climb took great exertion.','effort','idleness'),
+      '7th': v('Assiduous','Working hard with great care.','Her assiduous training improved her shot.','diligent','careless'),
+      '9th': v('Strenuous','Needing great effort and energy.','The strenuous workout left them tired but proud.','arduous','easy'),
+      '11th': v('Industrious','Working hard and steadily.','The industrious team practiced before sunrise.','hardworking','idle'),
+      '12th': v('Unremitting','Never stopping or easing up.','His unremitting effort earned a starting spot.','relentless','sporadic')
+    },
+    '5': {
+      'PreK': v('Look','Pointing your eyes at what matters.','Look at the ball when you catch it.','watch','ignore'),
+      'K': v('Watch','Looking carefully at something.','Watch the coach to learn the drill.','observe','ignore'),
+      '1st': v('Careful','Paying close attention to what you do.','Be careful when you dribble near the line.','cautious','careless'),
+      '2nd': v('Notice','To see or become aware of something.','She noticed the open teammate and passed.','spot','miss'),
+      '3rd': v('Attend','To pay attention to what is happening.','Attend to the coach during the huddle.','heed','ignore'),
+      '4th': v('Concentrate','To give all your attention to one thing.','He concentrated on his free throws and made both.','focus','distraction'),
+      '6th': v('Attentive','Watching and listening closely.','An attentive player hears every call.','alert','inattentive'),
+      '7th': v('Intent','Having your mind fixed on something.','She was intent on blocking every shot.','focused','distracted'),
+      '9th': v('Engrossed','Giving all your attention to something.','He was engrossed in film study all evening.','absorbed','disinterested'),
+      '11th': v('Single-minded','Fixed on one goal without wavering.','Her single-minded drive led to a starting spot.','dedicated','scattered'),
+      '12th': v('Rapt','Deeply absorbed and fully focused.','The team was rapt during the championship speech.','enthralled','bored')
+    }
+  },
+  '3': {
+    '1': {
+      'PreK': v('Share','Letting others use what you have.','We share the ball at practice.','give','hog'),
+      'K': v('Help','Doing something good for another person.','He helped his friend tie his shoes.','aid','hurt'),
+      '1st': v('Together','With each other, not alone.','We win together as a team.','united','alone'),
+      '2nd': v('Teammate','Someone on your team.','Pass to your teammate when she is open.','partner','rival'),
+      '3rd': v('Cooperate','Working together to get something done.','The class cooperated to clean the gym.','collaborate','clash'),
+      '4th': v('Unite','To join together as one.','The team united after the tough loss.','join','divide'),
+      '6th': v('Collaborate','To work together on a shared goal.','They collaborated on the science project.','partner','oppose'),
+      '7th': v('Cohesive','Sticking together as a united group.','A cohesive team trusts every player.','united','divided'),
+      '9th': v('Synergy','Extra power that comes from working together.','Their synergy made the offense unstoppable.','teamwork','discord'),
+      '11th': v('Solidarity','Unity from shared goals and loyalty.','The team\'s solidarity showed in every huddle.','unity','division'),
+      '12th': v('Concord','Agreement and harmony in a group.','Their concord made every practice smooth.','harmony','conflict')
+    },
+    '2': {
+      'PreK': v('Lead','Going first so others can follow.','She led the line to the gym.','guide','follow'),
+      'K': v('Captain','The leader of a team.','The captain shook hands after the game.','leader','follower'),
+      '1st': v('Guide','Showing someone the way to go.','He guided his friend through the drill.','lead','mislead'),
+      '2nd': v('Example','Someone others copy because they do right.','Be an example by trying your best.','model','warning'),
+      '3rd': v('Direct','Telling others what to do in a kind way.','The captain directed the team on the court.','command','obey'),
+      '4th': v('Inspire','Making others want to do their best.','Her speech inspired the team to win.','motivate','discourage'),
+      '6th': v('Mentor','A wise guide who helps others grow.','The senior mentored the new players.','coach','novice'),
+      '7th': v('Pioneer','The first to try something new.','She pioneered a new training routine.','trailblazer','imitator'),
+      '9th': v('Exemplar','A perfect model others follow.','He was an exemplar of sportsmanship.','ideal','warning'),
+      '11th': v('Vanguard','The leaders at the front of a movement.','They were the vanguard of the new league.','forefront','rear'),
+      '12th': v('Preeminent','Standing above all others; outstanding.','Her preeminent skill made her team captain.','supreme','inferior')
+    },
+    '3': {
+      'PreK': v('Kind','Being nice to other people.','It is kind to share your snack.','nice','mean'),
+      'K': v('Nice','Kind and friendly to others.','Be nice to the new kid at school.','pleasant','rude'),
+      '1st': v('Polite','Having good manners with others.','A polite player thanks the ref.','courteous','rude'),
+      '2nd': v('Manners','Polite ways of acting with others.','Good manners mean waiting your turn.','courtesy','rudeness'),
+      '3rd': v('Admire','Looking up to someone with respect.','The kids admire their coach.','esteem','scorn'),
+      '4th': v('Considerate','Thinking about how others feel.','A considerate teammate shares the ball.','thoughtful','selfish'),
+      '6th': v('Deference','Respect shown by yielding to others.','He showed deference to the senior players.','reverence','contempt'),
+      '7th': v('Venerate','To honor with deep respect.','They venerate the coach who built the program.','revere','despise'),
+      '9th': v('Esteem','High respect for someone.','She held her teacher in high esteem.','regard','disdain'),
+      '11th': v('Reverent','Showing deep honor and respect.','The crowd was reverent during the anthem.','devout','irreverent'),
+      '12th': v('Homage','Public honor shown to someone.','The team paid homage to their retired coach.','tribute','insult')
+    },
+    '4': {
+      'PreK': v('Soft','Not loud or braggy; kind and quiet.','Use a soft voice when others are talking.','gentle','loud'),
+      'K': v('Sorry','Admitting when you do something wrong.','He said sorry for taking the toy.','apologetic','proud'),
+      '1st': v('Modest','Not bragging about what you can do.','She was modest about winning the race.','humble','proud'),
+      '2nd': v('Humble','Not thinking you are better than others.','The star stayed humble and thanked his team.','modest','arrogant'),
+      '3rd': v('Meek','Quiet and gentle, not pushy.','The meek rookie listened more than she spoke.','gentle','bold'),
+      '4th': v('Unassuming','Not trying to get attention.','The unassuming guard let others shine.','modest','showy'),
+      '6th': v('Self-effacing','Not drawing attention to yourself.','His self-effacing manner won everyone over.','humble','vain'),
+      '7th': v('Diffident','Shy about yourself; not self-pushy.','She was diffident about her great grades.','bashful','confident'),
+      '9th': v('Unpretentious','Simple and real, not trying to impress.','The star was unpretentious off the court.','natural','pretentious'),
+      '11th': v('Abnegation','Giving up your own wants for others.','His abnegation showed in every sacrifice play.','self-denial','selfishness'),
+      '12th': v('Contrite','Deeply sorry for wrongs; humble in spirit.','His contrite apology healed the team rift.','remorseful','defiant')
+    },
+    '5': {
+      'PreK': v('Share','Letting others use what you have.','We share the ball at practice.','give','hog'),
+      'K': v('Help','Doing something good for another person.','He helped his friend tie his shoes.','aid','hurt'),
+      '1st': v('Together','With each other, not alone.','We win together as a team.','united','alone'),
+      '2nd': v('Teammate','Someone on your team.','Pass to your teammate when she is open.','partner','rival'),
+      '3rd': v('Cooperate','Working together to get something done.','The class cooperated to clean the gym.','collaborate','clash'),
+      '4th': v('Unite','To join together as one.','The team united after the tough loss.','join','divide'),
+      '6th': v('Collaborate','To work together on a shared goal.','They collaborated on the science project.','partner','oppose'),
+      '7th': v('Cohesive','Sticking together as a united group.','A cohesive team trusts every player.','united','divided'),
+      '9th': v('Synergy','Extra power that comes from working together.','Their synergy made the offense unstoppable.','teamwork','discord'),
+      '11th': v('Solidarity','Unity from shared goals and loyalty.','The team\'s solidarity showed in every huddle.','unity','division'),
+      '12th': v('Concord','Agreement and harmony in a group.','Their concord made every practice smooth.','harmony','conflict')
+    }
+  },
+  '4': {
+    '1': {
+      'PreK': v('Grow','Getting bigger and stronger.','Plants grow when you water them.','sprout','shrink'),
+      'K': v('Big','Larger than you were before.','He grew big enough to ride the bike.','large','small'),
+      '1st': v('Learn','Getting new ideas in your head.','We learn something new every day.','study','forget'),
+      '2nd': v('Bloom','Opening up like a flower; doing well.','She bloomed on the new team.','flourish','wither'),
+      '3rd': v('Improve','Getting better at something.','Practice will improve your dribbling.','better','worsen'),
+      '4th': v('Develop','Growing step by step over time.','He developed a strong jump shot.','build','stall'),
+      '6th': v('Mature','Growing up in how you act and think.','She matured into a true team leader.','develop','regress'),
+      '7th': v('Evolve','Changing slowly into something better.','His game evolved all season long.','progress','stagnate'),
+      '9th': v('Burgeon','Growing quickly and strongly.','Her confidence burgeoned after each win.','flourish','fade'),
+      '11th': v('Augment','Making something bigger or better.','Extra drills augmented his speed.','increase','diminish'),
+      '12th': v('Ascendant','Rising in power or success.','The ascendant program won three titles.','rising','declining')
+    },
+    '2': {
+      'PreK': v('Roar','Being loud and bold like a lion.','Give a roar and try the big slide!','shout','whisper'),
+      'K': v('Dare','Trying something even if it scares you.','She dared to climb the tall ladder.','risk','avoid'),
+      '1st': v('Fearless','Not afraid to try hard things.','The fearless pup chased the big ball.','brave','scared'),
+      '2nd': v('Hero','Someone who does something brave.','The hero saved the game with one catch.','champion','coward'),
+      '3rd': v('Daring','Brave enough to try scary things.','His daring steal changed the game.','bold','timid'),
+      '4th': v('Valiant','Very brave in a hard fight.','The valiant team never stopped trying.','heroic','cowardly'),
+      '6th': v('Dauntless','Not frightened; very brave.','The dauntless guard took the final shot.','fearless','timid'),
+      '7th': v('Intrepid','Fearless in facing danger.','The intrepid climber reached the top.','brave','fearful'),
+      '9th': v('Audacious','Bold and daring, willing to take risks.','Her audacious drive won the game.','daring','cautious'),
+      '11th': v('Valorous','Showing great courage in battle or trial.','His valorous stand saved the season.','gallant','craven'),
+      '12th': v('Stalwart','Strong, brave, and dependable.','The stalwart captain held the team together.','steadfast','unreliable')
+    },
+    '3': {
+      'PreK': v('Thanks','Words that show you are glad.','Say thanks when someone helps you.','praise','complaint'),
+      'K': v('Happy','Feeling glad about good things.','He felt happy about his new shoes.','glad','sad'),
+      '1st': v('Thankful','Glad for the good things you have.','She is thankful for her family.','grateful','ungrateful'),
+      '2nd': v('Blessing','A good thing you are thankful for.','Good friends are a blessing.','gift','burden'),
+      '3rd': v('Appreciate','Seeing how good something is.','We appreciate our coach\'s hard work.','value','disregard'),
+      '4th': v('Grateful','Thankful for kindness you receive.','He was grateful for the extra help.','thankful','ungrateful'),
+      '6th': v('Indebted','Owing thanks to someone.','She felt indebted to her trainer.','obliged','ungrateful'),
+      '7th': v('Appreciative','Feeling thankful and showing it.','The appreciative crowd cheered loudly.','thankful','dismissive'),
+      '9th': v('Beholden','Owing thanks or duty to someone.','He was beholden to his first coach.','indebted','free'),
+      '11th': v('Acknowledgment','Recognition of a kindness.','His acknowledgment of the fans was heartfelt.','recognition','denial'),
+      '12th': v('Paean','A song of praise and thanks.','The win deserved a paean to the defense.','hymn','lament')
+    },
+    '4': {
+      'PreK': v('Daily','Happening every day.','Brushing teeth is a daily job.','everyday','rarely'),
+      'K': v('Same','Not different; just like before.','We sit in the same seats.','alike','different'),
+      '1st': v('Always','Every time, without stopping.','She always tries her best.','constantly','never'),
+      '2nd': v('Even','The same all the way through.','Keep an even pace when you run.','steady','uneven'),
+      '3rd': v('Regular','Happening at the same times.','Regular practice makes you better.','routine','sporadic'),
+      '4th': v('Reliable','Someone you can count on.','A reliable friend shows up on time.','dependable','unreliable'),
+      '6th': v('Constant','Going on all the time without change.','Her constant effort paid off.','continuous','occasional'),
+      '7th': v('Persistent','Keeping at it without stopping.','His persistent drills fixed his shot.','tenacious','inconsistent'),
+      '9th': v('Unwavering','Not changing or giving way.','Her unwavering focus led the team.','resolute','wavering'),
+      '11th': v('Invariable','Never changing; always the same.','His invariable routine starts at dawn.','constant','variable'),
+      '12th': v('Perpetual','Going on forever without stopping.','Her perpetual motion wore out defenders.','everlasting','temporary')
+    },
+    '5': {
+      'PreK': v('Grow','Getting bigger and stronger.','Plants grow when you water them.','sprout','shrink'),
+      'K': v('Big','Larger than you were before.','He grew big enough to ride the bike.','large','small'),
+      '1st': v('Learn','Getting new ideas in your head.','We learn something new every day.','study','forget'),
+      '2nd': v('Bloom','Opening up like a flower; doing well.','She bloomed on the new team.','flourish','wither'),
+      '3rd': v('Improve','Getting better at something.','Practice will improve your dribbling.','better','worsen'),
+      '4th': v('Develop','Growing step by step over time.','He developed a strong jump shot.','build','stall'),
+      '6th': v('Mature','Growing up in how you act and think.','She matured into a true team leader.','develop','regress'),
+      '7th': v('Evolve','Changing slowly into something better.','His game evolved all season long.','progress','stagnate'),
+      '9th': v('Burgeon','Growing quickly and strongly.','Her confidence burgeoned after each win.','flourish','fade'),
+      '11th': v('Augment','Making something bigger or better.','Extra drills augmented his speed.','increase','diminish'),
+      '12th': v('Ascendant','Rising in power or success.','The ascendant program won three titles.','rising','declining')
+    }
+  }
+};
+
 function fl(concept,blank,answer){ return {concept,blank,answer}; }
 function sc(state,capital){ return {state,capital}; }
 function mkDay(devotional, vocab, currentEvent, financialLit, realWorldScenario, statesCapitals){
@@ -639,7 +912,7 @@ function devo(wordOfDay, scripture, reflection, prayer, intention){ return {word
 // states/capitals all rotate on this 4-week block, then repeat (week 5 = week 1's
 // content again, etc.) for reinforcement across the 8-week quarter.
 function defaultContentWeeks(){
-  return {
+  const weeks = {
     1:{
       1: mkDay(devo('Resilience','"I can do all things through Christ who strengthens me." — Philippians 4:13','When something feels hard today, what will you tell yourself instead of quitting?','Lord, give me strength to keep going when today gets tough. Help me trust You with my effort. Amen.','Today I bounce back quickly when something doesn\u2019t go my way.'),
           {'5th':v('Resilient','Able to recover quickly from difficulty.','She was resilient after losing the first game and came back stronger.','tough','fragile'),
@@ -650,17 +923,17 @@ function defaultContentWeeks(){
           {'5th':v('Discipline','Training to act in a controlled, correct way.','Discipline helped him finish his homework before practice.','self-control','carelessness'),
            '8th':v('Composure','Calmness and control, especially in a difficult situation.','She kept her composure at the free-throw line.','calm','panic'),
            '10th':v('Discernment','The ability to judge well.','Discernment helped her choose the smarter play, not just the fastest one.','judgment','confusion')},
-          ce('New iPhones Are Selling Really Well', 'Apple makes iPhones, one of the most popular phones in the world. This week, news came out that a lot of people are buying Apple\'s newest iPhone. When a company sells more of something, it usually means the company makes more money — and its stock (a tiny piece of ownership in the company) often goes up in value too.', 'Why do you think so many people want the newest version of a phone, even if their old one still works?'), fl('Paying Yourself First','Setting aside part of your money regularly, before you spend the rest, is called paying yourself ______.','first'), 'You get your first paycheck: $200. Saving is a habit you want to build early. How much would you set aside before spending any of it, and why?', [sc('Alabama','Montgomery'), sc('Texas','Austin')]),
+          ce('New iPhones Are Selling Really Well', 'Apple makes iPhones, one of the most popular phones in the world. This week, news came out that a lot of people are buying Apple\'s newest iPhone. When a company sells more of something, it usually means the company makes more money — and its stock (a tiny piece of ownership in the company) often goes up in value too.', 'Why do you think so many people want the newest version of a phone, even if their old one still works?'), fl('Smart Saving','Setting aside part of your money regularly, before you spend the rest, is called paying yourself ______.','first'), 'You get your first paycheck: $200. Saving is a habit you want to build early. How much would you set aside before spending any of it, and why?', [sc('Alabama','Montgomery'), sc('Texas','Austin')]),
       3: mkDay(devo('Integrity','"The integrity of the upright guides them." — Proverbs 11:3','Would you make the same choice if no one were watching?','Lord, let my actions match my words today, in the classroom and on the court. Amen.','Today I do the right thing even when it\u2019s inconvenient.'),
           {'5th':v('Integrity','Doing the right thing even when no one is watching.','He called his own foul because of his integrity.','honesty','dishonesty'),
            '8th':v('Adversity','Difficulties or misfortune.','The team faced adversity but stayed focused on the plan.','hardship','ease'),
            '10th':v('Resolute','Admirably purposeful, determined, unwavering.','She stayed resolute in her training schedule all season.','determined','wavering')},
-          ce('GameStop Pays Off Its Debt', 'GameStop is a store that sells video games. The company used to owe over a billion dollars to people it had borrowed money from. This week, GameStop paid that debt back — but instead of using cash, it gave those people small pieces of ownership in the company, called stock, instead.', 'Why might a company want to pay off debt as fast as it can, even if it means giving up something valuable?'), fl('Needs vs. Wants','Rent and groceries are ______, while video games are wants.','needs'), 'A friend asks to borrow $20 and still hasn\u2019t paid back the $10 they borrowed last month. What do you say?', [sc('California','Sacramento'), sc('New York','Albany')]),
+          ce('GameStop Pays Off Its Debt', 'GameStop is a store that sells video games. The company used to owe over a billion dollars to people it had borrowed money from. This week, GameStop paid that debt back — but instead of using cash, it gave those people small pieces of ownership in the company, called stock, instead.', 'Why might a company want to pay off debt as fast as it can, even if it means giving up something valuable?'), fl('Smart Spending','Rent and groceries are ______, while video games are wants.','needs'), 'A friend asks to borrow $20 and still hasn\u2019t paid back the $10 they borrowed last month. What do you say?', [sc('California','Sacramento'), sc('New York','Albany')]),
       4: mkDay(devo('Perseverance','"Let us not become weary in doing good, for at the proper time we will reap a harvest." — Galatians 6:9','What\u2019s something you almost gave up on that you\u2019re glad you kept doing?','God, help me keep going one more rep, one more page, one more try. Amen.','Today I finish what I start, even when it gets hard partway through.'),
           {'5th':v('Perseverance','Continuing on a task despite difficulty.','Her perseverance paid off when she finally made the shot.','persistence','quitting'),
            '8th':v('Accountability','Being responsible for your actions and choices.','Accountability meant admitting the mistake and fixing it.','responsibility','irresponsibility'),
            '10th':v('Meticulous','Showing great attention to detail.','His meticulous film study helped the whole team improve.','careful','sloppy')},
-          ce('Gold Prices Hit an All-Time High', 'Gold is a shiny metal that people have valued for thousands of years. This week, the price of gold reached its highest point ever — over $4,300 for just one ounce! When people worry about the economy, they often buy gold because they trust it will hold its value.', 'Can you think of something else (not money) that people trust will always be valuable? Why do they trust it?'), fl('Income','Money you earn from working a job is called ______.','income'), 'You disagree with a coach\u2019s call in front of the team. How do you handle it in the moment, and afterward?', [sc('Virginia','Richmond'), sc('Ohio','Columbus')]),
+          ce('Gold Prices Hit an All-Time High', 'Gold is a shiny metal that people have valued for thousands of years. This week, the price of gold reached its highest point ever — over $4,300 for just one ounce! When people worry about the economy, they often buy gold because they trust it will hold its value.', 'Can you think of something else (not money) that people trust will always be valuable? Why do they trust it?'), fl('Earning Money','Money you earn from working a job is called ______.','income'), 'You disagree with a coach\u2019s call in front of the team. How do you handle it in the moment, and afterward?', [sc('Virginia','Richmond'), sc('Ohio','Columbus')]),
       5: mkFriday(devo('Resilience','"I can do all things through Christ who strengthens me." — Philippians 4:13','When something feels hard today, what will you tell yourself instead of quitting?','Lord, give me strength to keep going when today gets tough. Help me trust You with my effort. Amen.','Today I bounce back quickly when something doesn\u2019t go my way.'),
           {'5th':v('Resilient','Able to recover quickly from difficulty.','She was resilient after losing the first game and came back stronger.','tough','fragile'),
            '8th':v('Tenacity','Firmness in holding to a course of action.','His tenacity on defense wore the other team down.','persistence','weakness'),
@@ -672,22 +945,22 @@ function defaultContentWeeks(){
           {'5th':v('Focus','Paying close attention to one thing.','She kept her focus on the ball the whole game.','concentration','distraction'),
            '8th':v('Concentration','Deep, careful attention to a task.','His concentration during the test never wavered.','attention','carelessness'),
            '10th':v('Diligence','Careful and persistent effort.','Her diligence in film study set her apart from teammates.','attentiveness','negligence')},
-          ce('Stock Market Hits a New Record High', 'The Nasdaq is a place where people buy and sell stock in companies, especially tech companies. This week, the Nasdaq reached its highest point ever, mostly because of excitement about artificial intelligence (AI) companies. When people believe a group of companies will do well in the future, they buy more of their stock, which pushes prices up.', 'What\'s something you\'re excited about that you think will be a big deal in the future?'), fl('Interest','When a bank pays you extra money for keeping your savings with them, that\u2019s called ______.','interest'), 'You\u2019re invited to a friend\u2019s birthday and a team practice at the same time. How do you decide?', [sc('Illinois','Springfield'), sc('Michigan','Lansing')]),
+          ce('Stock Market Hits a New Record High', 'The Nasdaq is a place where people buy and sell stock in companies, especially tech companies. This week, the Nasdaq reached its highest point ever, mostly because of excitement about artificial intelligence (AI) companies. When people believe a group of companies will do well in the future, they buy more of their stock, which pushes prices up.', 'What\'s something you\'re excited about that you think will be a big deal in the future?'), fl('Growing Savings','When a bank pays you extra money for keeping your savings with them, that\u2019s called ______.','interest'), 'You\u2019re invited to a friend\u2019s birthday and a team practice at the same time. How do you decide?', [sc('Illinois','Springfield'), sc('Michigan','Lansing')]),
       2: mkDay(devo('Confidence','"The Lord is my strength and my shield; my heart trusts in him." — Psalm 28:7','What is one thing you\u2019re good at that you can remind yourself of today?','God, help me trust the work I\u2019ve put in and play free today. Amen.','Today I trust my preparation and don\u2019t let mistakes shake me.'),
           {'5th':v('Confident','Sure of yourself and your abilities.','He walked up to the free-throw line feeling confident.','self-assured','unsure'),
            '8th':v('Assurance','A feeling of certainty about something.','Her assurance on defense came from hours of practice.','certainty','doubt'),
            '10th':v('Poise','Graceful and confident behavior under pressure.','She played the final minute with total poise.','composure','anxiety')},
-          ce('Interest Rates on Government Loans Went Up', 'The U.S. government borrows money by selling something called a bond — basically an IOU that pays you back with extra money, called interest, later on. This week, the interest rate on a 10-year bond reached its highest point since 2007. Higher interest rates can make it more expensive for people and businesses to borrow money too.', 'If a bank offered you more interest for saving your money longer, would you wait? Why or why not?'), fl('Credit','Borrowing money now and promising to pay it back later, often with extra cost, is called using ______.','credit'), 'You get a B- on a test you studied hard for. What\u2019s your next move?', [sc('Pennsylvania','Harrisburg'), sc('North Carolina','Raleigh')]),
+          ce('Interest Rates on Government Loans Went Up', 'The U.S. government borrows money by selling something called a bond — basically an IOU that pays you back with extra money, called interest, later on. This week, the interest rate on a 10-year bond reached its highest point since 2007. Higher interest rates can make it more expensive for people and businesses to borrow money too.', 'If a bank offered you more interest for saving your money longer, would you wait? Why or why not?'), fl('Borrowing Money','Borrowing money now and promising to pay it back later, often with extra cost, is called using ______.','credit'), 'You get a B- on a test you studied hard for. What\u2019s your next move?', [sc('Pennsylvania','Harrisburg'), sc('North Carolina','Raleigh')]),
       3: mkDay(devo('Patience','"Be patient, bearing with one another in love." — Ephesians 4:2','When is it hardest for you to wait, and how can you handle that better?','Lord, slow me down and help me trust Your timing today. Amen.','Today I stay calm even when things don\u2019t happen as fast as I want.'),
           {'5th':v('Patient','Able to wait calmly without getting upset.','She was patient while waiting her turn to shoot.','calm','impatient'),
            '8th':v('Endurance','The ability to keep going through a long or hard process.','His endurance during conditioning drills impressed the coach.','stamina','fatigue'),
            '10th':v('Steadfast','Firm and unwavering, especially in loyalty or belief.','She remained steadfast in her training plan despite setbacks.','unwavering','fickle')},
-          ce('PayPal\'s Stock Price Jumped', 'PayPal is a company that lets people send and receive money online. This week, PayPal\'s stock price went up more than 2% in a single day after some good news about the company. A 2% jump might sound small, but for a company worth billions of dollars, that\'s a lot of value gained in just one day.', 'Why do you think good news about a company can make its stock price change so fast?'), fl('Debt','Money you owe to someone else is called ______.','debt'), 'A younger teammate is being left out by the others. What do you do?', [sc('South Carolina','Columbia'), sc('Tennessee','Nashville')]),
+          ce('PayPal\'s Stock Price Jumped', 'PayPal is a company that lets people send and receive money online. This week, PayPal\'s stock price went up more than 2% in a single day after some good news about the company. A 2% jump might sound small, but for a company worth billions of dollars, that\'s a lot of value gained in just one day.', 'Why do you think good news about a company can make its stock price change so fast?'), fl('Owing Money','Money you owe to someone else is called ______.','debt'), 'A younger teammate is being left out by the others. What do you do?', [sc('South Carolina','Columbia'), sc('Tennessee','Nashville')]),
       4: mkDay(devo('Effort','"Whatever you do, work at it with all your heart." — Colossians 3:23','Did you give your full effort today, or were you holding something back?','God, let my effort today honor the gifts You\u2019ve given me. Amen.','Today I give full effort in every drill, not just the ones I like.'),
           {'5th':v('Effort','Hard work put toward a goal.','Her effort in practice earned her more playing time.','exertion','laziness'),
            '8th':v('Initiative','The ability to start something on your own.','He showed initiative by staying late to work on free throws.','drive','passivity'),
            '10th':v('Exertion','Physical or mental effort.','The exertion of a full practice left the team exhausted but proud.','effort','idleness')},
-          ce('One Computer Chip Company Leads the Pack', 'NVIDIA makes computer chips that power artificial intelligence. This week, NVIDIA stood out from other chip companies because of how strong its AI hardware and software business is. Chips are like the “brains” inside computers, phones, and even AI programs — and NVIDIA is one of the biggest chip-makers in the world.', 'What\'s one everyday device you use that probably has a computer chip inside it?'), fl('Taxes','Money the government collects from your paycheck to pay for roads, schools, and services is called ______.','taxes'), 'Your phone bill is due and you only have enough for that or the new shoes you want. What do you choose?', [sc('Louisiana','Baton Rouge'), sc('Mississippi','Jackson')]),
+          ce('One Computer Chip Company Leads the Pack', 'NVIDIA makes computer chips that power artificial intelligence. This week, NVIDIA stood out from other chip companies because of how strong its AI hardware and software business is. Chips are like the “brains” inside computers, phones, and even AI programs — and NVIDIA is one of the biggest chip-makers in the world.', 'What\'s one everyday device you use that probably has a computer chip inside it?'), fl('Government Services','Money the government collects from your paycheck to pay for roads, schools, and services is called ______.','taxes'), 'Your phone bill is due and you only have enough for that or the new shoes you want. What do you choose?', [sc('Louisiana','Baton Rouge'), sc('Mississippi','Jackson')]),
       5: mkFriday(devo('Focus','"Fix your eyes straight ahead; look only where you\u2019re headed." — Proverbs 4:25','What is distracting you from doing your best today, and how can you set it aside?','Lord, help me keep my eyes on what matters and not get pulled off course today. Amen.','Today I lock in on one task at a time instead of rushing between things.'),
           {'5th':v('Focus','Paying close attention to one thing.','She kept her focus on the ball the whole game.','concentration','distraction'),
            '8th':v('Concentration','Deep, careful attention to a task.','His concentration during the test never wavered.','attention','carelessness'),
@@ -699,22 +972,22 @@ function defaultContentWeeks(){
           {'5th':v('Teamwork','Working together toward a shared goal.','Good teamwork helped them win the close game.','cooperation','rivalry'),
            '8th':v('Collaboration','Working jointly with others on a task.','Their collaboration on the group project made it stronger.','partnership','competition'),
            '10th':v('Synergy','The extra energy created when people work well together.','The team\u2019s synergy was obvious in the fourth quarter.','cooperation','discord')},
-          ce('Amazon Spends Big on AI and Cloud Computing', 'Besides selling products, Amazon also runs a huge cloud computing business called AWS, which stores data and runs programs for other companies. This week, news showed Amazon is spending a huge amount of money building more AI technology and cloud computing power to stay ahead of competitors.', 'Would you rather spend money now to build something big for the future, or save it? Why?'), fl('Emergency Fund','Money set aside just for unexpected problems, like a car repair, is called an ______ fund.','emergency'), 'You made a mistake that cost your team a game. How do you talk to your teammates about it afterward?', [sc('Arizona','Phoenix'), sc('Colorado','Denver')]),
+          ce('Amazon Spends Big on AI and Cloud Computing', 'Besides selling products, Amazon also runs a huge cloud computing business called AWS, which stores data and runs programs for other companies. This week, news showed Amazon is spending a huge amount of money building more AI technology and cloud computing power to stay ahead of competitors.', 'Would you rather spend money now to build something big for the future, or save it? Why?'), fl('Rainy-Day Savings','Money set aside just for unexpected problems, like a car repair, is called an ______ fund.','emergency'), 'You made a mistake that cost your team a game. How do you talk to your teammates about it afterward?', [sc('Arizona','Phoenix'), sc('Colorado','Denver')]),
       2: mkDay(devo('Leadership','"Whoever wants to become great among you must be your servant." — Matthew 20:26','What\u2019s one way you can lead by example today, even without a title?','Lord, let me lead by serving others today, not by demanding attention. Amen.','Today I lead with my actions before I lead with my words.'),
           {'5th':v('Leader','Someone who guides or directs others.','The point guard was a natural leader on the court.','guide','follower'),
            '8th':v('Influence','The power to affect someone\u2019s actions or thinking.','Her positive attitude had a big influence on the team.','impact','insignificance'),
            '10th':v('Decisiveness','The ability to make decisions quickly and confidently.','Her decisiveness in the final seconds won the game.','resolve','hesitation')},
-          ce('Bitcoin\'s Price Keeps Moving', 'Bitcoin is a kind of digital money that isn\'t controlled by any government or bank. This week, Bitcoin\'s price moved up and down, like it often does. Unlike regular money, Bitcoin\'s value can change a lot in a single day because people are still deciding how much they trust and want it.', 'What do you think makes something valuable — is it what people agree it\'s worth, or something else?'), fl('Opportunity Cost','If you spend your allowance on a video game instead of saving it, what you give up is called the ______ ______.','opportunity cost'), 'You\u2019re offered $15/hour to babysit or $12/hour to help at a family friend\u2019s store, but the store job teaches new skills. Which do you pick, and why?', [sc('Washington','Olympia'), sc('Oregon','Salem')]),
+          ce('Bitcoin\'s Price Keeps Moving', 'Bitcoin is a kind of digital money that isn\'t controlled by any government or bank. This week, Bitcoin\'s price moved up and down, like it often does. Unlike regular money, Bitcoin\'s value can change a lot in a single day because people are still deciding how much they trust and want it.', 'What do you think makes something valuable — is it what people agree it\'s worth, or something else?'), fl('Trade-Offs','If you spend your allowance on a video game instead of saving it, what you give up is called the ______ ______.','opportunity cost'), 'You\u2019re offered $15/hour to babysit or $12/hour to help at a family friend\u2019s store, but the store job teaches new skills. Which do you pick, and why?', [sc('Washington','Olympia'), sc('Oregon','Salem')]),
       3: mkDay(devo('Respect','"Show proper respect to everyone." — 1 Peter 2:17','Who is someone you can show extra respect to today, even if it\u2019s hard?','God, help me treat referees, coaches, and teammates with respect today, win or lose. Amen.','Today I speak to others the way I want to be spoken to.'),
           {'5th':v('Respect','Treating someone with consideration and honor.','He showed respect by shaking hands after the game.','courtesy','disrespect'),
            '8th':v('Courtesy','Polite behavior and consideration for others.','Her courtesy toward the new player made him feel welcome.','politeness','rudeness'),
            '10th':v('Deference','Respectful yielding to another\u2019s opinion or authority.','He showed deference to his coach\u2019s game plan.','respect','disregard')},
-          ce('Netflix Focuses on Growing Steadily', 'Netflix is a streaming service where people watch shows and movies. Instead of spending money to buy other companies, Netflix decided to focus on things it already does well — like adding more ads to lower-cost plans and creating new shows. This let Netflix keep more money and grow in a safer way.', 'Is it better to grow slowly and safely, or take a big risk to grow fast? Why?'), fl('Investing','Putting your money into something like stocks, hoping it grows over time, is called ______.','investing'), 'A friend is spreading a rumor about you. Do you confront them, ignore it, or something else?', [sc('Nevada','Carson City'), sc('Utah','Salt Lake City')]),
+          ce('Netflix Focuses on Growing Steadily', 'Netflix is a streaming service where people watch shows and movies. Instead of spending money to buy other companies, Netflix decided to focus on things it already does well — like adding more ads to lower-cost plans and creating new shows. This let Netflix keep more money and grow in a safer way.', 'Is it better to grow slowly and safely, or take a big risk to grow fast? Why?'), fl('Growing Money','Putting your money into something like stocks, hoping it grows over time, is called ______.','investing'), 'A friend is spreading a rumor about you. Do you confront them, ignore it, or something else?', [sc('Nevada','Carson City'), sc('Utah','Salt Lake City')]),
       4: mkDay(devo('Humility','"Humble yourselves before the Lord, and he will lift you up." — James 4:10','How can you celebrate a win today without putting anyone else down?','Lord, keep me humble in success and steady in failure today. Amen.','Today I let my play speak instead of my words.'),
           {'5th':v('Humble','Not thinking too highly of yourself.','She stayed humble even after scoring the winning basket.','modest','arrogant'),
            '8th':v('Modesty','A lack of excessive pride or self-importance.','His modesty after the win impressed the coaches.','humility','conceit'),
            '10th':v('Unassuming','Not pretentious or arrogant; modest.','Despite being the star player, she stayed unassuming.','humble','boastful')},
-          ce('The Stock Market Had a Great Day', 'This week, the S&P 500 — a list of 500 big American companies — had its best day in weeks. This happened after leaders from the United States and China met and talked about working together. When people feel hopeful about countries getting along, they often feel more confident about the economy too.', 'Why do you think news about world leaders meeting can affect how people feel about money and business?'), fl('Compound Interest','Earning interest not just on your original money, but also on the interest you already earned, is called ______ interest.','compound'), 'You have $50 and three things you want: new shoes, saving for a car, and a gift for a friend\u2019s birthday. How do you split it?', [sc('Missouri','Jefferson City'), sc('Indiana','Indianapolis')]),
+          ce('The Stock Market Had a Great Day', 'This week, the S&P 500 — a list of 500 big American companies — had its best day in weeks. This happened after leaders from the United States and China met and talked about working together. When people feel hopeful about countries getting along, they often feel more confident about the economy too.', 'Why do you think news about world leaders meeting can affect how people feel about money and business?'), fl('Interest on Interest','Earning interest not just on your original money, but also on the interest you already earned, is called ______ interest.','compound'), 'You have $50 and three things you want: new shoes, saving for a car, and a gift for a friend\u2019s birthday. How do you split it?', [sc('Missouri','Jefferson City'), sc('Indiana','Indianapolis')]),
       5: mkFriday(devo('Teamwork','"Two are better than one... if either falls down, one can help the other up." — Ecclesiastes 4:9-10','How can you make a teammate or sibling better today?','God, help me care about the team\u2019s success as much as my own today. Amen.','Today I look for ways to help someone else succeed.'),
           {'5th':v('Teamwork','Working together toward a shared goal.','Good teamwork helped them win the close game.','cooperation','rivalry'),
            '8th':v('Collaboration','Working jointly with others on a task.','Their collaboration on the group project made it stronger.','partnership','competition'),
@@ -726,22 +999,22 @@ function defaultContentWeeks(){
           {'5th':v('Growth','The process of developing or improving.','His growth as a shooter showed in every game.','improvement','decline'),
            '8th':v('Progress','Forward movement toward a goal.','Her progress in reading comprehension was clear this month.','advancement','regression'),
            '10th':v('Development','The process of growing or improving over time.','Coaches tracked each athlete\u2019s development across the season.','advancement','stagnation')},
-          ce('How Disney Makes Money Without Making Movies', 'Disney doesn\'t just make movies — it also makes money by letting other companies use its characters, like Mickey Mouse, on toys, clothes, and books. This is called licensing. Companies pay Disney for the right to use its characters, and Disney earns money without having to make or sell the product itself.', 'If you could license one of your own ideas or drawings to a company, what would it be?'), fl('Checking Account','A bank account you use for everyday spending, often with a debit card, is called a ______ account.','checking'), 'Your coach asks you to help a struggling teammate instead of only focusing on your own game. How does that change how you show up at practice?', [sc('Wisconsin','Madison'), sc('Minnesota','St. Paul')]),
+          ce('How Disney Makes Money Without Making Movies', 'Disney doesn\'t just make movies — it also makes money by letting other companies use its characters, like Mickey Mouse, on toys, clothes, and books. This is called licensing. Companies pay Disney for the right to use its characters, and Disney earns money without having to make or sell the product itself.', 'If you could license one of your own ideas or drawings to a company, what would it be?'), fl('Everyday Banking','A bank account you use for everyday spending, often with a debit card, is called a ______ account.','checking'), 'Your coach asks you to help a struggling teammate instead of only focusing on your own game. How does that change how you show up at practice?', [sc('Wisconsin','Madison'), sc('Minnesota','St. Paul')]),
       2: mkDay(devo('Courage','"Be strong and courageous... the Lord your God will be with you." — Joshua 1:9','What\u2019s something a little scary you can try today anyway?','God, give me courage to take the hard shot and ask the hard question today. Amen.','Today I do the brave thing, not just the easy thing.'),
           {'5th':v('Courage','The ability to do something that frightens you.','It took courage to take the last shot.','bravery','cowardice'),
            '8th':v('Boldness','Confidence and willingness to take risks.','Her boldness on defense created three turnovers.','daring','timidity'),
            '10th':v('Valor','Great courage in the face of danger or difficulty.','His valor during the toughest drill inspired the team.','bravery','cowardice')},
-          ce('Amazon Blocks a Rival\'s AI Shopping Helper', 'Meta, the company that owns Instagram and Facebook, built an AI assistant called Muse to help people shop online. This week, Amazon decided not to let Muse work on Amazon\'s website. Amazon wants to keep control over how people shop and checkout on its own site, instead of letting another company\'s AI take over that job.', 'Why might a company not want a competitor\'s tool working inside its own store?'), fl('Credit Score','A number that shows how reliably you pay back money you borrow is called your credit ______.','score'), 'You signed up for something and now don\u2019t feel like going. Do you go anyway? What matters more \u2014 the commitment or how you feel?', [sc('Kentucky','Frankfort'), sc('West Virginia','Charleston')]),
+          ce('Amazon Blocks a Rival\'s AI Shopping Helper', 'Meta, the company that owns Instagram and Facebook, built an AI assistant called Muse to help people shop online. This week, Amazon decided not to let Muse work on Amazon\'s website. Amazon wants to keep control over how people shop and checkout on its own site, instead of letting another company\'s AI take over that job.', 'Why might a company not want a competitor\'s tool working inside its own store?'), fl('Borrowing Record','A number that shows how reliably you pay back money you borrow is called your credit ______.','score'), 'You signed up for something and now don\u2019t feel like going. Do you go anyway? What matters more \u2014 the commitment or how you feel?', [sc('Kentucky','Frankfort'), sc('West Virginia','Charleston')]),
       3: mkDay(devo('Gratitude','"Give thanks in all circumstances." — 1 Thessalonians 5:18','What\u2019s one thing about today you can be thankful for, even if it\u2019s a hard day?','Lord, thank You for the chance to learn and play today. Keep my heart grateful. Amen.','Today I notice and say thank you for at least one thing.'),
           {'5th':v('Grateful','Feeling or showing thanks.','She was grateful for her coach\u2019s extra help.','thankful','ungrateful'),
            '8th':v('Appreciation','Recognition of the value of something.','His appreciation for his teammates grew after the injury.','gratitude','disregard'),
            '10th':v('Gratitude','The quality of being thankful.','Her gratitude for the opportunity showed in her work ethic.','thankfulness','ingratitude')},
-          ce('Apple\'s Smart Home Tools Get an Upgrade', 'Apple makes iPhones, but it also makes apps that control smart home devices, like lights and thermostats. This week, Apple announced new features for its Home app that work with utility companies, helping people\'s smart homes save energy more automatically.', 'What\'s one chore or task at home you wish technology could do automatically?'), fl('Net Worth','What you own minus what you owe is called your net ______.','worth'), 'You see a teammate being disrespectful to a referee. What\u2019s your role in that moment?', [sc('Maryland','Annapolis'), sc('Massachusetts','Boston')]),
+          ce('Apple\'s Smart Home Tools Get an Upgrade', 'Apple makes iPhones, but it also makes apps that control smart home devices, like lights and thermostats. This week, Apple announced new features for its Home app that work with utility companies, helping people\'s smart homes save energy more automatically.', 'What\'s one chore or task at home you wish technology could do automatically?'), fl('Wealth Snapshot','What you own minus what you owe is called your net ______.','worth'), 'You see a teammate being disrespectful to a referee. What\u2019s your role in that moment?', [sc('Maryland','Annapolis'), sc('Massachusetts','Boston')]),
       4: mkDay(devo('Consistency','"Whoever can be trusted with very little can also be trusted with much." — Luke 16:10','What\u2019s one habit you can do the same way every single day?','God, help me show up the same way today as I did yesterday. Amen.','Today I do the small things right, even when no one is watching.'),
           {'5th':v('Consistent','Acting or performing in the same way over time.','Her consistent free-throw form paid off in games.','steady','erratic'),
            '8th':v('Reliability','The quality of being trustworthy and consistent.','His reliability made him a coach\u2019s favorite.','dependability','unpredictability'),
            '10th':v('Constancy','Steadiness and firmness over time.','Her constancy in training never wavered, win or lose.','steadiness','inconsistency')},
-          ce('Should You Trust an AI With Your Money Info?', 'Meta\'s new AI tool, Muse, can help people shop and make purchases. This raises a big question: should people feel comfortable sharing money and shopping information with an AI chatbot? Experts are still debating how safe and private these new AI shopping tools really are.', 'What\'s one question you\'d want answered before trusting an AI with your personal information?'), fl('Charitable Giving','Giving part of your money to help others or a cause you care about is called ______.','giving'), 'You have one week to prepare for a big test and also have practice every day. How do you build a schedule that covers both?', [sc('New Jersey','Trenton'), sc('Connecticut','Hartford')]),
+          ce('Should You Trust an AI With Your Money Info?', 'Meta\'s new AI tool, Muse, can help people shop and make purchases. This raises a big question: should people feel comfortable sharing money and shopping information with an AI chatbot? Experts are still debating how safe and private these new AI shopping tools really are.', 'What\'s one question you\'d want answered before trusting an AI with your personal information?'), fl('Helping Others','Giving part of your money to help others or a cause you care about is called ______.','giving'), 'You have one week to prepare for a big test and also have practice every day. How do you build a schedule that covers both?', [sc('New Jersey','Trenton'), sc('Connecticut','Hartford')]),
       5: mkFriday(devo('Growth','"I press on toward the goal." — Philippians 3:14','What\u2019s one skill you\u2019ve gotten better at this month?','Lord, help me see mistakes today as steps toward growth, not reasons to quit. Amen.','Today I focus on getting 1% better, not being perfect.'),
           {'5th':v('Growth','The process of developing or improving.','His growth as a shooter showed in every game.','improvement','decline'),
            '8th':v('Progress','Forward movement toward a goal.','Her progress in reading comprehension was clear this month.','advancement','regression'),
@@ -749,6 +1022,14 @@ function defaultContentWeeks(){
           'History','Early U.S. presidents'),
     },
   };
+  // Merge the extended vocabulary (all grade levels) into each day.
+  try{
+    for(const w in MM_EXTRA_VOCAB) for(const d in MM_EXTRA_VOCAB[w]){
+      const day = weeks[w] && weeks[w][d];
+      if(day) day.vocab = Object.assign({}, MM_EXTRA_VOCAB[w][d], day.vocab || {});
+    }
+  }catch(e){}
+  return weeks;
 }
 /* ========================= FAMILY NAMESPACING =========================
    Micro Mastery product build: many families share this page and the same
@@ -1360,8 +1641,7 @@ async function getScienceWeek(actualWeek){
 }
 
 async function computeWeekWordsFor(mon){
-  const grades = ['5th','8th','10th'];
-  const result = {'5th':[], '8th':[], '10th':[]};
+  const result = {};
   const cw = contentWeekForDate(mon);
   for(let i=0;i<4;i++){
     const dt = new Date(mon); dt.setDate(mon.getDate()+i);
@@ -1370,7 +1650,11 @@ async function computeWeekWordsFor(mon){
     const wd = i+1;
     const content = override || (state.contentWeeks[cw] && state.contentWeeks[cw][wd]);
     if(content && content.vocab){
-      grades.forEach(g=>{ if(content.vocab[g]) result[g].push(content.vocab[g].word); });
+      Object.keys(content.vocab).forEach(g=>{
+        if(content.vocab[g] && content.vocab[g].word){
+          (result[g] = result[g] || []).push(content.vocab[g].word);
+        }
+      });
     }
   }
   return result;
@@ -1585,7 +1869,7 @@ async function renderBoard(){
       ${c.statesCapitals.map((sc,i)=>`
         <div class="info-line" style="cursor:pointer;" data-staterev="${i}">
           <span>${esc(sc.state)}</span>
-          <span data-staterev-answer="${i}" style="font-weight:700;">Tap to reveal</span>
+          <span data-staterev-answer="${i}" style="font-weight:700;display:inline-block;border:2px solid var(--orange);border-radius:20px;padding:4px 14px;font-size:12.5px;cursor:pointer;background:#fff;">Tap to reveal</span>
         </div>
       `).join('')}
     </div>
@@ -1794,7 +2078,13 @@ async function renderBoard(){
   const warmupBtn = document.getElementById('startWarmup');
   if(warmupBtn) warmupBtn.addEventListener('click', ()=>{
     const q1 = document.getElementById('q1');
-    if(q1) q1.scrollIntoView({behavior:'smooth', block:'start'});
+    if(!q1) return;
+    q1.scrollIntoView({behavior:'smooth', block:'start'});
+    // Brief highlight pulse so the jump lands visibly.
+    q1.classList.remove('warmup-flash');
+    void q1.offsetWidth;
+    q1.classList.add('warmup-flash');
+    setTimeout(()=>q1.classList.remove('warmup-flash'), 1600);
   });
 
   board.querySelectorAll('[data-cefield]').forEach(el=>{
@@ -3656,7 +3946,11 @@ if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=> wireAu
 let lastSettingsTab = 'day';
 function showSettingsPanel(tab){
   lastSettingsTab = tab;
-  document.querySelectorAll('#settingsTabs .modal-tab').forEach(t=>t.classList.toggle('active', t.dataset.settingstab===tab));
+  document.querySelectorAll('#settingsTabs .modal-tab').forEach(t=>{
+    const on = t.dataset.settingstab===tab;
+    t.classList.toggle('active', on);
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
   document.querySelectorAll('.settings-panel').forEach(p=>{ p.style.display = (p.dataset.settingspanel===tab) ? 'block' : 'none'; });
   document.getElementById('settingsOverlay').classList.add('open');
 }
@@ -3670,6 +3964,9 @@ function openSettingsTab(tab){
 }
 document.querySelectorAll('#settingsTabs .modal-tab').forEach(t=>{
   t.addEventListener('click', ()=> openSettingsTab(t.dataset.settingstab));
+  t.addEventListener('keydown', (e)=>{
+    if(e.key===' ' || e.key==='Enter'){ e.preventDefault(); openSettingsTab(t.dataset.settingstab); }
+  });
 });
 document.getElementById('openSettings').addEventListener('click', ()=> requireEditAccess(()=> openSettingsTab(lastSettingsTab)));
 
@@ -4182,7 +4479,7 @@ async function obStep1Next(){
 function showCreateStep2(){
   obStyle();
   document.body.classList.add('locked');
-  if(!obStudentRows.length) obStudentRows = [{name:'', grade:'5th'}];
+  if(!obStudentRows.length) obStudentRows = [{name:'', grade:''}];
   document.getElementById('board').innerHTML = `
     <div class="weekend-card" style="max-width:520px;margin:5vh auto;">
       <div class="ob-steps"><div class="ob-step on"></div><div class="ob-step on"></div><div class="ob-step"></div></div>
@@ -4199,13 +4496,14 @@ function showCreateStep2(){
   renderObStudents();
   document.getElementById('obAddStudent').addEventListener('click', ()=>{
     if(obStudentRows.length >= 8) return;
-    obStudentRows.push({name:'', grade:'5th'});
+    obStudentRows.push({name:'', grade:''});
     renderObStudents();
   });
   document.getElementById('obBack2').addEventListener('click', showCreateStep1);
   document.getElementById('obLaunch').addEventListener('click', ()=>{ 
     const rows = obStudentRows.map(r=>({name:(r.name||'').trim(), grade:r.grade})).filter(r=>r.name);
     if(!rows.length){ document.getElementById('obStep2Err').textContent = 'Add at least one student with a name.'; return; }
+    if(rows.some(r=>!r.grade)){ document.getElementById('obStep2Err').textContent = 'Choose a grade for each student.'; return; }
     showCreateStep3();
   });
 }
@@ -4216,7 +4514,7 @@ function renderObStudents(){
       <div class="ob-field" style="flex:2;"><label for="obSName${i}">Name</label>
         <input class="ob-input" id="obSName${i}" maxlength="40" placeholder="First name" value="${escAttr(r.name)}" autocomplete="off"></div>
       <div class="ob-field" style="flex:1;"><label for="obSGrade${i}">Grade</label>
-        <select class="ob-input" id="obSGrade${i}">${GRADES.map(g=>'<option'+(g===r.grade?' selected':'')+'>'+g+'</option>').join('')}</select></div>
+        <select class="ob-input" id="obSGrade${i}"><option value="" disabled${r.grade?'':' selected'}>Select grade…</option>${GRADES.map(g=>'<option'+(g===r.grade?' selected':'')+'>'+g+'</option>').join('')}</select></div>
       ${obStudentRows.length>1 ? '<button type="button" class="ob-rm" data-i="'+i+'" title="Remove this student" aria-label="Remove this student">×</button>' : '<div style="width:38px;"></div>'}
     </div>`).join('');
   obStudentRows.forEach((r,i)=>{
