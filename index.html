@@ -9,7 +9,7 @@
 <meta property="og:description" content="Today's homeschool game plan: warm-up, drills, lessons, and checklists.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0A0A0A">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A0A0A'/%3E%3Ctext x='32' y='42' font-family='Arial Black,sans-serif' font-size='28' font-weight='900' fill='%23E8622A' text-anchor='middle'%3ELL%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A0A0A'/%3E%3Ctext x='32' y='42' font-family='Arial Black,sans-serif' font-size='24' font-weight='900' fill='%23E8622A' text-anchor='middle'%3EMM%3C/text%3E%3C/svg%3E">
 <title>Micro Mastery — Family Learning Space</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -754,6 +754,37 @@ function defaultContentWeeks(){
    addressed with literal keys, never through famKey(). */
 let FAM = null;
 function famKey(k){ return FAM + ':' + k; }
+/* ========================= MM FAMILY DEFAULTS (Oct 2026) =========================
+   Per-family setup choices, stored per family:
+     - subject-defaults: {excluded:[names], custom:[{id,name,topic}]}
+     - devotional-opts:  {scripture:bool, prayer:bool}
+   Black-history topics are folded into lesson titles (mmLessonTitle),
+   never shown as a separate line. */
+function subjectDefaultsKey(){ return famKey('subject-defaults'); }
+function devoOptsKey(){ return famKey('devotional-opts'); }
+async function loadMmFamilyDefaults(){
+  try{ state.subjectDefaults = (await storageGet(subjectDefaultsKey())) || {excluded:[], custom:[]}; }
+  catch(e){ state.subjectDefaults = {excluded:[], custom:[]}; }
+  try{ state.devoOpts = (await storageGet(devoOptsKey())) || {scripture:true, prayer:true}; }
+  catch(e){ state.devoOpts = {scripture:true, prayer:true}; }
+}
+function mmBhmTitle(lesson, dayPart){
+  const bhmData = (dayPart && dayPart.bhm) || (lesson && lesson.blackHistoryMoment);
+  return (bhmData && typeof bhmData === 'object' && bhmData.label)
+    ? String(bhmData.label).replace(/^[^:]+:\s*/, '') : '';
+}
+function mmLessonTitle(lesson, dayPart){
+  const t = mmBhmTitle(lesson, dayPart);
+  const base = (lesson && lesson.topic) || '';
+  return t ? base + ': ' + t : base;
+}
+function mmShowDevo(part){
+  const o = (typeof state !== 'undefined' && state.devoOpts) || {};
+  if(part === 'scripture') return o.scripture !== false;
+  if(part === 'prayer') return o.prayer !== false;
+  return true;
+}
+
 
 /* ========================= STORAGE HELPERS =========================
    Cloud-backed via Supabase, so any device (yours or your kids') sees
@@ -1158,6 +1189,7 @@ function mondayOfWeek(schoolDate){
 /* ========================= APP STATE ========================= */
 let state = {
   contentWeeks:null, students:null, fieldLabels:null, cycleStartMonday:null, buzzerTime:null, timezone:null, subjectOrders:null,
+  subjectDefaults:null, devoOpts:null,
   schoolDate:null, weekdayNum:null, dateStr:null,
   todayOverride:null, weekWords:{}, checks:{}
 };
@@ -1166,6 +1198,7 @@ let collapseState = {}; // in-memory only, per session
 async function loadAll(){
   state.timezone = (await storageGet(timezoneKey())) || defaultTimezone();
   state.contentWeeks = (await storageGet(contentWeeksKey())) || defaultContentWeeks();
+  await loadMmFamilyDefaults();
   const rawStudents = (await storageGet(studentsKey())) || defaultStudents();
   state.students = rawStudents.map(normalizeStudent);
   // Personal Info / Phone Numbers sections default to collapsed to save
@@ -1264,6 +1297,20 @@ async function loadAll(){
     stampSnap(state.todayOverride);
     await storageSet(dayKey(dstr), state.todayOverride);
   }
+  // REPAIR (Oct 2026): editor saves made before the merge fix dropped
+  // currentEvent from day snapshots. Restore it from the 4-week plan
+  // (or the built-in defaults) when today's snapshot is missing it.
+  if(isTodayView && state.todayOverride && !state.todayOverride.currentEvent){
+    const cwR = contentWeekForDate(state.schoolDate);
+    const planDay = state.contentWeeks[cwR] && state.contentWeeks[cwR][state.weekdayNum];
+    const defDay = defaultContentWeeks()[cwR] && defaultContentWeeks()[cwR][state.weekdayNum];
+    const ceFix = (planDay && planDay.currentEvent) || (defDay && defDay.currentEvent);
+    if(ceFix){
+      state.todayOverride.currentEvent = JSON.parse(JSON.stringify(ceFix));
+      stampSnap(state.todayOverride);
+      await storageSet(dayKey(dstr), state.todayOverride);
+    }
+  }
 
   if(state.weekdayNum === 5){ state.weekWords = await computeWeekWordsFor(mondayOfWeek(state.schoolDate)); }
 }
@@ -1345,7 +1392,8 @@ function allSubjects(c, opts){
     {id:'weeklesson', name:opts.weekSubjectName || 'History/Science', topic:opts.lessonTopic},
   ];
   const extra = (c.extraSubjects||[]).map(e=>({id:e.id, name:e.name, topic:e.topic}));
-  return base.concat(extra);
+  const famCustom = ((typeof state!=='undefined' && state.subjectDefaults && state.subjectDefaults.custom)||[]).map(e=>({id:e.id, name:e.name, topic:e.topic}));
+  return base.concat(extra, famCustom);
 }
 
 /* ========================= RENDER: HEADER ========================= */
@@ -1473,21 +1521,10 @@ async function renderBoard(){
     const worksheetBtn = dayPart?.worksheet?.groups?.some(g=>(g.items||[]).length)
       ? `<button type="button" class="btn btn-primary" data-openworksheet data-student="${studentId}" style="margin-top:10px;margin-left:8px;">📝 Fill Out Worksheet</button>`
       : '';
-    // NOTE: the lesson reading AND the Black History Connection live only inside
-    // the worksheet modal now — the dashboard card stays compact (topic + buttons).
-    // The BHM title shows under the lesson topic; its link label (e.g.
-    // "BlackPast: Juan Garrido") carries the title.
-    const bhmData = dayPart?.bhm || lesson.blackHistoryMoment;
-    const bhmTitle = (bhmData && typeof bhmData === 'object' && bhmData.label)
-      ? String(bhmData.label).replace(/^[^:]+:\s*/, '')
-      : '';
-    const bhmTitleHTML = bhmTitle
-      ? `<div style="font-size:13px;color:var(--ink-soft);margin:-2px 0 6px;">✊🏾 Black History: <strong style="color:var(--ink);">${esc(bhmTitle)}</strong></div>`
-      : '';
+    // Black history is part of the lesson title now, not a separate line.
     return `<div class="card">
       <div class="word-badge">${esc(lessonType)} Lesson · Week ${aw}</div>
-      <div style="font-size:15px;font-weight:600;line-height:1.4;margin:6px 0;">${esc(lesson.topic)}</div>
-      ${bhmTitleHTML}
+      <div style="font-size:15px;font-weight:600;line-height:1.4;margin:6px 0;">${esc(mmLessonTitle(lesson, dayPart))}</div>
       ${pdfBtn}${worksheetBtn}
     </div>`;
   }
@@ -1698,9 +1735,9 @@ async function renderBoard(){
         <div class="card">
           <div class="word-badge">Word of the Day</div>
           <div class="devo-word">${esc(devo.wordOfDay)}</div>
-          <p class="devo-scripture">${esc(devo.scripture)}</p>
+          ${mmShowDevo('scripture') ? `<p class="devo-scripture">${esc(devo.scripture)}</p>` : ''}
           <div class="devo-row"><div class="lbl">Reflection Question</div><div class="val">${esc(devo.reflection)}</div></div>
-          <div class="devo-row"><div class="lbl">Prayer</div><div class="val">${esc(devo.prayer)}</div></div>
+          ${mmShowDevo('prayer') ? `<div class="devo-row"><div class="lbl">Prayer</div><div class="val">${esc(devo.prayer)}</div></div>` : ''}
         </div>
         <div class="intention-card">
           <div class="intention-tag">${unitTest && isTestDay ? 'Unit Test Day' : 'Today\u2019s Intention'}</div>
@@ -2810,7 +2847,7 @@ async function openWorksheetModal(subject, lesson, preferredStudentId, weekdayNu
   });
   currentWorksheetCtx = { subject, lesson, dateStr: state.dateStr };
   document.getElementById('worksheetTitle').textContent = materialSubjectLabel(subject) + (forceDayNum ? ' Self Test' : ' Worksheet');
-  document.getElementById('worksheetSub').textContent = (forceDayNum && dayPart.title ? dayPart.title + ' · ' : '') + lesson.topic;
+  document.getElementById('worksheetSub').textContent = (forceDayNum && dayPart.title ? dayPart.title + ' · ' : '') + mmLessonTitle(lesson, dayPart);
 
   const readingEl = document.getElementById('worksheetReading');
   // The reading card is per-student: Light students get readingLight when the
@@ -2949,7 +2986,7 @@ function initDayEditor(prefix, c){
   makeExtraSubjectsEditor(document.getElementById(`${prefix}-extra-subjects`), editorExtraSubjects[prefix]);
 }
 
-function collectDayForm(prefix, isFriday){
+function collectDayForm(prefix, isFriday, existing){
   const vocab = {};
   if(!isFriday){
     ['5th','8th','10th'].forEach(g=>{
@@ -2966,13 +3003,21 @@ function collectDayForm(prefix, isFriday){
     if(s1) statesCapitals.push({state:s1, capital:c1});
     if(s2) statesCapitals.push({state:s2, capital:c2});
   }
-  return {
+  const out = {
     devotional:{ wordOfDay:document.getElementById(`${prefix}-word`).value, scripture:document.getElementById(`${prefix}-scripture`).value,
       reflection:document.getElementById(`${prefix}-reflect`).value, prayer:document.getElementById(`${prefix}-prayer`).value, intention:document.getElementById(`${prefix}-intent`).value },
     vocab, financialLit, realWorldScenario, statesCapitals,
     subjects:{ math:document.getElementById(`${prefix}-math`).value, reading:document.getElementById(`${prefix}-reading`).value, spanish:document.getElementById(`${prefix}-spanish`).value, memory:document.getElementById(`${prefix}-memory`).value },
     extraSubjects: (editorExtraSubjects[prefix]||[]).filter(e=>e.name.trim()!=='' || e.topic.trim()!=='')
   };
+  // Preserve day fields the form doesn't edit (prepared current event,
+  // frozen lesson snapshot) instead of wiping them on save.
+  if(existing){
+    if(existing.currentEvent) out.currentEvent = existing.currentEvent;
+    if(existing.lesson && Object.keys(existing.lesson).length) out.lesson = existing.lesson;
+    if(existing.lessonType) out.lessonType = existing.lessonType;
+  }
+  return out;
 }
 
 /* ========================= TODAY MODAL ========================= */
@@ -2988,7 +3033,7 @@ function openTodayModal(){
   document.getElementById('todayOverlay').classList.add('open');
 }
 function collectTodayForm(){
-  return collectDayForm('today', state.weekdayNum===5);
+  return collectDayForm('today', state.weekdayNum===5, todayContent());
 }
 
 /* ========================= WEEKS PLAN MODAL (4-week rotation) ========================= */
@@ -3123,7 +3168,7 @@ function collectTemplateForm(){
   [1,2,3,4].forEach(w=>{
     weeks[w] = {};
     Object.keys(WEEKDAY_LABELS).forEach(k=>{
-      weeks[w][k] = collectDayForm(`w-${w}-${k}`, k==='5');
+      weeks[w][k] = collectDayForm(`w-${w}-${k}`, k==='5', state.contentWeeks[w][k]);
     });
   });
   return weeks;
@@ -3352,9 +3397,9 @@ function buildFullDayHTML(dateObj, content, checks, weekWords){
         <div class="card">
           <div class="word-badge">Word of the Day</div>
           <div class="devo-word">${esc(devo.wordOfDay)}</div>
-          <p class="devo-scripture">${esc(devo.scripture)}</p>
+          ${mmShowDevo('scripture') ? `<p class="devo-scripture">${esc(devo.scripture)}</p>` : ''}
           <div class="devo-row"><div class="lbl">Reflection Question</div><div class="val">${esc(devo.reflection)}</div></div>
-          <div class="devo-row"><div class="lbl">Prayer</div><div class="val">${esc(devo.prayer)}</div></div>
+          ${mmShowDevo('prayer') ? `<div class="devo-row"><div class="lbl">Prayer</div><div class="val">${esc(devo.prayer)}</div></div>` : ''}
         </div>
         <div class="intention-card"><div class="intention-tag">Today's Intention</div><div class="intention-text">${esc(devo.intention)}</div></div>
       </div>
@@ -4029,9 +4074,9 @@ function showCreateStep1(){
   obCodeState = { code:'', ok:false };
   document.getElementById('board').innerHTML = `
     <div class="weekend-card" style="max-width:520px;margin:5vh auto;">
-      <div class="ob-steps"><div class="ob-step on"></div><div class="ob-step"></div></div>
+      <div class="ob-steps"><div class="ob-step on"></div><div class="ob-step"></div><div class="ob-step"></div></div>
       <h2 style="margin-bottom:4px;">Create your family space</h2>
-      <p class="sub" style="margin-bottom:20px;">Step 1 of 2 — your family’s details. About a minute. 👋🏾</p>
+      <p class="sub" style="margin-bottom:20px;">Step 1 of 3 — your family’s details. About a minute. 👋🏾</p>
       <div class="ob-field"><label for="obFamName">Family name</label>
         <input class="ob-input" id="obFamName" maxlength="60" placeholder="e.g. The Rivera Family" value="${escAttr(d.name||'')}" autocomplete="off"></div>
       <div class="ob-field"><label for="obFamCode">Family code</label>
@@ -4123,9 +4168,9 @@ function showCreateStep2(){
   if(!obStudentRows.length) obStudentRows = [{name:'', grade:'5th'}];
   document.getElementById('board').innerHTML = `
     <div class="weekend-card" style="max-width:520px;margin:5vh auto;">
-      <div class="ob-steps"><div class="ob-step on"></div><div class="ob-step on"></div></div>
+      <div class="ob-steps"><div class="ob-step on"></div><div class="ob-step on"></div><div class="ob-step"></div></div>
       <h2 style="margin-bottom:4px;">Who’s learning?</h2>
-      <p class="sub" style="margin-bottom:20px;">Step 2 of 2 — add each student (1–8). You can change this anytime in Settings. 👋🏾</p>
+      <p class="sub" style="margin-bottom:20px;">Step 2 of 3 — add each student (1–8). You can change this anytime in Settings. 👋🏾</p>
       <div id="obStudents"></div>
       <button type="button" class="btn btn-ghost" id="obAddStudent" style="margin-bottom:6px;">+ Add another student</button>
       <div class="ob-msg ob-err" id="obStep2Err"></div>
@@ -4141,7 +4186,11 @@ function showCreateStep2(){
     renderObStudents();
   });
   document.getElementById('obBack2').addEventListener('click', showCreateStep1);
-  document.getElementById('obLaunch').addEventListener('click', obLaunch);
+  document.getElementById('obLaunch').addEventListener('click', ()=>{ 
+    const rows = obStudentRows.map(r=>({name:(r.name||'').trim(), grade:r.grade})).filter(r=>r.name);
+    if(!rows.length){ document.getElementById('obStep2Err').textContent = 'Add at least one student with a name.'; return; }
+    showCreateStep3();
+  });
 }
 function renderObStudents(){
   const wrap = document.getElementById('obStudents');
@@ -4163,14 +4212,15 @@ function renderObStudents(){
 }
 
 async function obLaunch(){
-  const err = document.getElementById('obStep2Err');
-  const btn = document.getElementById('obLaunch');
+  const err = document.getElementById('obStep3Err') || document.getElementById('obStep2Err');
+  const btn = document.getElementById('obLaunch3') || document.getElementById('obLaunch');
   const rows = obStudentRows.map(r=>({name:(r.name||'').trim(), grade:r.grade})).filter(r=>r.name);
   err.textContent = '';
   if(!rows.length){ err.textContent = 'Add at least one student with a name.'; return; }
   if(rows.length > 8){ err.textContent = 'Up to 8 students per family space.'; return; }
   if(!obDraft){ showCreateStep1(); return; }
   const { name, code, fpin, ppin } = obDraft;
+  const s3 = obSetup3 || {excluded:[], custom:[], devo:{scripture:true, prayer:true}};
   btn.disabled = true; btn.textContent = 'Setting things up…';
   const fail = ()=>{
     console.error('family launch failed');
@@ -4193,8 +4243,11 @@ async function obLaunch(){
     ok.push(await storageSet(pinFamilyKey(), fpin));
     ok.push(await storageSet(pinParentKey(), ppin));
     ok.push(await storageSet(famKey('family-name'), name));
-    const students = rows.map((r,i)=>normalizeStudent({ id:'s'+(i+1), name:r.name, grade:r.grade }));
+    const students = rows.map((r,i)=>normalizeStudent({ id:'s'+(i+1), name:r.name, grade:r.grade, excludedSubjects:s3.excluded.slice() }));
     ok.push(await storageSet(studentsKey(), students));
+    // Family setup choices: default subjects (+ custom) and devotional opts.
+    ok.push(await storageSet(subjectDefaultsKey(), {excluded:s3.excluded, custom:s3.custom}));
+    ok.push(await storageSet(devoOptsKey(), s3.devo));
     // Copy the shared master lessons into this family's space (fall back to
     // the built-in seeds if the master rows haven't been seeded yet).
     const mh = await storageGet(MASTER_HISTORY_KEY);
@@ -4270,6 +4323,91 @@ function showOpenForm(){
   document.getElementById('obOpenCode').addEventListener('keydown', e=>{ if(e.key==='Enter') go(); });
   document.getElementById('obOpenBack').addEventListener('click', showWelcomeScreen);
   document.getElementById('obOpenCode').focus();
+}
+
+/* ---- Create flow, step 3: subjects & devotional ---- */
+const OB_BASE_SUBJECTS = ['Math','Reading','Spanish','Warm Up','Current Event','Financial Lit','Real World Scenario','State & Capital','Vocabulary','Memory Work','History','Science'];
+let obCustomSubjects = [];
+let obSetup3 = null;
+function obSlug(s){ return (s||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,24) || 'subject'; }
+function showCreateStep3(){
+  obStyle();
+  document.body.classList.add('locked');
+  const d = obSetup3 || {};
+  document.getElementById('board').innerHTML = `
+    <div class="weekend-card" style="max-width:520px;margin:5vh auto;">
+      <div class="ob-steps"><div class="ob-step on"></div><div class="ob-step on"></div><div class="ob-step on"></div></div>
+      <h2 style="margin-bottom:4px;">Subjects & devotional</h2>
+      <p class="sub" style="margin-bottom:20px;">Step 3 of 3 — what shows up each day. You can fine-tune per student later in Settings. 👋🏾</p>
+      <div class="mini-lbl">Subjects shown by default</div>
+      <div class="sub" style="margin:2px 0 8px;">Uncheck anything your family skips.</div>
+      <div id="obSubjects">${OB_BASE_SUBJECTS.map(n=>`
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:14px;margin:6px 0;">
+          <input type="checkbox" id="obSubj-${obSlug(n)}" ${!(d.excluded||[]).includes(n)?'checked':''} style="width:16px;height:16px;"> ${n}
+        </label>`).join('')}</div>
+      <div class="mini-lbl" style="margin-top:14px;">Add your own subjects</div>
+      <div id="obCustomSubjects"></div>
+      <button type="button" class="btn btn-ghost" id="obAddSubject" style="margin-bottom:6px;">+ Add a subject</button>
+      <div class="mini-lbl" style="margin-top:14px;">Devotional</div>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:14px;margin:6px 0;">
+        <input type="checkbox" id="obDevoScripture" ${(d.devo||{}).scripture!==false?'checked':''} style="width:16px;height:16px;"> Include Scripture</label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:14px;margin:6px 0;">
+        <input type="checkbox" id="obDevoPrayer" ${(d.devo||{}).prayer!==false?'checked':''} style="width:16px;height:16px;"> Include Prayer</label>
+      <div class="ob-msg ob-err" id="obStep3Err"></div>
+      <div class="ob-actions">
+        <button type="button" class="btn btn-ghost" id="obBack3">Back</button>
+        <button type="button" class="btn-warmup" id="obLaunch3">🚀 Launch our space</button>
+      </div>
+    </div>`;
+  renderObCustomSubjects();
+  document.getElementById('obAddSubject').addEventListener('click', ()=>{
+    if(obCustomSubjects.length >= 6) return;
+    obCustomSubjects.push({name:'', topic:''});
+    renderObCustomSubjects();
+  });
+  document.getElementById('obBack3').addEventListener('click', showCreateStep2);
+  document.getElementById('obLaunch3').addEventListener('click', obLaunchFromStep3);
+}
+function renderObCustomSubjects(){
+  const wrap = document.getElementById('obCustomSubjects');
+  wrap.innerHTML = obCustomSubjects.map((r,i)=>`
+    <div class="ob-student">
+      <div class="ob-field" style="flex:1;"><label for="obCSubj${i}">Subject</label>
+        <input class="ob-input" id="obCSubj${i}" maxlength="40" placeholder="e.g. Art" value="${escAttr(r.name)}" autocomplete="off"></div>
+      <div class="ob-field" style="flex:2;"><label for="obCSubjT${i}">What they’ll work on</label>
+        <input class="ob-input" id="obCSubjT${i}" maxlength="80" placeholder="e.g. Sketchbook — 20 mins" value="${escAttr(r.topic)}" autocomplete="off"></div>
+      <button type="button" class="ob-rm" data-i="${i}" title="Remove this subject" aria-label="Remove this subject">×</button>
+    </div>`).join('');
+  obCustomSubjects.forEach((r,i)=>{
+    document.getElementById('obCSubj'+i).addEventListener('input', e=>{ r.name = e.target.value; });
+    document.getElementById('obCSubjT'+i).addEventListener('input', e=>{ r.topic = e.target.value; });
+  });
+  wrap.querySelectorAll('.ob-rm').forEach(b=>b.addEventListener('click', ()=>{
+    obCustomSubjects.splice(+b.dataset.i,1); renderObCustomSubjects();
+  }));
+}
+function collectObStep3(){
+  const err = document.getElementById('obStep3Err');
+  err.textContent = '';
+  const excluded = OB_BASE_SUBJECTS.filter(n=>!document.getElementById('obSubj-'+obSlug(n)).checked);
+  const seen = new Set(OB_BASE_SUBJECTS.map(n=>n.toLowerCase()));
+  const custom = [];
+  for(const r of obCustomSubjects){
+    const name = (r.name||'').trim();
+    if(!name) continue;
+    if(seen.has(name.toLowerCase())){ err.textContent = '"'+name+'" is already in the list above.'; return null; }
+    seen.add(name.toLowerCase());
+    custom.push({id:'custom-'+obSlug(name), name:name, topic:(r.topic||'').trim()});
+  }
+  return { excluded:excluded, custom:custom,
+    devo:{ scripture:document.getElementById('obDevoScripture').checked,
+           prayer:document.getElementById('obDevoPrayer').checked } };
+}
+function obLaunchFromStep3(){
+  const s3 = collectObStep3();
+  if(!s3) return;
+  obSetup3 = s3;
+  obLaunch();
 }
 
 /* ========================= INIT + LIVE REFRESH ========================= */
