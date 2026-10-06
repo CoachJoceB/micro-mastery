@@ -784,6 +784,7 @@ function mmLessonTitle(lesson, dayPart){
   const t = mmBhmTitle(lesson, dayPart);
   let base = (lesson && lesson.topic) || '';
   base = base.replace(/^\s*(?:history|science)?\s*unit\s*\d+\s*[:\u2014\u2013\-]?\s*/i, '');
+  base = base.replace(/\s*[\u2014\u2013\-]\s*(?:history|science)?\s*unit\s*\d+\s*$/i, '');
   return t ? base + ': ' + t : base;
 }
 function mmShowDevo(part){
@@ -1443,7 +1444,7 @@ function updateBuzzer(){
   const nowSec = h*3600 + m*60 + s;
   const targetSec = state.buzzerTime.hour*3600 + state.buzzerTime.minute*60;
   const diffSec = targetSec - nowSec;
-  if(diffSec <= 0){ el.textContent = 'Afternoon Activities'; return; }
+  if(diffSec <= 0){ el.textContent = (h >= 18) ? "School's Out" : 'Afternoon Activities'; return; }
   const hh = Math.floor(diffSec/3600);
   const mm = Math.floor((diffSec%3600)/60);
   const ss = diffSec%60;
@@ -1617,7 +1618,7 @@ async function renderBoard(){
 
   const baseSubjList = allSubjects(c, {
     weekSubjectName: weekSubject==='history' ? 'History' : (weekSubject==='science' ? 'Science' : ''),
-    lessonTopic: sharedLesson && sharedLesson.topic,
+    lessonTopic: sharedLesson ? mmLessonTitle(sharedLesson, sharedDayPart) : '',
   });
 
   const currentEventResponses = {};
@@ -3057,7 +3058,7 @@ async function populateTodayLessonSources(){
       const lesson = await lessonFn(week);
       if(lesson) options.push({week, lesson});
     }
-    select.innerHTML = options.map(({week,lesson})=>`<option value="${week}" ${week===actualWeek?'selected':''}>Week ${week} · ${esc(lesson.topic||lesson.pdfFilename||'Untitled lesson')}${lesson.pdfFilename?' · PDF':''}</option>`).join('') || '<option value="">No saved lessons</option>';
+    select.innerHTML = options.map(({week,lesson})=>`<option value="${week}" ${week===actualWeek?'selected':''}>Week ${week} · ${esc(mmLessonTitle(lesson)||lesson.pdfFilename||'Untitled lesson')}${lesson.pdfFilename?' · PDF':''}</option>`).join('') || '<option value="">No saved lessons</option>';
   }
   const otherSelect = document.getElementById('todayOtherSource');
   const otherOptions=[];
@@ -3067,10 +3068,10 @@ async function populateTodayLessonSources(){
       if(lesson) otherOptions.push({subject,week,lesson});
     }
   }
-  otherSelect.innerHTML=otherOptions.map(({subject,week,lesson})=>`<option value="${escAttr(subject)}|${week}">${esc(materialSubjectLabel(subject))} · Week ${week} · ${esc(lesson.topic||lesson.pdfFilename||'Untitled lesson')}${lesson.pdfFilename?' · PDF':''}</option>`).join('')||'<option value="">No other saved lessons</option>';
+  otherSelect.innerHTML=otherOptions.map(({subject,week,lesson})=>`<option value="${escAttr(subject)}|${week}">${esc(materialSubjectLabel(subject))} · Week ${week} · ${esc(mmLessonTitle(lesson)||lesson.pdfFilename||'Untitled lesson')}${lesson.pdfFilename?' · PDF':''}</option>`).join('')||'<option value="">No other saved lessons</option>';
   const current = todayContent();
   document.getElementById('todayLessonApplyStatus').textContent = current?.lesson
-    ? `Today's plan currently uses ${current.lessonType||'a custom'} lesson: ${current.lesson.topic||'Untitled lesson'}.`
+    ? `Today's plan currently uses ${current.lessonType||'a custom'} lesson: ${mmLessonTitle(current.lesson)||'Untitled lesson'}.`
     : 'Choose a lesson above to replace or add today’s History or Science lesson.';
 }
 
@@ -3088,7 +3089,7 @@ async function applyLessonToToday(subject){
   state.todayOverride.students = state.todayOverride.students || JSON.parse(JSON.stringify(state.students));
   state.todayOverride.fieldLabels = state.todayOverride.fieldLabels || JSON.parse(JSON.stringify(state.fieldLabels));
   await storageSet(dayKey(state.dateStr), state.todayOverride);
-  document.getElementById('todayLessonApplyStatus').textContent = `Applied Week ${week} ${label} to today's plan: ${lesson.topic||lesson.pdfFilename||'Untitled lesson'}.`;
+  document.getElementById('todayLessonApplyStatus').textContent = `Applied Week ${week} ${label} to today's plan: ${mmLessonTitle(lesson)||lesson.pdfFilename||'Untitled lesson'}.`;
   await loadAndRender();
   showToast(`Week ${week} ${label} applied to today`);
 }
@@ -3344,7 +3345,7 @@ function buildFullDayHTML(dateObj, content, checks, weekWords){
     const dayPart = getLessonDayPart(lesson, dateObj.getDay(), toDateStr(dateObj));
     const studentLessonHTML = (!isTestDay && lesson) ? `<div class="card" style="margin-top:12px;">
       <div class="word-badge">${esc(content.lessonType||'Lesson')}</div>
-      <div style="font-size:14px;font-weight:600;margin-top:6px;">${esc(lesson.topic)}</div>
+      <div style="font-size:14px;font-weight:600;margin-top:6px;">${esc(mmLessonTitle(lesson))}</div>
       ${dayPart && dayPart.reading ? `<div style="font-size:13px;line-height:1.5;margin-top:8px;white-space:pre-wrap;">${esc(stripKeyInfo(dayPart.reading))}</div>` : ''}
       ${lesson.blackHistoryMoment ? `<div class="vocab-box" style="margin-top:10px;"><div class="word-badge" style="margin-bottom:4px;">Black History Connection</div><div style="font-size:13px;">${esc(lesson.blackHistoryMoment)}</div></div>` : ''}
     </div>` : '';
@@ -4192,7 +4193,7 @@ function showCreateStep2(){
       <div class="ob-msg ob-err" id="obStep2Err"></div>
       <div class="ob-actions">
         <button type="button" class="btn btn-ghost" id="obBack2">Back</button>
-        <button type="button" class="btn-warmup" id="obLaunch">🚀 Launch our space</button>
+        <button type="button" class="btn-warmup" id="obLaunch">Continue →</button>
       </div>
     </div>`;
   renderObStudents();
@@ -4515,6 +4516,12 @@ function friendlyAuthError(error){
 function showLoginScreen(msg){
   mmAuthStyle();
   document.body.classList.add('locked');
+  // Logged-out screens: clear any stray toast, hide the sign-out button,
+  // and show a live clock instead of a frozen placeholder.
+  const _mmToast = document.getElementById('toast'); if(_mmToast) _mmToast.classList.remove('show');
+  const _mmSO = document.getElementById('mmSignOutBtn'); if(_mmSO) _mmSO.remove();
+  const _mmLC = document.getElementById('liveClock');
+  if(_mmLC){ try{ _mmLC.textContent = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',second:'2-digit'}); }catch(e){} }
   document.getElementById('board').innerHTML = `
     <div class="weekend-card mm-auth-card">
       <div style="font-size:44px;line-height:1;" aria-hidden="true">🏠</div>
@@ -4670,7 +4677,6 @@ async function startOnboarding(){
     document.getElementById('board').innerHTML = `<div class="weekend-card"><h2>Couldn't load the cloud library</h2><p style="margin-bottom:16px;">The page couldn't reach its cloud connection. Check your internet connection, then try again.</p><button type="button" class="btn-warmup" onclick="location.reload()">Try again</button></div>`;
     return;
   }
-  addSignOutButton();
   // Fresh tab opened from a password-reset email: go straight to new-password.
   if(location.hash && location.hash.indexOf('type=recovery') >= 0){
     showResetPasswordScreen();
@@ -4686,6 +4692,7 @@ async function startOnboarding(){
   let session = null;
   try{ session = (await sb.auth.getSession()).data.session; }catch(e){ console.error('auth session check failed', e); }
   if(!session){ showLoginScreen(); return; }
+  addSignOutButton();
   let code = null;
   try{
     const r = await sb.rpc('my_family_code');
