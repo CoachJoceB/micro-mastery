@@ -419,7 +419,7 @@
     </div>
 
     <div class="settings-panel" data-settingspanel="curriculum" style="display:none;">
-      <div class="sub">History = Mon/Tue, Science = Wed/Thu. Each real week keeps going — never repeats.</div>
+      <div class="sub">Odd weeks = History (Mon–Thu), even weeks = Science (Mon–Thu). Each real week keeps going — never repeats.</div>
       <div class="field-grid">
         <div><label>Week number</label><input type="text" inputmode="numeric" id="currWeekInput" placeholder="e.g. 1"></div>
         <div><label>Subject</label><select id="currSubjectInput"><option value="history">History</option><option value="science">Science</option></select></div>
@@ -4099,7 +4099,7 @@ function showCreateStep1(){
           <button type="button" class="btn btn-ghost" id="obCheckCode" style="white-space:nowrap;">Check</button>
         </div>
         <div class="ob-msg" id="obCodeMsg"></div>
-        <div class="ob-hint">Lowercase letters, numbers, and dashes, 3–24 characters. This is your family’s private address — you’ll need it to open your space on a new device.</div></div>
+        <div class="ob-hint" id="obCodeHint">Lowercase letters, numbers, and dashes, 3–24 characters. This is your family’s private address — you’ll need it to open your space on a new device.</div></div>
       <div class="ob-field"><label for="obFamPin">Family PIN</label>
         <input class="ob-input" type="password" id="obFamPin" inputmode="numeric" maxlength="12" placeholder="4+ digits — the kids can know this one" autocomplete="new-password">
         <div class="ob-hint">Unlocks the dashboard. Keeps casual snoopers out — it isn’t bank-level security.</div></div>
@@ -4125,6 +4125,8 @@ function showCreateStep1(){
     const _cc = document.getElementById('obFamCode');
     _cc.value = window.MM_CLAIMED_CODE;
     _cc.disabled = true;
+    document.getElementById('obCheckCode').style.display = 'none';
+    document.getElementById('obCodeHint').textContent = 'This code was assigned to your account when you signed up — on a new device, just sign in with your email and password.';
     obCodeState = { code: window.MM_CLAIMED_CODE, ok: true };
     document.getElementById('obCodeMsg').innerHTML = '<span class="ob-ok">Your assigned family code — all set.</span>';
   }
@@ -4532,11 +4534,13 @@ function showLoginScreen(msg){
         <button type="button" class="btn-warmup" id="mmSignUpBtn" style="background:#fff;color:#1B2A4E;border:1.5px solid #1B2A4E;">Create account</button>
       </div>
       <p class="mm-auth-note">New here? Create an account — you will enter your family invite code next.</p>
+      <p class="mm-auth-note" style="margin-top:8px;"><a href="#" id="mmForgotLink" style="color:#5A6B84;">Forgot your password?</a></p>
     </div>`;
   const emailEl = document.getElementById('mmAuthEmail');
   const passEl = document.getElementById('mmAuthPass');
   const errEl = document.getElementById('mmAuthErr');
   function showErr(m){ errEl.textContent = m; errEl.style.display = 'block'; }
+  function showOk(m){ errEl.textContent = m; errEl.style.display = 'block'; errEl.style.color = '#2F7D4F'; }
   async function afterAuth(){ document.body.classList.remove('locked'); startOnboarding(); }
   document.getElementById('mmSignInBtn').addEventListener('click', async ()=>{
     errEl.style.display = 'none';
@@ -4556,6 +4560,19 @@ function showLoginScreen(msg){
     else { showErr('Account created! Check your email for the confirmation link, then sign in.'); }
   });
   passEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') document.getElementById('mmSignInBtn').click(); });
+  document.getElementById('mmForgotLink').addEventListener('click', async (e)=>{
+    e.preventDefault();
+    errEl.style.display = 'none'; errEl.style.color = '';
+    const email = emailEl.value.trim();
+    if(!email){ showErr('Enter your email above first, then tap "Forgot your password?"'); emailEl.focus(); return; }
+    e.target.textContent = 'Sending…';
+    try{
+      const {error} = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+      if(error) throw error;
+      showOk('Reset link sent! Check your email, then come back and sign in with your new password.');
+    }catch(err){ showErr(friendlyAuthError(err)); }
+    e.target.textContent = 'Forgot your password?';
+  });
   emailEl.focus();
   if(msg) showErr(msg);
 }
@@ -4612,16 +4629,58 @@ function addSignOutButton(){
   });
   document.body.appendChild(b);
 }
+function showResetPasswordScreen(){
+  mmAuthStyle();
+  document.body.classList.add('locked');
+  document.getElementById('board').innerHTML = `
+    <div class="weekend-card mm-auth-card">
+      <div style="font-size:44px;line-height:1;" aria-hidden="true;">🔑</div>
+      <h2>Choose a new password</h2>
+      <p style="margin:0 0 18px;">Enter it twice, then you’re back in.</p>
+      <div class="mm-auth-field">
+        <label for="mmNewPass">New password</label>
+        <input id="mmNewPass" class="mm-auth-input" type="password" autocomplete="new-password" />
+      </div>
+      <div class="mm-auth-field" style="margin-bottom:16px;">
+        <label for="mmNewPass2">Confirm new password</label>
+        <input id="mmNewPass2" class="mm-auth-input" type="password" autocomplete="new-password" />
+      </div>
+      <p id="mmResetErr" class="mm-auth-err"></p>
+      <button type="button" class="btn-warmup" id="mmResetBtn" style="width:100%;">Save new password</button>
+    </div>`;
+  const p1 = document.getElementById('mmNewPass'), p2 = document.getElementById('mmNewPass2');
+  const errEl = document.getElementById('mmResetErr');
+  function showErr(m){ errEl.textContent = m; errEl.style.display = 'block'; }
+  document.getElementById('mmResetBtn').addEventListener('click', async ()=>{
+    errEl.style.display = 'none';
+    if(p1.value.length < 6){ showErr('Use at least 6 characters.'); p1.focus(); return; }
+    if(p1.value !== p2.value){ showErr('Those don’t match — try again.'); p2.focus(); return; }
+    try{
+      const {error} = await sb.auth.updateUser({ password: p1.value });
+      if(error) throw error;
+      document.body.classList.remove('locked');
+      history.replaceState(null, '', location.pathname);
+      startOnboarding();
+    }catch(e){ showErr(friendlyAuthError(e)); }
+  });
+  p1.focus();
+}
 async function startOnboarding(){
   if(typeof supabase === 'undefined' || !sb){
     document.getElementById('board').innerHTML = `<div class="weekend-card"><h2>Couldn't load the cloud library</h2><p style="margin-bottom:16px;">The page couldn't reach its cloud connection. Check your internet connection, then try again.</p><button type="button" class="btn-warmup" onclick="location.reload()">Try again</button></div>`;
     return;
   }
   addSignOutButton();
+  // Fresh tab opened from a password-reset email: go straight to new-password.
+  if(location.hash && location.hash.indexOf('type=recovery') >= 0){
+    showResetPasswordScreen();
+    return;
+  }
   if(!window.MM_AUTH_LISTENER){
     window.MM_AUTH_LISTENER = true;
     sb.auth.onAuthStateChange((event)=>{
       if(event === 'SIGNED_OUT'){ try{ sessionStorage.clear(); }catch(e){} showLoginScreen(); }
+      if(event === 'PASSWORD_RECOVERY'){ showResetPasswordScreen(); }
     });
   }
   let session = null;
