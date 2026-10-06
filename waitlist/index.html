@@ -104,12 +104,10 @@
     <p><strong>Waitlist bonus:</strong> join today and get the <strong>School Mode</strong> Chrome extension free — block YouTube, TikTok, Roblox and more during school hours, controlled from your phone.</p>
   </div>
 
-  <div class="card demo">
-    <h2>🎮 Try it right now</h2>
-    <div class="demo-read">A real mini-lesson from Unit 1. <strong>Read this:</strong> Spain's rulers, Ferdinand and Isabella, paid for Christopher Columbus's voyage. He wanted to sail west to find a new sea route to Asia — Europeans were desperate to avoid the dangerous, expensive land crossings and heavy tolls on the old spice routes. In 1492, Columbus landed on an island he named San Salvador, thinking he had reached Asia. <strong>Now try the worksheet below</strong> — it grades itself, just like the real thing.</div>
-    <div id="demo-qs"></div>
-    <div class="demo-score" id="demo-score"></div>
-    <div class="demo-note">This is exactly how every Micro Mastery worksheet works.<br>Instant feedback for them. Zero grading for you.</div>
+  <div class="card demo" style="padding:0;overflow:hidden;">
+    <div style="padding:20px 20px 0;"><h2>🎮 Try the real thing</h2>
+    <p style="color:rgba(247,245,239,.7);font-size:15px;line-height:1.6;margin:0 0 12px;">This is the actual Micro Mastery worksheet — real questions, real self-checking, real interactive labeling. Click through it right here.</p></div>
+    <iframe src="./demo.html" title="Micro Mastery live demo" style="width:100%;height:640px;border:0;display:block;background:var(--navy);" loading="lazy"></iframe>
   </div>
 
   <form class="card" id="waitlist-form">
@@ -141,133 +139,6 @@
   <footer>Micro Mastery · a <strong>Legacy Lab Academy</strong> product</footer>
 </div>
 
-<script>
-'use strict';
-/* Live demo: real Unit 1 questions, same self-checking pattern as the product. */
-(function () {
-  var QS = [
-    {
-      type: 'blank',
-      q: 'Ferdinand and Isabella, rulers of __________, agreed to pay for Columbus\u2019s voyage.',
-      answers: ['spain']
-    },
-    {
-      type: 'blank',
-      q: 'Columbus landed in the Americas in the year __________.',
-      answers: ['1492']
-    },
-    {
-      type: 'choice',
-      q: 'Why did Europeans want to find a sea route to Asia?',
-      options: [
-        'To avoid dangerous, expensive land crossings and heavy tolls',
-        'They wanted to learn how to swim',
-        'They were bored of Europe',
-        'To find new fishing spots'
-      ],
-      answer: 0
-    },
-    {
-      type: 'choice',
-      q: 'Who explored the new land west of Greenland around 1000 AD \u2014 centuries before Columbus?',
-      options: ['Christopher Columbus', 'Leif Ericson', 'Vasco da Gama', 'Ponce de Le\u00f3n'],
-      answer: 1
-    }
-  ];
-  var host = document.getElementById('demo-qs');
-  var scoreEl = document.getElementById('demo-score');
-  var correct = 0;
-  var done = {};
-
-  function norm(s) {
-    return s.toLowerCase().trim().replace(/[.\s]+$/g, '');
-  }
-
-  function updateScore() {
-    scoreEl.textContent = Object.keys(done).length
-      ? ('You: ' + correct + ' of ' + QS.length + ' correct') : '';
-  }
-
-  function grade(box, inp, fb, ok, missMsg, i, btn) {
-    if (ok && !done[i]) {
-      done[i] = true;
-      correct++;
-      if (btn) btn.disabled = true;
-      if (inp) inp.disabled = true;
-    }
-    fb.className = 'demo-fb ' + (ok ? 'ok' : 'no');
-    if (ok) {
-      fb.textContent = '\u2713 Correct! Nice work.';
-      if (inp) { inp.classList.remove('wrong'); inp.classList.add('right'); }
-    } else {
-      fb.innerHTML = '\u2717 Not quite \u2014 try again! <span class="ans">' + missMsg + '</span>';
-      if (inp) { inp.classList.remove('right'); inp.classList.add('wrong'); }
-    }
-    updateScore();
-  }
-
-  QS.forEach(function (item, i) {
-    var box = document.createElement('div');
-    box.className = 'demo-q';
-    var qEl = document.createElement('div');
-    qEl.className = 'q';
-    qEl.textContent = (i + 1) + '. ' + item.q;
-    box.appendChild(qEl);
-
-    var fb = document.createElement('div');
-    fb.className = 'demo-fb';
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'demo-check';
-    btn.textContent = 'Check';
-
-    if (item.type === 'blank') {
-      var inp = document.createElement('input');
-      inp.className = 'demo-input';
-      inp.placeholder = 'Type your answer\u2026';
-      inp.setAttribute('aria-label', 'Your answer');
-      box.appendChild(inp);
-      btn.onclick = function () {
-        var ok = item.answers.some(function (a) { return norm(inp.value) === norm(a); });
-        grade(box, inp, fb, ok, ok ? '' : 'The answer is: ' + item.answers[0], i, btn);
-      };
-      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') btn.click(); });
-    } else {
-      var optsEl = document.createElement('div');
-      optsEl.className = 'demo-opts';
-      var picked = -1;
-      item.options.forEach(function (opt, j) {
-        var b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'demo-opt';
-        b.textContent = opt;
-        b.onclick = function () {
-          if (b.disabled) return;
-          picked = j;
-          Array.prototype.forEach.call(optsEl.children, function (c) { c.classList.remove('sel'); });
-          b.classList.add('sel');
-        };
-        optsEl.appendChild(b);
-      });
-      box.appendChild(optsEl);
-      btn.onclick = function () {
-        if (picked === -1) { fb.className = 'demo-fb no'; fb.textContent = 'Pick an answer first!'; return; }
-        var kids = optsEl.children;
-        var ok = picked === item.answer;
-        for (var k = 0; k < kids.length; k++) {
-          kids[k].disabled = true;
-          if (k === item.answer) kids[k].classList.add('right');
-          else if (k === picked) kids[k].classList.add('wrong');
-        }
-        grade(box, null, fb, ok, ok ? '' : 'The answer is: ' + item.options[item.answer], i, btn);
-      };
-    }
-    box.appendChild(btn);
-    box.appendChild(fb);
-    host.appendChild(box);
-  });
-})();
-</script>
 
 <script>
 'use strict';

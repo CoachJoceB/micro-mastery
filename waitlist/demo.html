@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Micro Mastery — Live Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A0A0A; --navy-2:#1A1A1A; --ink:#111111; --ink-soft:#5B5955;
+    --orange:#E8622A; --orange-deep:#B34A1E; --amber:#F2A93C; --green:#3F8F5F;
+    --chalk:#F7F5EF; --line-dark:rgba(247,245,239,.14); --line-light:rgba(17,17,17,.14);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(--chalk);min-height:100vh;}
+  .demo-banner{background:var(--green);color:#fff;text-align:center;padding:10px 16px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.08em;text-transform:uppercase;}
+  .wrap{max-width:680px;margin:0 auto;padding:24px 20px 64px;}
+  h1{font-family:'Oswald',sans-serif;font-size:28px;text-transform:uppercase;letter-spacing:.02em;margin:0 0 8px;}
+  .sub{color:rgba(247,245,239,.7);font-size:15px;line-height:1.6;margin-bottom:24px;}
+  .card{background:var(--navy-2);border:1px solid var(--line-dark);border-radius:16px;padding:20px;margin-bottom:16px;}
+  .card h2{font-family:'Oswald',sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:.08em;color:var(--orange);margin:0 0 12px;}
+  .reading{font-size:15px;line-height:1.7;color:rgba(247,245,239,.85);}
+  .reading strong{color:#fff;}
+  .q{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--line-dark);}
+  .q:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+  .q-text{font-size:15.5px;font-weight:600;margin-bottom:10px;line-height:1.5;}
+  .q input[type=text]{width:100%;background:var(--navy);border:2px solid var(--line-dark);color:var(--chalk);border-radius:10px;padding:12px;font-size:16px;font-family:'Inter',sans-serif;}
+  .q input[type=text]:focus{outline:none;border-color:var(--orange);}
+  .tf-btns{display:flex;gap:10px;}
+  .tf-btn{flex:1;padding:12px;border:2px solid var(--line-dark);background:var(--navy);color:var(--chalk);border-radius:10px;font-family:'Oswald',sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;}
+  .tf-btn.sel{border-color:var(--orange);background:rgba(232,98,42,.15);}
+  .check-btn{margin-top:10px;background:var(--orange);color:#fff;border:none;border-radius:10px;padding:10px 24px;font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;}
+  .check-btn:disabled{opacity:.4;cursor:default;}
+  .fb{margin-top:8px;font-size:14px;font-weight:600;min-height:20px;}
+  .fb.ok{color:var(--green);}
+  .fb.no{color:#fca5a5;}
+  .fb .ans{color:var(--amber);}
+  .tries{font-size:12px;color:rgba(247,245,239,.5);margin-top:6px;}
+  .btn{border:2px solid var(--line-dark);background:var(--navy);color:var(--chalk);border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;}
+  .btn-primary{border-color:var(--green);background:rgba(63,143,95,.2);}
+  .btn-ghost{background:var(--navy);}
+  .btn:disabled{opacity:.4;cursor:default;}
+</style>
+</head>
+<body>
+<div class="demo-banner">🎮 Live demo — this is the actual Micro Mastery worksheet</div>
+<div class="wrap">
+  <h1>Try a real worksheet</h1>
+  <p class="sub">This is History Day 1 from Unit 1, running the actual self-checking worksheet. Answer, check, and see how it grades. Your tries save in this browser only.</p>
+
+  <div class="card">
+    <h2>📖 Reading</h2>
+    <div class="reading">Spain's rulers, <strong>Ferdinand and Isabella</strong>, paid for Christopher Columbus's voyage. He wanted to sail west to find a new sea route to Asia — Europeans were desperate to avoid the dangerous, expensive land crossings and heavy tolls on the old spice routes. In <strong>1492</strong>, Columbus landed on an island he named San Salvador, thinking he had reached Asia. Because of his discoveries, Europe found out about America.</div>
+  </div>
+
+  <div class="card">
+    <h2>✏️ Questions</h2>
+
+    <div class="q" id="q1">
+      <div class="q-text">1. Ferdinand and Isabella, rulers of ___________, agreed to pay for Columbus' voyage.</div>
+      <input type="text" id="q1-input" placeholder="Type your answer..." autocomplete="off">
+      <button class="check-btn" onclick="checkQ('q1')">Check</button>
+      <div class="fb" id="q1-fb"></div>
+      <div class="tries" id="q1-tries"></div>
+    </div>
+
+    <div class="q" id="q2">
+      <div class="q-text">2. Because of the discoveries of Christopher Columbus, Europe found out about America.</div>
+      <div class="tf-btns">
+        <button class="tf-btn" id="q2-true" onclick="pickTF('q2',true)">True</button>
+        <button class="tf-btn" id="q2-false" onclick="pickTF('q2',false)">False</button>
+      </div>
+      <button class="check-btn" onclick="checkQ('q2')">Check</button>
+      <div class="fb" id="q2-fb"></div>
+      <div class="tries" id="q2-tries"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔬 Interactive: Label the cell</h2>
+    <p style="font-size:13px;color:rgba(247,245,239,.6);margin:0 0 12px;">From Science Day 2. Tap a label, then tap the part of the diagram it names.</p>
+    <div id="demo-activity"></div>
+    <button class="check-btn" onclick="checkActivity()">Check labels</button>
+    <div class="fb" id="act-fb"></div>
+    <div class="tries" id="act-tries"></div>
+  </div>
+
+  <div class="card" style="text-align:center;">
+    <h2>Want the full system?</h2>
+    <p style="color:rgba(247,245,239,.7);font-size:15px;line-height:1.6;">This is one day. Micro Mastery has a full year of self-checking history and science, plus the 15-minute morning routine.</p>
+    <a href="/waitlist/" style="display:inline-block;background:var(--orange);color:#fff;text-decoration:none;border-radius:12px;padding:14px 32px;font-family:'Oswald',sans-serif;font-size:17px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Join the waitlist</a>
+  </div>
+</div>
+
+<script>
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function escAttr(s){return esc(s);}
+</script>
+<script>
+/* === DEMO CHECK LOGIC (3 tries, like the real app) === */
+const demoState = JSON.parse(localStorage.getItem('mm-demo') || '{}');
+
+function saveDemo(){ localStorage.setItem('mm-demo', JSON.stringify(demoState)); }
+
+function normLoose(s){ return (s||'').trim().toLowerCase().replace(/\s+/g,' '); }
+
+function updateTries(id, used, max){
+  const el = document.getElementById(id+'-tries');
+  if(used >= max){
+    el.textContent = 'No tries left.';
+  } else {
+    el.textContent = `Try ${used+1} of ${max}`;
+  }
+}
+
+function checkQ(id){
+  const maxTries = 3;
+  const st = demoState[id] || (demoState[id] = {tries:0, done:false});
+  if(st.done || st.tries >= maxTries) return;
+
+  let val, correct, answerText;
+  if(id === 'q1'){
+    val = document.getElementById('q1-input').value;
+    correct = normLoose(val) === 'spain';
+    answerText = 'Spain';
+    if(!val.trim()){
+      document.getElementById('q1-fb').innerHTML = '<span style="color:rgba(247,245,239,.6);">Type an answer first.</span>';
+      return;
+    }
+  } else if(id === 'q2'){
+    const picked = demoState.q2picked;
+    if(picked === undefined){
+      document.getElementById('q2-fb').innerHTML = '<span style="color:rgba(247,245,239,.6);">Pick True or False first.</span>';
+      return;
+    }
+    correct = picked === true;
+    answerText = 'True';
+  }
+
+  st.tries++;
+  const fb = document.getElementById(id+'-fb');
+  const finalTry = st.tries >= maxTries;
+
+  if(correct){
+    st.done = true;
+    fb.className = 'fb ok';
+    fb.textContent = '✓ Correct! Nice work.';
+    document.querySelector(`#${id} .check-btn`).disabled = true;
+    if(id === 'q1') document.getElementById('q1-input').disabled = true;
+    if(id === 'q2'){
+      document.getElementById('q2-true').disabled = true;
+      document.getElementById('q2-false').disabled = true;
+    }
+  } else {
+    fb.className = 'fb no';
+    if(finalTry){
+      fb.innerHTML = `✗ The answer is: <span class="ans">${answerText}</span>`;
+      document.querySelector(`#${id} .check-btn`).disabled = true;
+      if(id === 'q1') document.getElementById('q1-input').disabled = true;
+    } else {
+      fb.textContent = '✗ Not quite. Try again.';
+    }
+  }
+  updateTries(id, st.tries, maxTries);
+  saveDemo();
+}
+
+function pickTF(id, val){
+  const st = demoState[id] || (demoState[id] = {tries:0, done:false});
+  if(st.done || st.tries >= 3) return;
+  demoState.q2picked = val;
+  document.getElementById('q2-true').classList.toggle('sel', val === true);
+  document.getElementById('q2-false').classList.toggle('sel', val === false);
+  saveDemo();
+}
+
+// Restore state on load
+(function(){
+  ['q1','q2'].forEach(id=>{
+    const st = demoState[id];
+    if(st) updateTries(id, st.tries, 3);
+  });
+  if(demoState.q2picked !== undefined){
+    document.getElementById('q2-true').classList.toggle('sel', demoState.q2picked === true);
+    document.getElementById('q2-false').classList.toggle('sel', demoState.q2picked === false);
+  }
+})();
+</script>
+<script>
+/* === INTERACTIVE ACTIVITY === */
+function wsSvgCell(){
+  return `<svg viewBox="0 0 220 220" style="width:100%;max-width:300px;display:block;margin:0 auto;user-select:none;-webkit-user-select:none;" data-wsdiagram>
+    <circle cx="110" cy="110" r="78" fill="#eaf5ea"/>
+    <circle cx="110" cy="110" r="92" fill="none" stroke="#2e7d4f" stroke-width="8"/>
+    <circle cx="110" cy="110" r="24" fill="#3d7a5c"/>
+    <circle cx="110" cy="110" r="92" fill="none" stroke="rgba(0,0,0,0)" stroke-width="26" data-wszone="z-membrane" style="cursor:pointer"/>
+    <circle cx="110" cy="110" r="78" fill="rgba(0,0,0,0)" data-wszone="z-cytoplasm" style="cursor:pointer"/>
+    <circle cx="110" cy="110" r="24" fill="rgba(0,0,0,0)" data-wszone="z-nucleus" style="cursor:pointer"/>
+    <g data-wstags></g>
+  </svg>`;
+}
+
+function wsSvgMicroscope(){
+  return `<svg viewBox="0 0 260 210" style="width:100%;max-width:340px;display:block;margin:0 auto;user-select:none;-webkit-user-select:none;" data-wsdiagram>
+    <circle cx="130" cy="105" r="98" fill="#ffffff" stroke="#1c2330" stroke-width="3"/>
+    <rect x="55" y="55" width="70" height="42" fill="#f5f0e1" stroke="#8a7a5a" stroke-width="3"/>
+    <rect x="130" y="55" width="70" height="42" fill="#f5f0e1" stroke="#8a7a5a" stroke-width="3"/>
+    <rect x="92" y="102" width="70" height="42" fill="#f5f0e1" stroke="#8a7a5a" stroke-width="3"/>
+    <ellipse cx="90" cy="76" rx="10" ry="7" fill="#5a4a3a"/>
+    <ellipse cx="165" cy="76" rx="10" ry="7" fill="#5a4a3a"/>
+    <ellipse cx="127" cy="123" rx="10" ry="7" fill="#5a4a3a"/>
+    <circle cx="208" cy="158" r="20" fill="#ffffff" stroke="#1c2330" stroke-width="4"/>
+    <rect x="55" y="55" width="70" height="42" fill="rgba(0,0,0,0)" data-wszone="z-cell" style="cursor:pointer"/>
+    <rect x="130" y="55" width="70" height="42" fill="none" stroke="rgba(0,0,0,0)" stroke-width="12" data-wszone="z-cellwall" style="cursor:pointer"/>
+    <ellipse cx="90" cy="76" rx="12" ry="9" fill="rgba(0,0,0,0)" data-wszone="z-nucleus" style="cursor:pointer"/>
+    <circle cx="208" cy="158" r="20" fill="rgba(0,0,0,0)" data-wszone="z-airbubble" style="cursor:pointer"/>
+    <g data-wstags></g>
+  </svg>`;
+}
+
+function wsSvgPlantCell(){
+  return `<svg viewBox="0 0 250 210" style="width:100%;max-width:330px;display:block;margin:0 auto;user-select:none;-webkit-user-select:none;" data-wsdiagram>
+    <rect x="35" y="35" width="180" height="140" rx="12" fill="#eaf5ea"/>
+    <rect x="25" y="25" width="200" height="160" rx="16" fill="none" stroke="#2e7d4f" stroke-width="9"/>
+    <rect x="35" y="35" width="180" height="140" rx="12" fill="none" stroke="#4a8c6a" stroke-width="3"/>
+    <ellipse cx="70" cy="70" rx="12" ry="7" fill="#6aa84f"/>
+    <ellipse cx="180" cy="140" rx="12" ry="7" fill="#6aa84f"/>
+    <ellipse cx="172" cy="68" rx="12" ry="7" fill="#6aa84f"/>
+    <circle cx="125" cy="105" r="20" fill="#3d7a5c"/>
+    <rect x="25" y="25" width="200" height="160" rx="16" fill="none" stroke="rgba(0,0,0,0)" stroke-width="24" data-wszone="z-wall" style="cursor:pointer"/>
+    <rect x="35" y="35" width="180" height="140" rx="12" fill="none" stroke="rgba(0,0,0,0)" stroke-width="14" data-wszone="z-membrane" style="cursor:pointer"/>
+    <rect x="48" y="48" width="154" height="114" fill="rgba(0,0,0,0)" data-wszone="z-cytoplasm" style="cursor:pointer"/>
+    <circle cx="125" cy="105" r="20" fill="rgba(0,0,0,0)" data-wszone="z-nucleus" style="cursor:pointer"/>
+    <g data-wstags></g>
+  </svg>`;
+}
+
+function wsSvgExplorerMap(){
+  const wps = [
+    ['W1',352,140],['W2',325,122],['W3',290,112],['W4',252,102],['W5',228,72],
+    ['W6',200,130],['W7',245,148],['W8',168,152],['W9',192,190],['W10',200,248],
+    ['W11',210,292],['W12',222,272]
+  ];
+  const dots = wps.map(([id,x,y])=>
+    `<g data-wszone="wp:${id}" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="9" fill="#ffffff" stroke="#1c2330" stroke-width="2"/><circle cx="${x}" cy="${y}" r="3" fill="#1c2330"/></g>`
+  ).join('');
+  return `<svg viewBox="0 0 400 340" style="width:100%;max-width:440px;display:block;margin:0 auto;user-select:none;-webkit-user-select:none;" data-wsdiagram>
+    <rect x="0" y="0" width="400" height="340" fill="#f5f0e1"/>
+    <path d="M340,0 Q330,100 345,180 Q350,260 335,340 L400,340 L400,0 Z" fill="#d6e9f5"/>
+    <ellipse cx="210" cy="318" rx="95" ry="26" fill="#d6e9f5"/>
+    <ellipse cx="175" cy="135" rx="16" ry="10" fill="#d6e9f5" stroke="#3a6ea5" stroke-width="1.5"/>
+    <ellipse cx="200" cy="130" rx="13" ry="9" fill="#d6e9f5" stroke="#3a6ea5" stroke-width="1.5"/>
+    <ellipse cx="185" cy="152" rx="14" ry="8" fill="#d6e9f5" stroke="#3a6ea5" stroke-width="1.5"/>
+    <ellipse cx="162" cy="150" rx="11" ry="8" fill="#d6e9f5" stroke="#3a6ea5" stroke-width="1.5"/>
+    <path d="M215,112 Q260,105 295,112 Q320,118 340,128" fill="none" stroke="#3a6ea5" stroke-width="4"/>
+    <path d="M250,100 Q240,85 228,72" fill="none" stroke="#3a6ea5" stroke-width="3"/>
+    <path d="M192,165 Q188,210 196,250 Q202,275 210,295" fill="none" stroke="#3a6ea5" stroke-width="4"/>
+    <text x="352" y="205" font-size="11" font-style="italic" fill="#3a6ea5" text-anchor="middle">Atlantic</text>
+    <text x="150" y="118" font-size="9" font-style="italic" fill="#3a6ea5" text-anchor="middle">Great Lakes</text>
+    <text x="120" y="235" font-size="10" font-style="italic" fill="#3a6ea5" text-anchor="middle">Mississippi R.</text>
+    <text x="285" y="96" font-size="9" font-style="italic" fill="#3a6ea5" text-anchor="middle">St. Lawrence R.</text>
+    <g data-wsroutes></g>
+    ${dots}
+    <g data-wstags></g>
+  </svg>`;
+}
+
+const WS_ACTIVITIES = {
+  'label-cell': {
+    kind: 'label',
+    svg: wsSvgCell,
+    labels: [
+      {id:'membrane', text:'cell membrane', zone:'z-membrane', ax:110, ay:10},
+      {id:'cytoplasm', text:'cytoplasm', zone:'z-cytoplasm', ax:110, ay:178},
+      {id:'nucleus', text:'nucleus', zone:'z-nucleus', ax:110, ay:110},
+    ],
+  },
+  'label-microscope': {
+    kind: 'label',
+    svg: wsSvgMicroscope,
+    labels: [
+      {id:'cell', text:'cell', zone:'z-cell', ax:62, ay:62},
+      {id:'cellwall', text:'cell wall', zone:'z-cellwall', ax:200, ay:50},
+      {id:'nucleus', text:'nucleus', zone:'z-nucleus', ax:90, ay:76},
+      {id:'airbubble', text:'air bubble', zone:'z-airbubble', ax:208, ay:158},
+    ],
+  },
+  'label-plantcell': {
+    kind: 'label',
+    svg: wsSvgPlantCell,
+    labels: [
+      {id:'wall', text:'cell wall', zone:'z-wall', ax:125, ay:12},
+      {id:'membrane', text:'cell membrane', zone:'z-membrane', ax:232, ay:105},
+      {id:'cytoplasm', text:'cytoplasm', zone:'z-cytoplasm', ax:80, ay:152},
+      {id:'nucleus', text:'nucleus', zone:'z-nucleus', ax:125, ay:105},
+    ],
+  },
+  'map-explorers': {
+    kind: 'map',
+    svg: wsSvgExplorerMap,
+    cities: [
+      {id:'quebec', text:'Quebec', zone:'W3', ax:290, ay:92},
+      {id:'montreal', text:'Montreal', zone:'W4', ax:252, ay:82},
+      {id:'neworleans', text:'New Orleans', zone:'W12', ax:272, ay:272},
+    ],
+    explorers: [
+      {id:'cartier', text:'Cartier', color:'#e07b39', route:['W1','W2','W4']},
+      {id:'champlain', text:'Champlain', color:'#2e7d4f', route:['W2','W3','W5','W6','W7']},
+      {id:'marquette', text:'Marquette & Jolliet', color:'#3a6ea5', route:['W8','W9','W10']},
+      {id:'lasalle', text:'La Salle', color:'#8e44ad', route:['W9','W10','W11']},
+    ],
+    wpPos: {W1:[352,140],W2:[325,122],W3:[290,112],W4:[252,102],W5:[228,72],W6:[200,130],W7:[245,148],W8:[168,152],W9:[192,190],W10:[200,248],W11:[210,292],W12:[222,272]},
+  },
+};
+
+/* Render one interactive activity: label bank + SVG + hidden state input. */
+function wsActivityHTML(g, it, field, savedJson, locked){
+  const spec = WS_ACTIVITIES[it.activity];
+  if(!spec) return `<p style="color:var(--ink-soft);">This activity is not available.</p>`;
+  const disBtn = locked ? ' disabled' : '';
+  let bank = '';
+  if(spec.kind === 'label'){
+    bank = `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;" data-wsactbank>`
+      + spec.labels.map(l=>`<button type="button" data-wsactlabel="${l.id}" class="btn btn-ghost"${disBtn} style="font-size:13px;padding:6px 14px;">${esc(l.text)}</button>`).join('')
+      + `</div><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 8px;">Tap a label, then tap the part of the diagram it names. Tap a placed label to take it back.</p>`;
+  } else if(spec.kind === 'map'){
+    bank = `<div style="margin-bottom:8px;"><div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:6px;">1 &middot; PLACE THE CITIES — tap a city, then tap its dot</div>`
+      + `<div style="display:flex;flex-wrap:wrap;gap:8px;" data-wsactbank>`
+      + spec.cities.map(c=>`<button type="button" data-wsactcity="${c.id}" class="btn btn-ghost"${disBtn} style="font-size:13px;padding:6px 14px;">${esc(c.text)}</button>`).join('')
+      + `</div></div>`
+      + `<div style="margin-bottom:10px;"><div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:6px;">2 &middot; TRACE EACH ROUTE — tap an explorer, then tap the dots in travel order</div>`
+      + `<div style="display:flex;flex-wrap:wrap;gap:8px;" data-wsactexplorers>`
+      + spec.explorers.map(e=>`<button type="button" data-wsactexplorer="${e.id}" class="btn btn-ghost"${disBtn} style="font-size:13px;padding:6px 14px;border-left:5px solid ${e.color};">${esc(e.text)}</button>`).join('')
+      + `</div>`
+      + `<div style="display:flex;gap:8px;margin-top:8px;"><button type="button" data-wsactundo class="btn btn-ghost"${disBtn} style="font-size:12px;padding:5px 12px;">Undo last dot</button><button type="button" data-wsactclear class="btn btn-ghost"${disBtn} style="font-size:12px;padding:5px 12px;">Clear route</button></div></div>`;
+  }
+  return `<div data-wsact="${esc(it.activity)}"${locked?' data-wslocked="1"':''} style="margin-bottom:6px;${locked?'opacity:0.75;':''}">${bank}${spec.svg()}`
+    + `<input type="hidden" data-wsfield="${field}" data-wsitem="${it.id}" value="${escAttr(savedJson||'')}">`
+    + `</div>`;
+}
+
+/* Read/write activity state (JSON) through the hidden input. */
+function wsActState(actEl){
+  const inp = actEl.querySelector('input[data-wsfield]');
+  try { return JSON.parse(inp.value || '{}'); } catch(e){ return {}; }
+}
+function wsActSave(actEl, st){
+  const inp = actEl.querySelector('input[data-wsfield]');
+  inp.value = JSON.stringify(st);
+  inp.dispatchEvent(new Event('change', {bubbles:true}));
+}
+
+/* Draw placed-label tags onto the SVG. */
+function wsActDrawTags(actEl, spec, st){
+  const svg = actEl.querySelector('[data-wsdiagram]');
+  if(!svg) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  let tagLayer = svg.querySelector('[data-wstags]');
+  tagLayer.innerHTML = '';
+  const placeTag = (text, ax, ay, key, color)=>{
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('data-wsacttag', key);
+    g.style.cursor = 'pointer';
+    const rect = document.createElementNS(NS, 'rect');
+    const w = Math.max(34, text.length * 7.2 + 16);
+    rect.setAttribute('x', ax - w/2); rect.setAttribute('y', ay - 12);
+    rect.setAttribute('width', w); rect.setAttribute('height', 24); rect.setAttribute('rx', 12);
+    rect.setAttribute('fill', '#ffffff'); rect.setAttribute('stroke', color || '#1c2330'); rect.setAttribute('stroke-width', '1.5');
+    const t = document.createElementNS(NS, 'text');
+    t.setAttribute('x', ax); t.setAttribute('y', ay + 5); t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('font-size', '12'); t.setAttribute('font-weight', '700'); t.setAttribute('fill', '#1c2330');
+    t.textContent = text;
+    g.appendChild(rect); g.appendChild(t);
+    tagLayer.appendChild(g);
+  };
+  if(spec.kind === 'label'){
+    const placed = st.labels || {};
+    spec.labels.forEach(l=>{
+      if(placed[l.id]) placeTag(l.text, l.ax, l.ay, 'label:'+l.id, '#2e7d4f');
+    });
+  } else if(spec.kind === 'map'){
+    const placed = (st.cities) || {};
+    spec.cities.forEach(c=>{
+      if(placed[c.id]) placeTag(c.text, c.ax, c.ay, 'city:'+c.id, '#2e7d4f');
+    });
+    // Route polylines for the selected explorer (all routes, each in its color)
+    let routeLayer = svg.querySelector('[data-wsroutes]');
+    routeLayer.innerHTML = '';
+    const routes = st.routes || {};
+    spec.explorers.forEach(e=>{
+      const wps = routes[e.id] || [];
+      if(wps.length < 2) return;
+      const pts = wps.map(w=>spec.wpPos[w]).filter(Boolean).map(p=>p.join(',')).join(' ');
+      const pl = document.createElementNS(NS, 'polyline');
+      pl.setAttribute('points', pts);
+      pl.setAttribute('fill', 'none'); pl.setAttribute('stroke', e.color);
+      pl.setAttribute('stroke-width', '3.5'); pl.setAttribute('stroke-linecap', 'round'); pl.setAttribute('stroke-linejoin', 'round');
+      pl.setAttribute('opacity', '0.9');
+      routeLayer.appendChild(pl);
+      // arrowhead on last segment
+      const a = spec.wpPos[wps[wps.length-2]], b = spec.wpPos[wps[wps.length-1]];
+      const ang = Math.atan2(b[1]-a[1], b[0]-a[0]);
+      const s = 9;
+      const tri = document.createElementNS(NS, 'polygon');
+      tri.setAttribute('points', `${b[0]},${b[1]} ${b[0]-s*Math.cos(ang-0.45)},${b[1]-s*Math.sin(ang-0.45)} ${b[0]-s*Math.cos(ang+0.45)},${b[1]-s*Math.sin(ang+0.45)}`);
+      tri.setAttribute('fill', e.color);
+      routeLayer.appendChild(tri);
+    });
+  }
+}
+
+/* Wire tap-to-place for one activity element. */
+function wsWireActivity(actEl){
+  const activityId = actEl.getAttribute('data-wsact');
+  const spec = WS_ACTIVITIES[activityId];
+  if(!spec) return;
+  const st = wsActState(actEl);
+  if(spec.kind === 'label' && !st.labels) st.labels = {};
+  if(spec.kind === 'map'){
+    if(!st.cities) st.cities = {};
+    if(!st.routes) st.routes = {};
+  }
+  let selLabel = null, selCity = null, selExplorer = null;
+
+  const refreshChips = ()=>{
+    actEl.querySelectorAll('[data-wsactlabel]').forEach(b=>{
+      const id = b.getAttribute('data-wsactlabel');
+      const used = st.labels && st.labels[id];
+      b.classList.toggle('btn-primary', selLabel===id);
+      b.classList.toggle('btn-ghost', selLabel!==id);
+      b.style.opacity = used ? '0.35' : '1';
+    });
+    actEl.querySelectorAll('[data-wsactcity]').forEach(b=>{
+      const id = b.getAttribute('data-wsactcity');
+      const used = st.cities && st.cities[id];
+      b.classList.toggle('btn-primary', selCity===id);
+      b.classList.toggle('btn-ghost', selCity!==id);
+      b.style.opacity = used ? '0.35' : '1';
+    });
+    actEl.querySelectorAll('[data-wsactexplorer]').forEach(b=>{
+      const id = b.getAttribute('data-wsactexplorer');
+      b.classList.toggle('btn-primary', selExplorer===id);
+      b.classList.toggle('btn-ghost', selExplorer!==id);
+    });
+  };
+
+  const draw = ()=>{ wsActDrawTags(actEl, spec, st); refreshChips(); };
+
+  // Label chips (diagram labeling)
+  actEl.querySelectorAll('[data-wsactlabel]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const id = b.getAttribute('data-wsactlabel');
+      if(st.labels[id]) return; // already placed; tap its tag to remove
+      selLabel = (selLabel===id) ? null : id;
+      draw();
+    });
+  });
+  // City chips (map)
+  actEl.querySelectorAll('[data-wsactcity]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const id = b.getAttribute('data-wsactcity');
+      if(st.cities[id]) return;
+      selCity = (selCity===id) ? null : id;
+      selExplorer = null;
+      draw();
+    });
+  });
+  // Explorer buttons (map routes)
+  actEl.querySelectorAll('[data-wsactexplorer]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const id = b.getAttribute('data-wsactexplorer');
+      selExplorer = (selExplorer===id) ? null : id;
+      selCity = null; selLabel = null;
+      draw();
+    });
+  });
+  const undoBtn = actEl.querySelector('[data-wsactundo]');
+  if(undoBtn) undoBtn.addEventListener('click', ()=>{
+    if(!selExplorer) return;
+    (st.routes[selExplorer] || []).pop();
+    wsActSave(actEl, st); draw();
+  });
+  const clearBtn = actEl.querySelector('[data-wsactclear]');
+  if(clearBtn) clearBtn.addEventListener('click', ()=>{
+    if(!selExplorer) return;
+    st.routes[selExplorer] = [];
+    wsActSave(actEl, st); draw();
+  });
+
+  // Tap targets on the SVG
+  actEl.querySelectorAll('[data-wszone]').forEach(z=>{
+    z.addEventListener('click', ()=>{
+      const zone = z.getAttribute('data-wszone');
+      if(spec.kind === 'label' && selLabel){
+        // If another label is on this zone, send it back first.
+        Object.keys(st.labels).forEach(lid=>{ if(st.labels[lid]===zone) delete st.labels[lid]; });
+        st.labels[selLabel] = zone;
+        selLabel = null;
+        wsActSave(actEl, st); draw();
+      } else if(spec.kind === 'map' && selCity){
+        const wp = zone.indexOf('wp:')===0 ? zone.slice(3) : null;
+        if(!wp) return;
+        Object.keys(st.cities).forEach(cid=>{ if(st.cities[cid]===wp) delete st.cities[cid]; });
+        st.cities[selCity] = wp;
+        selCity = null;
+        wsActSave(actEl, st); draw();
+      } else if(spec.kind === 'map' && selExplorer){
+        const wp = zone.indexOf('wp:')===0 ? zone.slice(3) : null;
+        if(!wp) return;
+        const r = st.routes[selExplorer] || (st.routes[selExplorer] = []);
+        if(r[r.length-1] !== wp) r.push(wp);
+        wsActSave(actEl, st); draw();
+      }
+    });
+  });
+  // Locked (tries used up): freeze all interaction via capture, but keep
+  // saved tags visible.
+  actEl.addEventListener('click', (e)=>{
+    if(actEl.hasAttribute('data-wslocked')){ e.stopPropagation(); e.preventDefault(); }
+  }, true);
+  // Tap a placed tag to send it back to the bank.
+  actEl.addEventListener('click', (e)=>{
+    const tag = e.target.closest('[data-wsacttag]');
+    if(!tag) return;
+    const key = tag.getAttribute('data-wsacttag');
+    const [kind, id] = key.split(':');
+    if(kind==='label' && st.labels) delete st.labels[id];
+    if(kind==='city' && st.cities) delete st.cities[id];
+    wsActSave(actEl, st); draw();
+  });
+
+  draw();
+}
+
+/* Grade an activity state. Returns {ok, wrong:[display texts]}. */
+function wsGradeActivity(spec, st){
+  const wrong = [];
+  if(spec.kind === 'label'){
+    const placed = (st && st.labels) || {};
+    spec.labels.forEach(l=>{
+      if(placed[l.id] !== l.zone) wrong.push(l.text);
+    });
+  } else if(spec.kind === 'map'){
+    const cities = (st && st.cities) || {};
+    spec.cities.forEach(c=>{
+      if(cities[c.id] !== c.zone) wrong.push(c.text);
+    });
+    const routes = (st && st.routes) || {};
+    spec.explorers.forEach(e=>{
+      const got = routes[e.id] || [];
+      const want = e.route;
+      const same = got.length === want.length && got.every((w,i)=>w===want[i]);
+      if(!same) wrong.push(e.text + "'s route");
+    });
+  }
+  return { ok: wrong.length === 0, wrong };
+}
+
+/* Human-readable answer key for final-try feedback. */
+function wsActivityAnswerText(activityId){
+  const spec = WS_ACTIVITIES[activityId];
+  if(!spec) return '';
+  if(spec.kind === 'label'){
+    return spec.labels.map(l=>l.text + ' \u2192 ' + l.zone.replace(/^z-/,'')).join('; ');
+  }
+  const parts = spec.cities.map(c=>c.text + ' \u2192 ' + c.zone);
+  spec.explorers.forEach(e=>parts.push(e.text + ': ' + e.route.join(' \u2192 ')));
+  return parts.join('; ');
+}
+</script>
+
+<script>
+(function(){
+  const container = document.getElementById('demo-activity');
+  container.innerHTML = wsActivityHTML({type:'interactive'}, {id:'demo-cell', activity:'label-cell', prompt:'Label the cell membrane, the cytoplasm, and the nucleus.'}, 'demo_cell', demoState.cell || '', false);
+  const actEl = container.querySelector('[data-wsact]');
+  // Override save to use demoState instead of dispatching to app storage
+  const origSave = wsActSave;
+  wsActSave = function(el, st){
+    demoState.cell = JSON.stringify(st);
+    saveDemo();
+    // Update the hidden input without triggering app handlers
+    const inp = el.querySelector('input[data-wsfield]');
+    if(inp) inp.value = JSON.stringify(st);
+  };
+  wsWireActivity(actEl);
+  // Restore saved placements visually (wsWireActivity already does this via the input value)
+})();
+
+function checkActivity(){
+  const maxTries = 3;
+  const st = demoState.act || (demoState.act = {tries:0, done:false});
+  if(st.done || st.tries >= maxTries) return;
+
+  const actEl = document.querySelector('#demo-activity [data-wsact]');
+  const spec = WS_ACTIVITIES['label-cell'];
+  const placements = JSON.parse(demoState.cell || '{}');
+  const result = wsGradeActivity(spec, placements);
+
+  st.tries++;
+  const fb = document.getElementById('act-fb');
+  const finalTry = st.tries >= maxTries;
+
+  if(result.ok){
+    st.done = true;
+    fb.className = 'fb ok';
+    fb.textContent = '✓ All labels correct! Great work.';
+    document.querySelector('#demo-activity').closest('.card').querySelector('.check-btn').disabled = true;
+    actEl.setAttribute('data-wslocked','1');
+  } else {
+    fb.className = 'fb no';
+    if(finalTry){
+      fb.innerHTML = '✗ The answers are: <span class="ans">' + esc(wsActivityAnswerText('label-cell')) + '</span>';
+      actEl.setAttribute('data-wslocked','1');
+    } else {
+      fb.innerHTML = '✗ Not quite. Try again. Look again at: <strong>' + result.wrong.map(esc).join(', ') + '</strong>.';
+    }
+  }
+  updateTries('act', st.tries, maxTries);
+  saveDemo();
+}
+
+// Restore activity tries
+(function(){
+  const st = demoState.act;
+  if(st) updateTries('act', st.tries, 3);
+})();
+</script>
+</script>
+</body>
+</html>
