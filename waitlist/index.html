@@ -17,44 +17,45 @@
     --amber:#F2A93C;
     --green:#3F8F5F;
     --chalk:#F7F5EF;
+    --paper:#FFFFFF;
     --line-dark:rgba(247,245,239,.14);
+    --line:rgba(17,17,17,.14);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { margin: 0; font-family:'Inter',system-ui,sans-serif; background:var(--navy); color:var(--chalk); }
+  body { margin: 0; font-family:'Inter',system-ui,sans-serif; background:var(--chalk); color:var(--ink); }
   .wrap { max-width: 560px; margin: 0 auto; padding: 32px 20px 64px; }
   .eyebrow { display: inline-block; font-family:'Oswald',sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 2px; color: var(--orange); text-transform: uppercase; margin-bottom: 12px; }
   h1 { font-family:'Oswald',sans-serif; font-size: 36px; line-height: 1.12; margin: 0 0 12px; letter-spacing: .01em; text-transform: uppercase; font-weight: 600; }
   h1 .accent { color: var(--orange); }
-  .sub { font-size: 16px; line-height: 1.65; color: rgba(247,245,239,.75); margin-bottom: 24px; }
-  .card { background: var(--navy-2); border-radius: 18px; padding: 22px; margin-bottom: 16px; }
+  .sub { font-size: 16px; line-height: 1.65; color: var(--ink-soft); margin-bottom: 24px; }
+  .card { background: var(--paper); border:1px solid var(--line); border-radius: 18px; padding: 22px; margin-bottom: 16px; box-shadow:0 2px 12px rgba(0,0,0,.06); }
   .card h2 { font-family:'Oswald',sans-serif; font-size: 17px; font-weight:600; margin: 0 0 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--orange); }
-  .feat { display: flex; gap: 12px; margin-bottom: 12px; font-size: 15px; line-height: 1.5; color: var(--chalk); }
+  .feat { display: flex; gap: 12px; margin-bottom: 12px; font-size: 15px; line-height: 1.5; color: var(--ink); }
   .feat:last-child { margin-bottom: 0; }
   .feat .tick { color: var(--green); font-weight: 800; flex-shrink: 0; }
-  .offer { border: 2px solid var(--orange); background: var(--navy-2); border-radius: 18px; padding: 22px; margin-bottom: 16px; text-align: center; }
+  .offer { border: 2px solid var(--orange); background: var(--paper); border-radius: 18px; padding: 22px; margin-bottom: 16px; text-align: center; box-shadow:0 2px 12px rgba(0,0,0,.06); }
   .offer .price { font-family:'Oswald',sans-serif; font-size: 48px; font-weight: 700; color: var(--orange); }
-  .offer .price small { font-size: 16px; color: rgba(247,245,239,.75); font-weight: 600; }
-  .offer .reg { color: rgba(247,245,239,.55); text-decoration: line-through; font-size: 15px; }
-  .offer .spots { display: inline-block; margin-top: 10px; background: var(--orange-deep); color: var(--chalk); font-weight: 700; font-size: 14px; padding: 6px 16px; border-radius: 999px; }
-  .bonus { display: flex; gap: 12px; align-items: flex-start; background: rgba(63,143,95,.18); border-radius: 18px; padding: 18px 22px; margin-bottom: 16px; }
+  .offer .price small { font-size: 16px; color: var(--ink-soft); font-weight: 600; }
+  .offer .reg { color: var(--ink-soft); text-decoration: line-through; font-size: 15px; }
+  .offer .spots { display: inline-block; margin-top: 10px; background: var(--orange-deep); color: #fff; font-weight: 700; font-size: 14px; padding: 6px 16px; border-radius: 999px; }
+  .bonus { display: flex; gap: 12px; align-items: flex-start; background: rgba(63,143,95,.12); border:1px solid rgba(63,143,95,.3); border-radius: 18px; padding: 18px 22px; margin-bottom: 16px; }
   .bonus .emoji { font-size: 28px; }
-  .bonus p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--chalk); }
-  .bonus strong { color: #fff; }
-  form.card label { display: block; font-size: 13px; font-weight: 700; color: rgba(247,245,239,.55); margin: 0 0 6px; text-transform: uppercase; letter-spacing: .5px; }
+  .bonus p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink); }
+  .bonus strong { color: var(--ink); }
+  form.card label { display: block; font-size: 13px; font-weight: 700; color: var(--ink-soft); margin: 0 0 6px; text-transform: uppercase; letter-spacing: .5px; }
   form.card input, form.card select { width: 100%; background: var(--navy); border: 2px solid var(--line-dark); color: #fff; border-radius: 12px; padding: 14px; font-size: 16px; margin-bottom: 14px; }
   form.card input:focus, form.card select:focus { outline: none; border-color: var(--orange); }
   .submit { width: 100%; background: var(--orange); color: #fff; border: none; border-radius: 14px; padding: 18px; font-family:'Oswald',sans-serif; font-size: 19px; font-weight: 600; letter-spacing:.04em; text-transform:uppercase; cursor: pointer; }
   .submit:active { transform: scale(.98); }
   .submit:disabled { opacity: .6; cursor: default; }
-  .counter { text-align: center; color: rgba(247,245,239,.55); font-size: 14px; margin-top: 12px; }
+  .counter { text-align: center; color: var(--ink-soft); font-size: 14px; margin-top: 12px; }
   .counter strong { color: var(--orange); }
   #success { display: none; text-align: center; padding: 30px 10px; }
   #success .big { font-size: 52px; margin-bottom: 8px; }
   #success h2 { color: var(--green); font-size: 22px; margin: 0 0 8px; }
-  #success p { color: rgba(247,245,239,.75); line-height: 1.6; }
+  #success p { color: var(--ink-soft); line-height: 1.6; }
   .err { display: none; background: rgba(220,60,60,.15); color: #fca5a5; border-radius: 10px; padding: 12px; font-size: 14px; margin-bottom: 14px; }
   .demo { border: 2px solid var(--green); }
-  .demo-read { font-size: 14px; line-height: 1.65; color: rgba(247,245,239,.75); background: var(--navy); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
   .demo-read strong { color: #fff; }
   .demo-q { background: var(--navy); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
   .demo-q .q { font-size: 15px; font-weight: 600; margin-bottom: 10px; line-height: 1.5; }
@@ -72,15 +73,14 @@
   .demo-fb.no { color: #fca5a5; }
   .demo-fb .ans { color: var(--amber); }
   .demo-score { text-align: center; font-size: 15px; font-weight: 700; color: var(--green); margin-top: 6px; }
-  .demo-note { text-align: center; color: rgba(247,245,239,.55); font-size: 13px; margin-top: 10px; line-height: 1.6; }
-  footer { text-align: center; color: rgba(247,245,239,.4); font-size: 13px; margin-top: 32px; line-height: 1.6; }
+  footer { text-align: center; color: var(--ink-soft); font-size: 13px; margin-top: 32px; line-height: 1.6; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <span class="eyebrow">Micro Mastery · Founding pre-sale</span>
   <h1>The <span class="accent">15-minute morning routine</span> that teaches itself.</h1>
-  <p class="sub">Growth mindset, financial literacy, and real-world thinking — while the history and science worksheets <strong style="color:#fff;">grade themselves</strong>. Your kids complete it independently each morning. No printing, no hovering over shoulders, no grading pile at 9pm. Built by a homeschool mom of four, for families like yours.</p>
+  <p class="sub">Growth mindset, financial literacy, and real-world thinking — while the history and science worksheets <strong style="color:var(--ink);">grade themselves</strong>. Your kids complete it independently each morning. No printing, no hovering over shoulders, no grading pile at 9pm. Built by a homeschool mom of four, for families like yours.</p>
 
   <div class="card">
     <h2>What your kids get</h2>
@@ -95,7 +95,7 @@
   <div class="offer">
     <div class="price">$25<small>/month</small></div>
     <div class="reg">Regular $35/month</div>
-    <p style="color:rgba(247,245,239,.75);font-size:15px;line-height:1.6;margin:12px 0 0;">Founding members lock in <strong style="color:#fff;">$25/month for life</strong>.<br>Help shape v1 with your feedback.</p>
+    <p style="color:var(--ink-soft);font-size:15px;line-height:1.6;margin:12px 0 0;">Founding members lock in <strong style="color:var(--ink);">$25/month for life</strong>.<br>Help shape v1 with your feedback.</p>
     <div><span class="spots">Only 10 founding spots</span></div>
   </div>
 
@@ -106,7 +106,7 @@
 
   <div class="card demo" style="padding:0;overflow:hidden;">
     <div style="padding:20px 20px 0;"><h2>🎮 Try the real thing</h2>
-    <p style="color:rgba(247,245,239,.7);font-size:15px;line-height:1.6;margin:0 0 12px;">This is the actual Micro Mastery worksheet — real questions, real self-checking, real interactive labeling. Click through it right here.</p></div>
+    <p style="color:var(--ink-soft);font-size:15px;line-height:1.6;margin:0 0 12px;">This is the actual Micro Mastery worksheet — real questions, real self-checking, real interactive labeling. Click through it right here.</p></div>
     <iframe src="./demo.html" title="Micro Mastery live demo" style="width:100%;height:1400px;border:0;display:block;background:var(--chalk);" loading="lazy"></iframe>
   </div>
 
@@ -141,27 +141,27 @@
     <div style="display:flex;flex-direction:column;gap:16px;">
       <div>
         <div style="font-weight:700;font-size:15px;margin-bottom:4px;">How much does it cost?</div>
-        <div style="font-size:14.5px;line-height:1.6;color:rgba(247,245,239,.75);">Founding members pay <strong style="color:#fff;">$25/month, locked for life</strong>. After the 10 founding spots fill, the regular price is $35/month. One price covers your whole family.</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">Founding members pay <strong style="color:var(--ink);">$25/month, locked for life</strong>. After the 10 founding spots fill, the regular price is $35/month. One price covers your whole family.</div>
       </div>
       <div>
         <div style="font-weight:700;font-size:15px;margin-bottom:4px;">How many kids can I add?</div>
-        <div style="font-size:14.5px;line-height:1.6;color:rgba(247,245,239,.75);">Up to <strong style="color:#fff;">8 kids per family plan</strong> — no per-child fees. Each kid gets their own login, progress tracking, and reading level.</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">Up to <strong style="color:var(--ink);">8 kids per family plan</strong> — no per-child fees. Each kid gets their own login, progress tracking, and reading level.</div>
       </div>
       <div>
         <div style="font-weight:700;font-size:15px;margin-bottom:4px;">What grade levels?</div>
-        <div style="font-size:14.5px;line-height:1.6;color:rgba(247,245,239,.75);">History and science worksheets are built for <strong style="color:#fff;">upper elementary through high school</strong>, with a per-student Light mode that simplifies reading for younger or struggling readers. Vocabulary spans grades K–12.</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">History and science worksheets are built for <strong style="color:var(--ink);">upper elementary through high school</strong>, with a per-student Light mode that simplifies reading for younger or struggling readers. Vocabulary spans grades K–12.</div>
       </div>
       <div>
         <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Can I cancel?</div>
-        <div style="font-size:14.5px;line-height:1.6;color:rgba(247,245,239,.75);">Yes — <strong style="color:#fff;">cancel anytime</strong>. You keep full access through the end of your billing period. Founding members who cancel lose the $25 locked rate if they rejoin later.</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">Yes — <strong style="color:var(--ink);">cancel anytime</strong>. You keep full access through the end of your billing period. Founding members who cancel lose the $25 locked rate if they rejoin later.</div>
       </div>
       <div>
         <div style="font-weight:700;font-size:15px;margin-bottom:4px;">How does the 7-day trial work?</div>
-        <div style="font-size:14.5px;line-height:1.6;color:rgba(247,245,239,.75);">Founding members get an <strong style="color:#fff;">exclusive invite code for a 7-day free trial</strong>. Add your payment method up front; you're charged $25/month only after the trial ends. Cancel during the trial and you pay nothing.</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">Founding members get an <strong style="color:var(--ink);">exclusive invite code for a 7-day free trial</strong>. Add your payment method up front; you're charged $25/month only after the trial ends. Cancel during the trial and you pay nothing.</div>
       </div>
       <div>
         <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Do I have to teach or grade anything?</div>
-        <div style="font-size:14.5px;line-height:1.6;color:rgba(247,245,239,.75);">No. Every worksheet <strong style="color:#fff;">grades itself</strong> — kids get instant feedback and 3 tries before answers appear. Zero parent prep, zero grading.</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">No. Every worksheet <strong style="color:var(--ink);">grades itself</strong> — kids get instant feedback and 3 tries before answers appear. Zero parent prep, zero grading.</div>
       </div>
     </div>
   </div>
