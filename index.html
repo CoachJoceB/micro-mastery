@@ -1263,16 +1263,34 @@ function showCodeEntry(){
     </div>`;
   const input = document.getElementById('inviteCodeInput');
   input.focus();
-  document.getElementById('backToWelcome').addEventListener('click', showWelcomeScreen);
+  document.getElementById('backToWelcome').addEventListener('click', ()=>{ if(typeof showCodeWelcomeScreen==='function') showCodeWelcomeScreen(); });
   document.getElementById('submitCodeBtn').addEventListener('click', async ()=>{
     const code = input.value.trim().toUpperCase();
     const errEl = document.getElementById('codeError');
+    const btn = document.getElementById('submitCodeBtn');
     if(!/^MM-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)){
       errEl.textContent = 'Please enter a valid code (MM-XXXX-XXXX).';
       return;
     }
-    // Validate code format (full validation against server comes with the new build)
-    // For now, accept any properly formatted MM-XXXX-XXXX code
+    // Server-side validation: the code must exist in Supabase and be unused.
+    btn.disabled = true; btn.textContent = 'Checking...'; errEl.textContent = '';
+    try{
+      if(typeof sb === 'undefined' || !sb) throw new Error('no-cloud');
+      const res = await sb.rpc('validate_mm_invite', {p_code: code});
+      if(res.error) throw res.error;
+      if(!res.data){
+        errEl.textContent = 'This code is invalid or already used. Check your welcome email for the correct code.';
+        btn.disabled = false; btn.textContent = 'Continue';
+        return;
+      }
+    }catch(e){
+      console.error('invite code validation failed', e);
+      errEl.textContent = 'Could not verify the code. Check your internet connection and try again.';
+      btn.disabled = false; btn.textContent = 'Continue';
+      return;
+    }
+    // Code is valid: store it and proceed to account creation/sign-in.
+    // The code is claimed (marked used) server-side after the user signs in.
     try{ localStorage.setItem('mmf-family-setup', '1'); }catch(e){}
     try{ localStorage.setItem('mmf-invite-code', code); }catch(e){}
     try{ localStorage.setItem('mmf-code-flow-done', '1'); }catch(e){}
@@ -5520,7 +5538,24 @@ function showLoginScreen(msg){
   const errEl = document.getElementById('mmAuthErr');
   function showErr(m){ errEl.textContent = m; errEl.style.display = 'block'; }
   function showOk(m){ errEl.textContent = m; errEl.style.display = 'block'; errEl.style.color = '#2F7D4F'; }
-  async function afterAuth(){ document.body.classList.remove('locked'); startOnboarding(); }
+  async function afterAuth(){
+    // If the user came through the invite-code flow, claim the code server-side
+    // (marks it single-use and binds it to this account).
+    try{
+      const pendingCode = localStorage.getItem('mmf-invite-code');
+      const flowDone = localStorage.getItem('mmf-code-flow-done');
+      if(pendingCode && flowDone && /^MM-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(pendingCode)){
+        try{
+          const res = await sb.rpc('claim_mm_invite', {p_code: pendingCode});
+          if(res.error) console.error('invite claim failed', res.error);
+          else window.MM_CLAIMED_CODE = pendingCode;
+        }catch(claimErr){ console.error('invite claim failed', claimErr); }
+        // Clear the pending code regardless; the gate already validated it.
+        try{ localStorage.removeItem('mmf-invite-code'); }catch(e){}
+      }
+    }catch(e){}
+    document.body.classList.remove('locked'); startOnboarding();
+  }
   document.getElementById('mmSignInBtn').addEventListener('click', async ()=>{
     errEl.style.display = 'none';
     const email = emailEl.value.trim(), pass = passEl.value;
