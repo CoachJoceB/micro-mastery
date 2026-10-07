@@ -5645,18 +5645,26 @@ async function startOnboarding(){
   }
   let session = null;
   try{ session = (await sb.auth.getSession()).data.session; }catch(e){ console.error('auth session check failed', e); }
-  // New flow: "Do you have a code?" comes BEFORE email/password.
-  // If no session and user hasn't completed the code flow, show welcome screen first.
-  if(!session){
-    try{
-      const codeFlowDone = localStorage.getItem('mmf-code-flow-done');
-      if(!codeFlowDone && typeof showWelcomeScreen === 'function'){
+  // New flow: "Do you have a code?" comes FIRST, before anything else.
+  // Check if user has completed the code flow (regardless of session status).
+  try{
+    const codeFlowDone = localStorage.getItem('mmf-code-flow-done');
+    // If no code flow done, show welcome screen first (unless they already have a claimed family)
+    if(!codeFlowDone && typeof showWelcomeScreen === 'function'){
+      let hasClaimedCode = false;
+      if(session){
+        try{
+          const r = await sb.rpc('my_family_code');
+          if(!r.error && r.data) hasClaimedCode = true;
+        }catch(e){}
+      }
+      if(!hasClaimedCode){
         showWelcomeScreen();
         return;
       }
-    }catch(e){}
-    showLoginScreen(); return;
-  }
+    }
+  }catch(e){}
+  if(!session){ showLoginScreen(); return; }
   addSignOutButton();
   let code = null;
   try{
