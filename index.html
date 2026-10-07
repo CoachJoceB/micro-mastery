@@ -1222,7 +1222,7 @@ function hasFamily(){
   }catch(e){ return false; }
 }
 const STRIPE_URL = 'https://buy.stripe.com/4gM5kDfKx3qD2B40dk3sI00';
-function showWelcomeScreen(){
+function showCodeWelcomeScreen(){
   document.body.classList.add('locked');
   document.getElementById('board').innerHTML = `
     <div class="weekend-card" style="text-align:center;max-width:440px;margin:10vh auto;">
@@ -5650,7 +5650,7 @@ async function startOnboarding(){
   try{
     const codeFlowDone = localStorage.getItem('mmf-code-flow-done');
     // If no code flow done, show welcome screen first (unless they already have a claimed family)
-    if(!codeFlowDone && typeof showWelcomeScreen === 'function'){
+    if(!codeFlowDone && typeof showCodeWelcomeScreen === 'function'){
       let hasClaimedCode = false;
       if(session){
         try{
@@ -5659,7 +5659,7 @@ async function startOnboarding(){
         }catch(e){}
       }
       if(!hasClaimedCode){
-        showWelcomeScreen();
+        showCodeWelcomeScreen();
         return;
       }
     }
