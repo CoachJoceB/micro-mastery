@@ -1265,8 +1265,14 @@ function showCodeEntry(){
     // For now, accept any properly formatted MM-XXXX-XXXX code
     try{ localStorage.setItem('mmf-family-setup', '1'); }catch(e){}
     try{ localStorage.setItem('mmf-invite-code', code); }catch(e){}
-    document.body.classList.remove('locked');
-    bootApp();
+    try{ localStorage.setItem('mmf-code-flow-done', '1'); }catch(e){}
+    // Now show the login screen to create account or sign in
+    if(typeof showLoginScreen === 'function'){
+      showLoginScreen('Code accepted! Now create your account or sign in.');
+    } else {
+      document.body.classList.remove('locked');
+      bootApp();
+    }
   });
   input.addEventListener('keypress', (e)=>{
     if(e.key === 'Enter') document.getElementById('submitCodeBtn').click();
@@ -5639,7 +5645,18 @@ async function startOnboarding(){
   }
   let session = null;
   try{ session = (await sb.auth.getSession()).data.session; }catch(e){ console.error('auth session check failed', e); }
-  if(!session){ showLoginScreen(); return; }
+  // New flow: "Do you have a code?" comes BEFORE email/password.
+  // If no session and user hasn't completed the code flow, show welcome screen first.
+  if(!session){
+    try{
+      const codeFlowDone = localStorage.getItem('mmf-code-flow-done');
+      if(!codeFlowDone && typeof showWelcomeScreen === 'function'){
+        showWelcomeScreen();
+        return;
+      }
+    }catch(e){}
+    showLoginScreen(); return;
+  }
   addSignOutButton();
   let code = null;
   try{
