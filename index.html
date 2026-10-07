@@ -1224,6 +1224,16 @@ function hasFamily(){
 const STRIPE_URL = 'https://buy.stripe.com/4gM5kDfKx3qD2B40dk3sI00';
 function showCodeWelcomeScreen(){
   document.body.classList.add('locked');
+  // Clear any stray toast
+  try{ const t = document.getElementById('toast'); if(t) t.classList.remove('show'); }catch(e){}
+  // Populate header date on auth screens (renderHeader only runs after boot)
+  try{
+    const d = new Date();
+    const de = document.getElementById('sbDate');
+    const se = document.getElementById('sbSub');
+    if(de) de.textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    if(se) se.textContent = 'Welcome';
+  }catch(e){}
   document.getElementById('board').innerHTML = `
     <div class="weekend-card" style="text-align:center;max-width:440px;margin:10vh auto;">
       <div style="font-size:44px;line-height:1;" aria-hidden="true">🎓</div>
@@ -5452,7 +5462,7 @@ function mmAuthStyle(){
     '.mm-auth-card{text-align:center;max-width:440px;margin:10vh auto;}',
     '.mm-auth-field{text-align:left;max-width:300px;margin:0 auto 12px;}',
     '.mm-auth-field>label{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}',
-    '.mm-auth-input{width:100%;padding:11px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:15px;box-sizing:border-box;font-family:inherit;}',
+    '.mm-auth-input{width:100%;padding:11px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:15px;box-sizing:border-box;font-family:inherit;background:#FFFFFF;color:#1A202C;}',
     '.mm-auth-err{display:none;color:#B45309;font-size:13px;margin:0 0 12px;}',
     '.mm-auth-note{font-size:12px;color:#5A6B84;margin:14px 0 0;}'
   ].join('\n');
@@ -5470,6 +5480,14 @@ function friendlyAuthError(error){
 function showLoginScreen(msg){
   mmAuthStyle();
   document.body.classList.add('locked');
+  // Populate header date on auth screens
+  try{
+    const d = new Date();
+    const de = document.getElementById('sbDate');
+    const se = document.getElementById('sbSub');
+    if(de) de.textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    if(se) se.textContent = 'Family sign-in';
+  }catch(e){}
   // Logged-out screens: clear any stray toast, hide the sign-out button,
   // and show a live clock instead of a frozen placeholder.
   const _mmToast = document.getElementById('toast'); if(_mmToast) _mmToast.classList.remove('show');
