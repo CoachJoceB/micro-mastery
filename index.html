@@ -1214,6 +1214,64 @@ const LOCK_KEY = 'lp_unlocked';
 function isUnlocked(){
   try{ return sessionStorage.getItem(LOCK_KEY)==='1'; }catch(e){ return false; }
 }
+function hasFamily(){
+  // Check if user has set up a family (has students or family data)
+  try{
+    const s = localStorage.getItem('mmf-family-setup');
+    return s === '1';
+  }catch(e){ return false; }
+}
+const STRIPE_URL = 'https://buy.stripe.com/4gM5kDfKx3qD2B40dk3sI00';
+function showWelcomeScreen(){
+  document.body.classList.add('locked');
+  document.getElementById('board').innerHTML = `
+    <div class="weekend-card" style="text-align:center;max-width:440px;margin:10vh auto;">
+      <div style="font-size:44px;line-height:1;" aria-hidden="true">🎓</div>
+      <h2>Welcome to Micro Mastery</h2>
+      <p style="margin:0 0 18px;">Do you have an invite code?</p>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <button type="button" class="btn-warmup" id="hasCodeYes">Yes, I have a code</button>
+        <button type="button" class="btn-ghost" id="hasCodeNo">No, I need one</button>
+      </div>
+    </div>`;
+  document.getElementById('hasCodeYes').addEventListener('click', showCodeEntry);
+  document.getElementById('hasCodeNo').addEventListener('click', ()=>{
+    window.location.href = STRIPE_URL;
+  });
+}
+function showCodeEntry(){
+  document.getElementById('board').innerHTML = `
+    <div class="weekend-card" style="text-align:center;max-width:440px;margin:10vh auto;">
+      <div style="font-size:44px;line-height:1;" aria-hidden="true">🔑</div>
+      <h2>Enter your invite code</h2>
+      <p style="margin:0 0 18px;">Check your welcome email for your code (format: MM-XXXX-XXXX).</p>
+      <input type="text" id="inviteCodeInput" placeholder="MM-XXXX-XXXX"
+        style="width:100%;max-width:280px;padding:12px;font-size:18px;text-align:center;letter-spacing:2px;border:2px solid var(--line);border-radius:10px;margin-bottom:12px;text-transform:uppercase;" />
+      <div id="codeError" style="color:#c0392b;font-size:14px;min-height:20px;margin-bottom:8px;"></div>
+      <button type="button" class="btn-warmup" id="submitCodeBtn">Continue</button>
+      <div style="margin-top:12px;"><button type="button" class="btn-ghost" id="backToWelcome" style="font-size:13px;">← Back</button></div>
+    </div>`;
+  const input = document.getElementById('inviteCodeInput');
+  input.focus();
+  document.getElementById('backToWelcome').addEventListener('click', showWelcomeScreen);
+  document.getElementById('submitCodeBtn').addEventListener('click', async ()=>{
+    const code = input.value.trim().toUpperCase();
+    const errEl = document.getElementById('codeError');
+    if(!/^MM-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)){
+      errEl.textContent = 'Please enter a valid code (MM-XXXX-XXXX).';
+      return;
+    }
+    // Validate code format (full validation against server comes with the new build)
+    // For now, accept any properly formatted MM-XXXX-XXXX code
+    try{ localStorage.setItem('mmf-family-setup', '1'); }catch(e){}
+    try{ localStorage.setItem('mmf-invite-code', code); }catch(e){}
+    document.body.classList.remove('locked');
+    bootApp();
+  });
+  input.addEventListener('keypress', (e)=>{
+    if(e.key === 'Enter') document.getElementById('submitCodeBtn').click();
+  });
+}
 function showLockScreen(){
   document.body.classList.add('locked');
   document.getElementById('board').innerHTML = `
@@ -2613,6 +2671,17 @@ function gradeWsItem(group, item, value){
     case 'truefalse': return v === item.answer ? 'ok' : 'bad';
     case 'choice': return normLoose(v) === normLoose(item.answer) ? 'ok' : 'bad';
     case 'order': return parseInt(v,10) === item.answer ? 'ok' : 'bad';
+    case 'interactive': {
+      let st = {};
+      try { st = JSON.parse(v || '{}'); } catch(e){ return 'skip'; }
+      const spec = WS_ACTIVITIES[item.activity];
+      if(!spec) return 'skip';
+      const hasAny = spec.kind==='label'
+        ? Object.keys(st.labels||{}).length > 0
+        : Object.keys(st.cities||{}).length > 0 || Object.keys(st.routes||{}).some(k=>(st.routes[k]||[]).length>0);
+      if(!hasAny) return 'skip';
+      return wsGradeActivity(spec, st).ok ? 'ok' : 'bad';
+    }
     default: return 'skip';
   }
 }
@@ -2625,11 +2694,12 @@ function wsCorrectText(group, item){
     case 'truefalse': return item.answer === 'true' ? 'True' : 'False';
     case 'choice': return item.answer;
     case 'order': return '#' + item.answer;
+    case 'interactive': return wsActivityAnswerText(item.activity);
     default: return '';
   }
 }
 
-const WS_AUTO_TYPES = ['fillblank','matching','truefalse','choice','order'];
+const WS_AUTO_TYPES = ['fillblank','matching','truefalse','choice','order','interactive'];
 
 function wsItemValue(group, item, container, entry){
   const field = group._fieldPrefix + item.id;
@@ -2663,6 +2733,392 @@ function wsGroupDone(g, entry, checks){
   if(g.type==='reveal') return items.every(it=>checks[it.id]==='viewed');
   if(g.type==='shortanswer') return items.every(it=>checks[it.id]==='ok'||checks[it.id]==='bad');
   return items.every(it=>checks[it.id]==='ok'||checks[it.id]==='bad');
+}
+
+/* ============ INTERACTIVE ACTIVITIES (tap-to-place) ============
+   Replaces "draw on paper" for diagram-label and map-trace items.
+   Tap a label chip, then tap its target on the SVG. Tap a placed tag to
+   send it back. State persists as JSON in a hidden data-wsfield input so
+   autosave, tries, and the check system work unchanged. */
+
+function wsSvgCell(){
+  return `<svg viewBox="0 0 220 220" style="width:100%;max-width:300px;display:block;margin:0 auto;user-select:none;-webkit-user-select:none;" data-wsdiagram>
+    <circle cx="110" cy="110" r="78" fill="#eaf5ea"/>
+    <circle cx="110" cy="110" r="92" fill="none" stroke="#2e7d4f" stroke-width="8"/>
+    <circle cx="110" cy="110" r="24" fill="#3d7a5c"/>
+    <circle cx="110" cy="110" r="92" fill="none" stroke="rgba(0,0,0,0)" stroke-width="26" data-wszone="z-membrane" style="cursor:pointer"/>
+    <circle cx="110" cy="110" r="78" fill="rgba(0,0,0,0)" data-wszone="z-cytoplasm" style="cursor:pointer"/>
+    <circle cx="110" cy="110" r="24" fill="rgba(0,0,0,0)" data-wszone="z-nucleus" style="cursor:pointer"/>
+    <g data-wstags></g>
+  </svg>`;
+}
+
+function wsSvgMicroscope(){
+  return `<svg viewBox="0 0 260 210" style="width:100%;max-width:340px;display:block;margin:0 auto;user-select:none;-webkit-user-select:none;" data-wsdiagram>
+    <circle cx="130" cy="105" r="98" fill="#ffffff" stroke="#1c2330" stroke-width="3"/>
+    <rect x="55" y="55" width="70" height="42" fill="#f5f0e1" stroke="#8a7a5a" stroke-width="3"/>
+    <rect x="130" y="55" width="70" height="42" fill="#f5f0e1" stroke="#8a7a5a" stroke-width="3"/>
+    <rect x="92" y="102" width="70" height="42" fill="#f5f0e1" stroke="#8a7a5a" stroke-width="3"/>
+    <ellipse cx="90" cy="76" rx="10" ry="7" fill="#5a4a3a"/>
+    <ellipse cx="165" cy="76" rx="10" ry="7" fill="#5a4a3a"/>
+    <ellipse cx="127" cy="123" rx="10" ry="7" fill="#5a4a3a"/>
+    <circle cx="208" cy="158" r="20" fill="#ffffff" stroke="#1c2330" stroke-width="4"/>
+    <rect x="55" y="55" width="70" height="42" fill="rgba(0,0,0,0)" data-wszone="z-cell" style="cursor:pointer"/>
+    <rect x="130" y="55" width="70" height="42" fill="none" stroke="rgba(0,0,0,0)" stroke-width="12" data-wszone="z-cellwall" style="cursor:pointer"/>
+    <ellipse cx="90" cy="76" rx="12" ry="9" fill="rgba(0,0,0,0)" data-wszone="z-nucleus" style="cursor:pointer"/>
+    <circle cx="208" cy="158" r="20" fill="rgba(0,0,0,0)" data-wszone="z-airbubble" style="cursor:pointer"/>
+    <g data-wstags></g>
+  </svg>`;
+}
+
+function wsSvgPlantCell(){
+  return `<svg viewBox="0 0 250 210" style="width:100%;max-width:330px;display:block;margin:0 auto;user-select:none;-webkit-user-select:none;" data-wsdiagram>
+    <rect x="35" y="35" width="180" height="140" rx="12" fill="#eaf5ea"/>
+    <rect x="25" y="25" width="200" height="160" rx="16" fill="none" stroke="#2e7d4f" stroke-width="9"/>
+    <rect x="35" y="35" width="180" height="140" rx="12" fill="none" stroke="#4a8c6a" stroke-width="3"/>
+    <ellipse cx="70" cy="70" rx="12" ry="7" fill="#6aa84f"/>
+    <ellipse cx="180" cy="140" rx="12" ry="7" fill="#6aa84f"/>
+    <ellipse cx="172" cy="68" rx="12" ry="7" fill="#6aa84f"/>
+    <circle cx="125" cy="105" r="20" fill="#3d7a5c"/>
+    <rect x="25" y="25" width="200" height="160" rx="16" fill="none" stroke="rgba(0,0,0,0)" stroke-width="24" data-wszone="z-wall" style="cursor:pointer"/>
+    <rect x="35" y="35" width="180" height="140" rx="12" fill="none" stroke="rgba(0,0,0,0)" stroke-width="14" data-wszone="z-membrane" style="cursor:pointer"/>
+    <rect x="48" y="48" width="154" height="114" fill="rgba(0,0,0,0)" data-wszone="z-cytoplasm" style="cursor:pointer"/>
+    <circle cx="125" cy="105" r="20" fill="rgba(0,0,0,0)" data-wszone="z-nucleus" style="cursor:pointer"/>
+    <g data-wstags></g>
+  </svg>`;
+}
+
+function wsSvgExplorerMap(){
+  const wps = [
+    ['W1',352,140],['W2',325,122],['W3',290,112],['W4',252,102],['W5',228,72],
+    ['W6',200,130],['W7',245,148],['W8',168,152],['W9',192,190],['W10',200,248],
+    ['W11',210,292],['W12',222,272]
+  ];
+  const dots = wps.map(([id,x,y])=>
+    `<g data-wszone="wp:${id}" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="9" fill="#ffffff" stroke="#1c2330" stroke-width="2"/><circle cx="${x}" cy="${y}" r="3" fill="#1c2330"/></g>`
+  ).join('');
+  return `<svg viewBox="0 0 400 340" style="width:100%;max-width:440px;display:block;margin:0 auto;user-select:none;-webkit-user-select:none;" data-wsdiagram>
+    <rect x="0" y="0" width="400" height="340" fill="#f5f0e1"/>
+    <path d="M340,0 Q330,100 345,180 Q350,260 335,340 L400,340 L400,0 Z" fill="#d6e9f5"/>
+    <ellipse cx="210" cy="318" rx="95" ry="26" fill="#d6e9f5"/>
+    <ellipse cx="175" cy="135" rx="16" ry="10" fill="#d6e9f5" stroke="#3a6ea5" stroke-width="1.5"/>
+    <ellipse cx="200" cy="130" rx="13" ry="9" fill="#d6e9f5" stroke="#3a6ea5" stroke-width="1.5"/>
+    <ellipse cx="185" cy="152" rx="14" ry="8" fill="#d6e9f5" stroke="#3a6ea5" stroke-width="1.5"/>
+    <ellipse cx="162" cy="150" rx="11" ry="8" fill="#d6e9f5" stroke="#3a6ea5" stroke-width="1.5"/>
+    <path d="M215,112 Q260,105 295,112 Q320,118 340,128" fill="none" stroke="#3a6ea5" stroke-width="4"/>
+    <path d="M250,100 Q240,85 228,72" fill="none" stroke="#3a6ea5" stroke-width="3"/>
+    <path d="M192,165 Q188,210 196,250 Q202,275 210,295" fill="none" stroke="#3a6ea5" stroke-width="4"/>
+    <text x="352" y="205" font-size="11" font-style="italic" fill="#3a6ea5" text-anchor="middle">Atlantic</text>
+    <text x="150" y="118" font-size="9" font-style="italic" fill="#3a6ea5" text-anchor="middle">Great Lakes</text>
+    <text x="120" y="235" font-size="10" font-style="italic" fill="#3a6ea5" text-anchor="middle">Mississippi R.</text>
+    <text x="285" y="96" font-size="9" font-style="italic" fill="#3a6ea5" text-anchor="middle">St. Lawrence R.</text>
+    <g data-wsroutes></g>
+    ${dots}
+    <g data-wstags></g>
+  </svg>`;
+}
+
+const WS_ACTIVITIES = {
+  'label-cell': {
+    kind: 'label',
+    svg: wsSvgCell,
+    labels: [
+      {id:'membrane', text:'cell membrane', zone:'z-membrane', ax:110, ay:10},
+      {id:'cytoplasm', text:'cytoplasm', zone:'z-cytoplasm', ax:110, ay:178},
+      {id:'nucleus', text:'nucleus', zone:'z-nucleus', ax:110, ay:110},
+    ],
+  },
+  'label-microscope': {
+    kind: 'label',
+    svg: wsSvgMicroscope,
+    labels: [
+      {id:'cell', text:'cell', zone:'z-cell', ax:62, ay:62},
+      {id:'cellwall', text:'cell wall', zone:'z-cellwall', ax:200, ay:50},
+      {id:'nucleus', text:'nucleus', zone:'z-nucleus', ax:90, ay:76},
+      {id:'airbubble', text:'air bubble', zone:'z-airbubble', ax:208, ay:158},
+    ],
+  },
+  'label-plantcell': {
+    kind: 'label',
+    svg: wsSvgPlantCell,
+    labels: [
+      {id:'wall', text:'cell wall', zone:'z-wall', ax:125, ay:12},
+      {id:'membrane', text:'cell membrane', zone:'z-membrane', ax:232, ay:105},
+      {id:'cytoplasm', text:'cytoplasm', zone:'z-cytoplasm', ax:80, ay:152},
+      {id:'nucleus', text:'nucleus', zone:'z-nucleus', ax:125, ay:105},
+    ],
+  },
+  'map-explorers': {
+    kind: 'map',
+    svg: wsSvgExplorerMap,
+    cities: [
+      {id:'quebec', text:'Quebec', zone:'W3', ax:290, ay:92},
+      {id:'montreal', text:'Montreal', zone:'W4', ax:252, ay:82},
+      {id:'neworleans', text:'New Orleans', zone:'W12', ax:272, ay:272},
+    ],
+    explorers: [
+      {id:'cartier', text:'Cartier', color:'#e07b39', route:['W1','W2','W4']},
+      {id:'champlain', text:'Champlain', color:'#2e7d4f', route:['W2','W3','W5','W6','W7']},
+      {id:'marquette', text:'Marquette & Jolliet', color:'#3a6ea5', route:['W8','W9','W10']},
+      {id:'lasalle', text:'La Salle', color:'#8e44ad', route:['W9','W10','W11']},
+    ],
+    wpPos: {W1:[352,140],W2:[325,122],W3:[290,112],W4:[252,102],W5:[228,72],W6:[200,130],W7:[245,148],W8:[168,152],W9:[192,190],W10:[200,248],W11:[210,292],W12:[222,272]},
+  },
+};
+
+/* Render one interactive activity: label bank + SVG + hidden state input. */
+function wsActivityHTML(g, it, field, savedJson, locked){
+  const spec = WS_ACTIVITIES[it.activity];
+  if(!spec) return `<p style="color:var(--ink-soft);">This activity is not available.</p>`;
+  const disBtn = locked ? ' disabled' : '';
+  let bank = '';
+  if(spec.kind === 'label'){
+    bank = `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;" data-wsactbank>`
+      + spec.labels.map(l=>`<button type="button" data-wsactlabel="${l.id}" class="btn btn-ghost"${disBtn} style="font-size:13px;padding:6px 14px;">${esc(l.text)}</button>`).join('')
+      + `</div><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 8px;">Tap a label, then tap the part of the diagram it names. Tap a placed label to take it back.</p>`;
+  } else if(spec.kind === 'map'){
+    bank = `<div style="margin-bottom:8px;"><div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:6px;">1 &middot; PLACE THE CITIES — tap a city, then tap its dot</div>`
+      + `<div style="display:flex;flex-wrap:wrap;gap:8px;" data-wsactbank>`
+      + spec.cities.map(c=>`<button type="button" data-wsactcity="${c.id}" class="btn btn-ghost"${disBtn} style="font-size:13px;padding:6px 14px;">${esc(c.text)}</button>`).join('')
+      + `</div></div>`
+      + `<div style="margin-bottom:10px;"><div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:6px;">2 &middot; TRACE EACH ROUTE — tap an explorer, then tap the dots in travel order</div>`
+      + `<div style="display:flex;flex-wrap:wrap;gap:8px;" data-wsactexplorers>`
+      + spec.explorers.map(e=>`<button type="button" data-wsactexplorer="${e.id}" class="btn btn-ghost"${disBtn} style="font-size:13px;padding:6px 14px;border-left:5px solid ${e.color};">${esc(e.text)}</button>`).join('')
+      + `</div>`
+      + `<div style="display:flex;gap:8px;margin-top:8px;"><button type="button" data-wsactundo class="btn btn-ghost"${disBtn} style="font-size:12px;padding:5px 12px;">Undo last dot</button><button type="button" data-wsactclear class="btn btn-ghost"${disBtn} style="font-size:12px;padding:5px 12px;">Clear route</button></div></div>`;
+  }
+  return `<div data-wsact="${esc(it.activity)}"${locked?' data-wslocked="1"':''} style="margin-bottom:6px;${locked?'opacity:0.75;':''}">${bank}${spec.svg()}`
+    + `<input type="hidden" data-wsfield="${field}" data-wsitem="${it.id}" value="${escAttr(savedJson||'')}">`
+    + `</div>`;
+}
+
+/* Read/write activity state (JSON) through the hidden input. */
+function wsActState(actEl){
+  const inp = actEl.querySelector('input[data-wsfield]');
+  try { return JSON.parse(inp.value || '{}'); } catch(e){ return {}; }
+}
+function wsActSave(actEl, st){
+  const inp = actEl.querySelector('input[data-wsfield]');
+  inp.value = JSON.stringify(st);
+  inp.dispatchEvent(new Event('change', {bubbles:true}));
+}
+
+/* Draw placed-label tags onto the SVG. */
+function wsActDrawTags(actEl, spec, st){
+  const svg = actEl.querySelector('[data-wsdiagram]');
+  if(!svg) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  let tagLayer = svg.querySelector('[data-wstags]');
+  tagLayer.innerHTML = '';
+  const placeTag = (text, ax, ay, key, color)=>{
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('data-wsacttag', key);
+    g.style.cursor = 'pointer';
+    const rect = document.createElementNS(NS, 'rect');
+    const w = Math.max(34, text.length * 7.2 + 16);
+    rect.setAttribute('x', ax - w/2); rect.setAttribute('y', ay - 12);
+    rect.setAttribute('width', w); rect.setAttribute('height', 24); rect.setAttribute('rx', 12);
+    rect.setAttribute('fill', '#ffffff'); rect.setAttribute('stroke', color || '#1c2330'); rect.setAttribute('stroke-width', '1.5');
+    const t = document.createElementNS(NS, 'text');
+    t.setAttribute('x', ax); t.setAttribute('y', ay + 5); t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('font-size', '12'); t.setAttribute('font-weight', '700'); t.setAttribute('fill', '#1c2330');
+    t.textContent = text;
+    g.appendChild(rect); g.appendChild(t);
+    tagLayer.appendChild(g);
+  };
+  if(spec.kind === 'label'){
+    const placed = st.labels || {};
+    spec.labels.forEach(l=>{
+      if(placed[l.id]) placeTag(l.text, l.ax, l.ay, 'label:'+l.id, '#2e7d4f');
+    });
+  } else if(spec.kind === 'map'){
+    const placed = (st.cities) || {};
+    spec.cities.forEach(c=>{
+      if(placed[c.id]) placeTag(c.text, c.ax, c.ay, 'city:'+c.id, '#2e7d4f');
+    });
+    // Route polylines for the selected explorer (all routes, each in its color)
+    let routeLayer = svg.querySelector('[data-wsroutes]');
+    routeLayer.innerHTML = '';
+    const routes = st.routes || {};
+    spec.explorers.forEach(e=>{
+      const wps = routes[e.id] || [];
+      if(wps.length < 2) return;
+      const pts = wps.map(w=>spec.wpPos[w]).filter(Boolean).map(p=>p.join(',')).join(' ');
+      const pl = document.createElementNS(NS, 'polyline');
+      pl.setAttribute('points', pts);
+      pl.setAttribute('fill', 'none'); pl.setAttribute('stroke', e.color);
+      pl.setAttribute('stroke-width', '3.5'); pl.setAttribute('stroke-linecap', 'round'); pl.setAttribute('stroke-linejoin', 'round');
+      pl.setAttribute('opacity', '0.9');
+      routeLayer.appendChild(pl);
+      // arrowhead on last segment
+      const a = spec.wpPos[wps[wps.length-2]], b = spec.wpPos[wps[wps.length-1]];
+      const ang = Math.atan2(b[1]-a[1], b[0]-a[0]);
+      const s = 9;
+      const tri = document.createElementNS(NS, 'polygon');
+      tri.setAttribute('points', `${b[0]},${b[1]} ${b[0]-s*Math.cos(ang-0.45)},${b[1]-s*Math.sin(ang-0.45)} ${b[0]-s*Math.cos(ang+0.45)},${b[1]-s*Math.sin(ang+0.45)}`);
+      tri.setAttribute('fill', e.color);
+      routeLayer.appendChild(tri);
+    });
+  }
+}
+
+/* Wire tap-to-place for one activity element. */
+function wsWireActivity(actEl){
+  const activityId = actEl.getAttribute('data-wsact');
+  const spec = WS_ACTIVITIES[activityId];
+  if(!spec) return;
+  const st = wsActState(actEl);
+  if(spec.kind === 'label' && !st.labels) st.labels = {};
+  if(spec.kind === 'map'){
+    if(!st.cities) st.cities = {};
+    if(!st.routes) st.routes = {};
+  }
+  let selLabel = null, selCity = null, selExplorer = null;
+
+  const refreshChips = ()=>{
+    actEl.querySelectorAll('[data-wsactlabel]').forEach(b=>{
+      const id = b.getAttribute('data-wsactlabel');
+      const used = st.labels && st.labels[id];
+      b.classList.toggle('btn-primary', selLabel===id);
+      b.classList.toggle('btn-ghost', selLabel!==id);
+      b.style.opacity = used ? '0.35' : '1';
+    });
+    actEl.querySelectorAll('[data-wsactcity]').forEach(b=>{
+      const id = b.getAttribute('data-wsactcity');
+      const used = st.cities && st.cities[id];
+      b.classList.toggle('btn-primary', selCity===id);
+      b.classList.toggle('btn-ghost', selCity!==id);
+      b.style.opacity = used ? '0.35' : '1';
+    });
+    actEl.querySelectorAll('[data-wsactexplorer]').forEach(b=>{
+      const id = b.getAttribute('data-wsactexplorer');
+      b.classList.toggle('btn-primary', selExplorer===id);
+      b.classList.toggle('btn-ghost', selExplorer!==id);
+    });
+  };
+
+  const draw = ()=>{ wsActDrawTags(actEl, spec, st); refreshChips(); };
+
+  // Label chips (diagram labeling)
+  actEl.querySelectorAll('[data-wsactlabel]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const id = b.getAttribute('data-wsactlabel');
+      if(st.labels[id]) return; // already placed; tap its tag to remove
+      selLabel = (selLabel===id) ? null : id;
+      draw();
+    });
+  });
+  // City chips (map)
+  actEl.querySelectorAll('[data-wsactcity]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const id = b.getAttribute('data-wsactcity');
+      if(st.cities[id]) return;
+      selCity = (selCity===id) ? null : id;
+      selExplorer = null;
+      draw();
+    });
+  });
+  // Explorer buttons (map routes)
+  actEl.querySelectorAll('[data-wsactexplorer]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const id = b.getAttribute('data-wsactexplorer');
+      selExplorer = (selExplorer===id) ? null : id;
+      selCity = null; selLabel = null;
+      draw();
+    });
+  });
+  const undoBtn = actEl.querySelector('[data-wsactundo]');
+  if(undoBtn) undoBtn.addEventListener('click', ()=>{
+    if(!selExplorer) return;
+    (st.routes[selExplorer] || []).pop();
+    wsActSave(actEl, st); draw();
+  });
+  const clearBtn = actEl.querySelector('[data-wsactclear]');
+  if(clearBtn) clearBtn.addEventListener('click', ()=>{
+    if(!selExplorer) return;
+    st.routes[selExplorer] = [];
+    wsActSave(actEl, st); draw();
+  });
+
+  // Tap targets on the SVG
+  actEl.querySelectorAll('[data-wszone]').forEach(z=>{
+    z.addEventListener('click', ()=>{
+      const zone = z.getAttribute('data-wszone');
+      if(spec.kind === 'label' && selLabel){
+        // If another label is on this zone, send it back first.
+        Object.keys(st.labels).forEach(lid=>{ if(st.labels[lid]===zone) delete st.labels[lid]; });
+        st.labels[selLabel] = zone;
+        selLabel = null;
+        wsActSave(actEl, st); draw();
+      } else if(spec.kind === 'map' && selCity){
+        const wp = zone.indexOf('wp:')===0 ? zone.slice(3) : null;
+        if(!wp) return;
+        Object.keys(st.cities).forEach(cid=>{ if(st.cities[cid]===wp) delete st.cities[cid]; });
+        st.cities[selCity] = wp;
+        selCity = null;
+        wsActSave(actEl, st); draw();
+      } else if(spec.kind === 'map' && selExplorer){
+        const wp = zone.indexOf('wp:')===0 ? zone.slice(3) : null;
+        if(!wp) return;
+        const r = st.routes[selExplorer] || (st.routes[selExplorer] = []);
+        if(r[r.length-1] !== wp) r.push(wp);
+        wsActSave(actEl, st); draw();
+      }
+    });
+  });
+  // Locked (tries used up): freeze all interaction via capture, but keep
+  // saved tags visible.
+  actEl.addEventListener('click', (e)=>{
+    if(actEl.hasAttribute('data-wslocked')){ e.stopPropagation(); e.preventDefault(); }
+  }, true);
+  // Tap a placed tag to send it back to the bank.
+  actEl.addEventListener('click', (e)=>{
+    const tag = e.target.closest('[data-wsacttag]');
+    if(!tag) return;
+    const key = tag.getAttribute('data-wsacttag');
+    const [kind, id] = key.split(':');
+    if(kind==='label' && st.labels) delete st.labels[id];
+    if(kind==='city' && st.cities) delete st.cities[id];
+    wsActSave(actEl, st); draw();
+  });
+
+  draw();
+}
+
+/* Grade an activity state. Returns {ok, wrong:[display texts]}. */
+function wsGradeActivity(spec, st){
+  const wrong = [];
+  if(spec.kind === 'label'){
+    const placed = (st && st.labels) || {};
+    spec.labels.forEach(l=>{
+      if(placed[l.id] !== l.zone) wrong.push(l.text);
+    });
+  } else if(spec.kind === 'map'){
+    const cities = (st && st.cities) || {};
+    spec.cities.forEach(c=>{
+      if(cities[c.id] !== c.zone) wrong.push(c.text);
+    });
+    const routes = (st && st.routes) || {};
+    spec.explorers.forEach(e=>{
+      const got = routes[e.id] || [];
+      const want = e.route;
+      const same = got.length === want.length && got.every((w,i)=>w===want[i]);
+      if(!same) wrong.push(e.text + "'s route");
+    });
+  }
+  return { ok: wrong.length === 0, wrong };
+}
+
+/* Human-readable answer key for final-try feedback. */
+function wsActivityAnswerText(activityId){
+  const spec = WS_ACTIVITIES[activityId];
+  if(!spec) return '';
+  if(spec.kind === 'label'){
+    return spec.labels.map(l=>l.text + ' \u2192 ' + l.zone.replace(/^z-/,'')).join('; ');
+  }
+  const parts = spec.cities.map(c=>c.text + ' \u2192 ' + c.zone);
+  spec.explorers.forEach(e=>parts.push(e.text + ': ' + e.route.join(' \u2192 ')));
+  return parts.join('; ');
 }
 
 function wsUpdateProgress(container, worksheet, entry, checks){
@@ -2766,7 +3222,7 @@ function renderWorksheetFormHTML(entry, checks){
         const field = p + it.id;
         const val = answers[field]||'';
         return `<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px dashed var(--line-light);">
-          <p style="font-size:13.5px;margin:0 0 6px;">${esc(it.text)}<span data-wsmark="${it.id}"></span></p>
+          <p style="font-size:13.5px;margin:0 0 6px;">${esc(it.text || it.statement || '')}<span data-wsmark="${it.id}"></span></p>
           <div style="display:flex;gap:8px;">
             <button type="button" class="btn ${val==='true'?'btn-primary':'btn-ghost'}"${dis} data-wstf="${field}" data-wsitem="${it.id}" data-val="true" style="font-size:13px;padding:6px 16px;">True</button>
             <button type="button" class="btn ${val==='false'?'btn-primary':'btn-ghost'}"${dis} data-wstf="${field}" data-wsitem="${it.id}" data-val="false" style="font-size:13px;padding:6px 16px;">False</button>
@@ -2793,6 +3249,17 @@ function renderWorksheetFormHTML(entry, checks){
           <input type="number" min="1" max="${(g.items||[]).length}"${dis} data-wsfield="${field}" data-wsitem="${it.id}" value="${escAttr(answers[field]||'')}" placeholder="#" style="width:56px;padding:6px;border:1.5px solid var(--line-light);border-radius:6px;font-family:'Oswald',sans-serif;text-align:center;">
           <span style="font-size:13.5px;">${esc(it.event||it.text||'')}</span><span data-wsmark="${it.id}"></span>
         </div><div data-wsnote="${it.id}" style="font-size:12px;margin:-4px 0 8px 64px;"></div>`;
+      }).join('');
+    } else if(g.type==='interactive'){
+      // Tap-to-place diagram labeling or map tracing. One hidden input per
+      // item carries the JSON placement state for autosave + grading.
+      body = (g.items||[]).map(it=>{
+        const field = p + it.id;
+        return `<div style="margin-bottom:10px;">
+          <div style="font-size:13.5px;margin-bottom:8px;"><strong>${esc(it.prompt||'')}</strong><span data-wsmark="${it.id}"></span></div>
+          ${wsActivityHTML(g, it, field, answers[field]||'', locked)}
+          <div data-wsnote="${it.id}" style="font-size:12px;margin-top:6px;"></div>
+        </div>`;
       }).join('');
     } else if(g.type==='matching'){
       // The lettered choices being matched FROM — shown in their own box so
@@ -3036,6 +3503,20 @@ function wsRunGroupCheck(container, studentId, gi){
         // Tries remain: mark it wrong but keep the answer hidden so the
         // student can try again. Inputs stay enabled (locked on finalTry only).
         fb = '<span style="color:var(--red);">✗ Not quite. Try again.</span>';
+        // Interactive activities: name which labels/routes are wrong (without
+        // revealing the answer) so the student knows what to fix.
+        if(g.type==='interactive'){
+          const spec = WS_ACTIVITIES[it.activity];
+          if(spec){
+            let st = {};
+            try { st = JSON.parse(val || '{}'); } catch(e){}
+            const det = wsGradeActivity(spec, st);
+            if(det.wrong.length){
+              fb += ' <span style="color:var(--ink-soft);">Look again at: <strong>'
+                + det.wrong.map(esc).join(', ') + '</strong>.</span>';
+            }
+          }
+        }
       }
       wsNoteHTML(it.id, fb);
     }
@@ -3067,6 +3548,7 @@ function wsRunGroupCheck(container, studentId, gi){
     // Lock the section: disable inputs and swap the check button for a
     // "tries used up" note so answers can't be changed after the last try.
     groupEl.querySelectorAll('[data-wsfield],[data-wstf],[data-wschoice]').forEach(el=>{ el.disabled = true; });
+    groupEl.querySelectorAll('[data-wsact]').forEach(actEl=>{ actEl.setAttribute('data-wslocked','1'); actEl.style.opacity='0.75'; actEl.querySelectorAll('button').forEach(b=>{ b.disabled = true; }); });
     const btn = groupEl.querySelector('[data-wscheck]');
     if(btn) btn.outerHTML = '<div style="font-size:12.5px;margin-top:8px;color:var(--ink-soft);font-weight:700;">' + wsTriesUsedText() + '</div>';
   }
@@ -3078,6 +3560,9 @@ function wireWorksheetFormInputs(container, studentId){
   const entry = worksheetCache[studentId];
   const worksheet = entry.worksheet;
   const checks = wsChecksCache[studentId] || (wsChecksCache[studentId] = {});
+
+  // Interactive activities: wire tap-to-place (restores saved placements).
+  container.querySelectorAll('[data-wsact]').forEach(actEl=>wsWireActivity(actEl));
 
   // Re-render marks from saved check state
   (worksheet.groups||[]).forEach(g=>{
