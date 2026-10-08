@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex,nofollow">
-<meta name="description" content="Micro Mastery by Legacy Lab Academy — a self-checking interactive homeschool system: today's lessons, worksheets, and checklists for the whole family.">
-<meta property="og:title" content="Micro Mastery — Family Learning Space">
-<meta property="og:description" content="Today's homeschool game plan: warm-up, drills, lessons, and checklists.">
+<meta name="description" content="Micro Mastery by Legacy Lab Academy: the 15-minute morning routine that teaches itself. Growth mindset, financial literacy, and self-grading history/science worksheets for your whole family. $25/month founding price, locked for life.">
+<meta property="og:title" content="Micro Mastery — The 15-Minute Morning Routine That Teaches Itself">
+<meta property="og:description" content="Growth mindset, financial literacy, and self-grading worksheets for up to 8 kids. Zero parent prep. $25/month founding members, locked for life.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://mymicromastery.com/">
 <meta name="theme-color" content="#0A0A0A">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A0A0A'/%3E%3Ctext x='32' y='42' font-family='Arial Black,sans-serif' font-size='24' font-weight='900' fill='%23E8622A' text-anchor='middle'%3EMM%3C/text%3E%3C/svg%3E">
-<title>Micro Mastery — Family Learning Space</title>
+<title>Micro Mastery — The 15-Minute Morning Routine That Teaches Itself</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -1222,6 +1222,115 @@ function hasFamily(){
   }catch(e){ return false; }
 }
 const STRIPE_URL = 'https://buy.stripe.com/4gM5kDfKx3qD2B40dk3sI00';
+function showLandingPage(){
+  document.body.classList.add('locked');
+  try{ const t = document.getElementById('toast'); if(t) t.classList.remove('show'); }catch(e){}
+  try{
+    const d = new Date();
+    const de = document.getElementById('sbDate');
+    const se = document.getElementById('sbSub');
+    if(de) de.textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    if(se) se.textContent = 'Micro Mastery';
+  }catch(e){}
+  const stripeUrl = (typeof STRIPE_URL !== 'undefined' && STRIPE_URL) ? STRIPE_URL : 'https://buy.stripe.com/4gM5kDfKx3qD2B40dk3sI00';
+  document.getElementById('board').innerHTML = `
+  <div style="max-width:860px;margin:0 auto;padding:24px 20px 60px;">
+    <!-- HERO -->
+    <div style="text-align:center;padding:48px 16px 36px;">
+      <div style="font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#B45309;font-weight:700;margin-bottom:14px;">Micro Mastery &middot; by Legacy Lab Academy</div>
+      <h1 style="font-family:Oswald,sans-serif;font-size:clamp(30px,5vw,46px);line-height:1.12;margin:0 0 16px;color:#1A202C;">The 15-minute morning routine<br>that teaches itself.</h1>
+      <p style="font-size:18px;color:#4A5568;max-width:620px;margin:0 auto 28px;line-height:1.6;">Growth mindset, financial literacy, and self-grading history &amp; science worksheets &mdash; for your whole family. Zero parent prep.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button type="button" class="btn-warmup" id="lpGetCode" style="font-size:17px;padding:14px 32px;">Get your invite code</button>
+        <button type="button" class="btn-ghost" id="lpSeeHow" style="font-size:16px;padding:13px 26px;">See how it works</button>
+      </div>
+      <p style="font-size:13px;color:#718096;margin-top:14px;">7-day free trial &middot; Founding members lock in $25/month for life</p>
+    </div>
+    <!-- WHAT IT IS -->
+    <div id="lpHow" style="background:#fff;border:1.5px solid #E2E8F0;border-radius:16px;padding:32px 28px;margin-bottom:24px;">
+      <h2 style="font-family:Oswald,sans-serif;font-size:24px;margin:0 0 8px;color:#1A202C;text-align:center;">What your kids get every morning</h2>
+      <p style="text-align:center;color:#718096;font-size:15px;margin:0 0 24px;">Three blocks. Fifteen minutes. Done before breakfast gets cold.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
+        <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:20px;">
+          <div style="font-size:28px;margin-bottom:8px;">&#9728;&#65039;</div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:6px;color:#92400E;">1. Warm Up</div>
+          <p style="font-size:14px;color:#57534E;margin:0;line-height:1.55;">Growth mindset prompt plus a real current event, rewritten at your child&rsquo;s reading level.</p>
+        </div>
+        <div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:12px;padding:20px;">
+          <div style="font-size:28px;margin-bottom:8px;">&#128176;</div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:6px;color:#065F46;">2. Life Skills</div>
+          <p style="font-size:14px;color:#57534E;margin:0;line-height:1.55;">Financial literacy in bite-size lessons &mdash; interest, budgeting, and smart money habits.</p>
+        </div>
+        <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:20px;">
+          <div style="font-size:28px;margin-bottom:8px;">&#129518;</div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:6px;color:#1E40AF;">3. Drills</div>
+          <p style="font-size:14px;color:#57534E;margin:0;line-height:1.55;">Self-grading history &amp; science worksheets with 3 tries. Instant feedback, zero red pens.</p>
+        </div>
+      </div>
+    </div>
+    <!-- WHO IT'S FOR -->
+    <div style="background:#fff;border:1.5px solid #E2E8F0;border-radius:16px;padding:32px 28px;margin-bottom:24px;">
+      <h2 style="font-family:Oswald,sans-serif;font-size:24px;margin:0 0 16px;color:#1A202C;text-align:center;">Built for busy homeschool families</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;font-size:15px;color:#4A5568;">
+        <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:#2F7D4F;font-weight:700;">&#10003;</span><span><strong>Homeschool parents</strong> who want independent morning work without the prep</span></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:#2F7D4F;font-weight:700;">&#10003;</span><span><strong>After-school families</strong> adding 15 focused minutes to the day</span></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:#2F7D4F;font-weight:700;">&#10003;</span><span><strong>Kids in grades 5&ndash;12</strong> (worksheets) and K&ndash;12 (vocabulary)</span></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:#2F7D4F;font-weight:700;">&#10003;</span><span><strong>Up to 8 children</strong> on one family plan &mdash; everyone gets their own level</span></div>
+      </div>
+    </div>
+    <!-- SCREENSHOT / DEMO -->
+    <div style="background:#1A202C;border-radius:16px;padding:32px 28px;margin-bottom:24px;text-align:center;">
+      <h2 style="font-family:Oswald,sans-serif;font-size:24px;margin:0 0 8px;color:#fff;">See it in action</h2>
+      <p style="color:#A0AEC0;font-size:15px;margin:0 0 20px;">Try the real interactive demo &mdash; no signup needed.</p>
+      <a href="/waitlist/demo.html" style="display:inline-block;background:#E8622A;color:#fff;font-weight:700;font-size:16px;padding:13px 30px;border-radius:10px;text-decoration:none;">&#127918; Try the live demo</a>
+      <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <span style="background:#2D3748;color:#E2E8F0;font-size:13px;padding:6px 14px;border-radius:20px;">&#10003; Self-grading</span>
+        <span style="background:#2D3748;color:#E2E8F0;font-size:13px;padding:6px 14px;border-radius:20px;">&#10003; 3 tries per question</span>
+        <span style="background:#2D3748;color:#E2E8F0;font-size:13px;padding:6px 14px;border-radius:20px;">&#10003; Per-student levels</span>
+      </div>
+    </div>
+    <!-- PRICING -->
+    <div style="background:#fff;border:2px solid #E8622A;border-radius:16px;padding:32px 28px;margin-bottom:24px;text-align:center;position:relative;">
+      <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#E8622A;color:#fff;font-size:12px;font-weight:700;letter-spacing:.08em;padding:5px 18px;border-radius:20px;">FOUNDING MEMBER</div>
+      <h2 style="font-family:Oswald,sans-serif;font-size:24px;margin:0 0 8px;color:#1A202C;">Simple family pricing</h2>
+      <div style="font-size:52px;font-weight:800;color:#1A202C;line-height:1;margin:12px 0 4px;">$25<span style="font-size:20px;font-weight:600;color:#718096;">/month</span></div>
+      <p style="color:#B45309;font-weight:600;font-size:15px;margin:0 0 16px;">Locked for life &mdash; regular price $35/month</p>
+      <div style="text-align:left;max-width:420px;margin:0 auto 24px;font-size:15px;color:#4A5568;">
+        <div style="padding:7px 0;border-bottom:1px solid #EDF2F7;">&#10003; Up to <strong>8 children</strong> on one plan</div>
+        <div style="padding:7px 0;border-bottom:1px solid #EDF2F7;">&#10003; <strong>7-day free trial</strong> &mdash; cancel anytime</div>
+        <div style="padding:7px 0;border-bottom:1px solid #EDF2F7;">&#10003; <strong>Zero parent prep</strong> &mdash; self-grading everything</div>
+        <div style="padding:7px 0;">&#10003; Only <strong>10 founding spots</strong> at this price</div>
+      </div>
+      <button type="button" class="btn-warmup" id="lpGetCode2" style="font-size:17px;padding:14px 36px;">Get your invite code</button>
+      <p style="font-size:13px;color:#718096;margin:14px 0 0;"><a href="/pricing" style="color:#E8622A;">See full pricing details</a></p>
+    </div>
+    <!-- FINAL CTA -->
+    <div style="text-align:center;padding:20px 16px 8px;">
+      <h2 style="font-family:Oswald,sans-serif;font-size:26px;margin:0 0 10px;color:#1A202C;">Mornings can be calm.</h2>
+      <p style="color:#4A5568;font-size:16px;margin:0 0 22px;">Join the founding families and reclaim your mornings.</p>
+      <button type="button" class="btn-warmup" id="lpGetCode3" style="font-size:17px;padding:14px 36px;">Get your invite code</button>
+    </div>
+    <!-- FOOTER -->
+    <div style="text-align:center;padding:32px 16px 0;border-top:1px solid #E2E8F0;margin-top:36px;">
+      <p style="font-size:14px;color:#718096;margin:0 0 8px;">
+        <a href="/about" style="color:#4A5568;margin:0 10px;">About</a>
+        <a href="/pricing" style="color:#4A5568;margin:0 10px;">Pricing</a>
+        <a href="/waitlist/" style="color:#4A5568;margin:0 10px;">Waitlist</a>
+      </p>
+      <p style="font-size:13px;color:#A0AEC0;margin:0;">Micro Mastery &middot; a Legacy Lab Academy product</p>
+    </div>
+  </div>`;
+  const goToCode = ()=>{ if(typeof showCodeWelcomeScreen==='function') showCodeWelcomeScreen(); };
+  ['lpGetCode','lpGetCode2','lpGetCode3'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('click', goToCode);
+  });
+  const seeHow = document.getElementById('lpSeeHow');
+  if(seeHow) seeHow.addEventListener('click', ()=>{
+    const el = document.getElementById('lpHow');
+    if(el) el.scrollIntoView({behavior:'smooth'});
+  });
+}
 function showCodeWelcomeScreen(){
   document.body.classList.add('locked');
   // Clear any stray toast
@@ -5712,7 +5821,10 @@ async function startOnboarding(){
         }catch(e){}
       }
       if(!hasClaimedCode){
-        showCodeWelcomeScreen();
+        // New visitors see the marketing landing page first;
+        // the "Get your invite code" CTA leads to the code welcome screen.
+        if(typeof showLandingPage === 'function'){ showLandingPage(); }
+        else if(typeof showCodeWelcomeScreen === 'function'){ showCodeWelcomeScreen(); }
         return;
       }
     }
