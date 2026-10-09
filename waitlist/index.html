@@ -196,29 +196,37 @@ async function readList() {
 }
 
 async function addSignup(s) {
-  var val = await readList();
-  if (!val) throw new Error('network');
-  val.signups = val.signups || [];
-  var dup = val.signups.some(function (x) { return x.email.toLowerCase() === s.email.toLowerCase(); });
-  if (!dup) {
-    val.signups.push(s);
-    var res = await fetch(SUPABASE_URL + '/rest/v1/command_center?on_conflict=key', {
-      method: 'POST',
-      headers: Object.assign({ Prefer: 'resolution=merge-duplicates' }, headers()),
-      body: JSON.stringify({ key: KEY, value: val })
-    });
-    if (!res.ok) throw new Error('save');
+  // Secure: INSERT to waitlist_signups (public can add, cannot read).
+  // Requires secure-waitlist.sql to have been run in Supabase.
+  var res = await fetch(SUPABASE_URL + '/rest/v1/waitlist_signups', {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ name: s.name, email: s.email, kids: s.kids || null })
+  });
+  if (!res.ok) {
+    // 409 = duplicate email (already signed up)
+    if (res.status === 409) return { dup: true, count: await getCount() };
+    throw new Error('save');
   }
-  return { dup: dup, count: val.signups.length };
+  return { dup: false, count: await getCount() };
+}
+
+async function getCount() {
+  try {
+    var res = await fetch(SUPABASE_URL + '/rest/v1/rpc/waitlist_count', {
+      method: 'POST', headers: headers()
+    });
+    var n = await res.json();
+    return typeof n === 'number' ? n : 0;
+  } catch (e) { return 0; }
 }
 
 async function refreshCounter() {
-  var val = await readList();
-  if (val && val.signups) {
-    var n = val.signups.length;
-    $('counter').innerHTML = n > 0
-      ? '<strong>' + n + '</strong> famil' + (n === 1 ? 'y' : 'ies') + ' already on the waitlist'
-      : 'Be the first family on the waitlist';
+  var n = await getCount();
+  if (n > 0) {
+    $('counter').innerHTML = '<strong>' + n + '</strong> famil' + (n === 1 ? 'y' : 'ies') + ' already on the waitlist';
+  } else {
+    $('counter').innerHTML = 'Be the first family on the waitlist';
   }
 }
 
