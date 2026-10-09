@@ -3,22 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Terms of Service — Micro Mastery by Legacy Lab Academy</title>
-<meta name="description" content="Micro Mastery terms of service: subscription terms, acceptable use, and refund policy.">
+<title>Pricing for Micro Mastery by Legacy Lab Academy</title>
+<meta name="description" content="Micro Mastery pricing: $25/month founding members (locked for life), $35/month regular. One family plan covers up to 8 kids. 7-day free trial, cancel anytime.">
+<meta property="og:title" content="Micro Mastery Pricing">
+<meta property="og:description" content="$25/month founding (locked for life). Up to 8 kids. 7-day free trial.">
+<meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Inter',system-ui,sans-serif;background:#FAF6F0;color:#1A202C;line-height:1.7;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#FAF6F0;color:#1A202C;line-height:1.65;}
   h1,h2{font-family:'Oswald',sans-serif;}
-  .wrap{max-width:720px;margin:0 auto;padding:24px 20px 60px;}
-  h1{font-size:clamp(26px,5vw,36px);text-align:center;margin:28px 0 8px;}
-  .updated{text-align:center;color:#718096;font-size:14px;margin-bottom:32px;}
-  .card{background:#fff;border:1.5px solid #E2E8F0;border-radius:16px;padding:28px;margin-bottom:20px;}
-  .card h2{font-size:19px;margin-bottom:10px;color:#1A202C;}
-  .card p,.card li{font-size:15px;color:#4A5568;margin-bottom:10px;}
-  .card ul{padding-left:20px;}
-  .card p:last-child,.card li:last-child{margin-bottom:0;}
+  .wrap{max-width:860px;margin:0 auto;padding:24px 20px 60px;}
+  .eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#B45309;font-weight:700;margin-bottom:12px;text-align:center;}
+  h1{font-size:clamp(28px,5vw,40px);text-align:center;margin-bottom:8px;line-height:1.2;}
+  .sub{text-align:center;color:#718096;font-size:16px;margin-bottom:32px;}
+  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:32px;}
+  .plan{background:#fff;border:1.5px solid #E2E8F0;border-radius:16px;padding:32px 28px;text-align:center;position:relative;}
+  .plan.featured{border:2px solid #E8622A;}
+  .badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#E8622A;color:#fff;font-size:12px;font-weight:700;letter-spacing:.08em;padding:5px 18px;border-radius:20px;white-space:nowrap;}
+  .plan h2{font-size:20px;margin-bottom:4px;}
+  .price{font-size:48px;font-weight:800;line-height:1;margin:12px 0 4px;}
+  .price span{font-size:18px;font-weight:600;color:#718096;}
+  .tag{color:#B45309;font-weight:600;font-size:14px;margin-bottom:16px;}
+  .plan ul{list-style:none;text-align:left;margin:0 0 24px;font-size:15px;color:#4A5568;}
+  .plan li{padding:7px 0;border-bottom:1px solid #EDF2F7;}
+  .plan li:last-child{border-bottom:none;}
+  .btn{display:inline-block;background:#E8622A;color:#fff;font-weight:700;font-size:16px;padding:13px 32px;border-radius:10px;text-decoration:none;border:none;cursor:pointer;}
+  .btn:hover{background:#D1541F;}
+  .btn.ghost{background:#fff;color:#1A202C;border:1.5px solid #CBD5E0;}
+  .faq{background:#fff;border:1.5px solid #E2E8F0;border-radius:16px;padding:32px 28px;margin-bottom:20px;}
+  .faq h2{font-size:22px;margin-bottom:16px;text-align:center;}
+  .qa{margin-bottom:16px;}
+  .qa:last-child{margin-bottom:0;}
+  .qa strong{display:block;font-size:15px;margin-bottom:4px;color:#1A202C;}
+  .qa p{font-size:14px;color:#4A5568;}
   .footer{text-align:center;padding:32px 16px 0;border-top:1px solid #E2E8F0;margin-top:36px;font-size:14px;color:#718096;}
   .footer a{color:#4A5568;margin:0 10px;text-decoration:none;}
   .nav{text-align:center;padding:20px 0 8px;}
@@ -27,57 +46,80 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="nav"><a href="/">Home</a><a href="/about">About</a><a href="/pricing">Pricing</a></div>
-  <h1>Terms of Service</h1>
-  <p class="updated">Last updated: October 8, 2026</p>
+  <div class="nav">
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/waitlist/">Waitlist</a>
+  </div>
+  <div class="eyebrow" style="margin-top:28px;">Micro Mastery &middot; by Legacy Lab Academy</div>
+  <h1>Simple family pricing.</h1>
+  <p class="sub">One plan. Up to 8 kids. Zero parent prep.</p>
 
-  <div class="card">
-    <h2>The service</h2>
-    <p>Micro Mastery ("the Service") is a subscription-based family learning platform operated by Legacy Lab Academy, Inc. ("we", "us"). By creating an account or subscribing, you agree to these terms.</p>
+  <div class="plans">
+    <div class="plan featured">
+      <div class="badge">FOUNDING MEMBER</div>
+      <h2>Founding</h2>
+      <div class="price">$25<span>/month</span></div>
+      <p class="tag">Locked for life</p>
+      <ul>
+        <li>&#10003; Up to <strong>8 children</strong></li>
+        <li>&#10003; 15-min morning routine</li>
+        <li>&#10003; Growth mindset + current events</li>
+        <li>&#10003; Financial literacy lessons</li>
+        <li>&#10003; Self-grading worksheets</li>
+        <li>&#10003; 7-day free trial</li>
+        <li>&#10003; Cancel anytime</li>
+      </ul>
+      <a class="btn" href="https://buy.stripe.com/4gM5kDfKx3qD2B40dk3sI00">Start your 7-day trial</a>
+      <p style="font-size:12px;color:#A0AEC0;margin-top:10px;">Only 25 founding spots</p>
+    </div>
+    <div class="plan">
+      <h2>Regular</h2>
+      <div class="price">$35<span>/month</span></div>
+      <p class="tag" style="color:#718096;">After founding spots fill</p>
+      <ul>
+        <li>&#10003; Up to <strong>8 children</strong></li>
+        <li>&#10003; 15-min morning routine</li>
+        <li>&#10003; Growth mindset + current events</li>
+        <li>&#10003; Financial literacy lessons</li>
+        <li>&#10003; Self-grading worksheets</li>
+        <li>&#10003; 7-day free trial</li>
+        <li>&#10003; Cancel anytime</li>
+      </ul>
+      <a class="btn ghost" href="https://buy.stripe.com/4gM5kDfKx3qD2B40dk3sI00">Start your 7-day trial</a>
+    </div>
   </div>
 
-  <div class="card">
-    <h2>Subscription and billing</h2>
-    <ul>
-      <li><strong>Founding members</strong> pay $25/month, locked for life as long as the subscription stays active.</li>
-      <li><strong>Regular price</strong> is $35/month after founding spots fill.</li>
-      <li>All plans include a <strong>7-day free trial</strong>. You won't be charged until day 8.</li>
-      <li>Billing is monthly, processed by Stripe. Cancel anytime by emailing support@mymicromastery.com; you keep access through the end of your billing period.</li>
-      <li>One subscription covers up to 8 children in a single family.</li>
-    </ul>
-  </div>
-
-  <div class="card">
-    <h2>Invite codes</h2>
-    <p>Access requires a single-use invite code issued by us. Codes are non-transferable. Sharing your account credentials with other families is not permitted.</p>
-  </div>
-
-  <div class="card">
-    <h2>Acceptable use</h2>
-    <ul>
-      <li>Use the Service for your own family's educational purposes.</li>
-      <li>Don't attempt to access other families' data, reverse-engineer the platform, or abuse the invite system.</li>
-      <li>Parents are responsible for supervising their children's use.</li>
-    </ul>
-  </div>
-
-  <div class="card">
-    <h2>Refunds</h2>
-    <p>Because every plan starts with a 7-day free trial, we generally don't offer refunds after the trial converts. If you were charged in error, email <a href="mailto:support@mymicromastery.com" style="color:#E8622A;">support@mymicromastery.com</a> within 14 days and we'll make it right.</p>
-  </div>
-
-  <div class="card">
-    <h2>Changes</h2>
-    <p>We may update these terms. Material changes will be emailed to subscribers at least 14 days in advance. Continued use after changes means you accept the new terms.</p>
-  </div>
-
-  <div class="card">
-    <h2>Contact</h2>
-    <p>Legacy Lab Academy, Inc.<br>Email: <a href="mailto:support@mymicromastery.com" style="color:#E8622A;">support@mymicromastery.com</a></p>
+  <div class="faq">
+    <h2>Questions, answered</h2>
+    <div class="qa">
+      <strong>How does the 7-day trial work?</strong>
+      <p>Click "Start your 7-day trial" to check out with Stripe and add your payment method. You'll get your invite code by email. You won't be charged for 7 days. Cancel anytime before day 7 and pay nothing.</p>
+    </div>
+    <div class="qa">
+      <strong>What ages is this for?</strong>
+      <p>Worksheets cover upper elementary through high school. Vocabulary spans K&ndash;12. Each child works at their own level.</p>
+    </div>
+    <div class="qa">
+      <strong>How many kids are covered?</strong>
+      <p>One family plan covers up to 8 children. Each child gets their own profile, reading level, and progress tracking.</p>
+    </div>
+    <div class="qa">
+      <strong>Do I need to prep or grade anything?</strong>
+      <p>No. Every worksheet is self-grading with 3 tries per question and instant feedback. Zero parent preparation.</p>
+    </div>
+    <div class="qa">
+      <strong>Can I cancel?</strong>
+      <p>Yes, anytime. You keep access through the end of your billing period. Founding members who cancel lose the $25 locked rate if they rejoin later.</p>
+    </div>
+    <div class="qa">
+      <strong>What does "locked for life" mean?</strong>
+      <p>Founding members pay $25/month for as long as they stay subscribed. The price never goes up for you, even when the regular price increases.</p>
+    </div>
   </div>
 
   <div class="footer">
-    <p><a href="/">Home</a><a href="/about">About</a><a href="/pricing">Pricing</a><a href="/privacy">Privacy</a></p>
+    <p><a href="/">Home</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></p>
     <p style="margin-top:8px;font-size:13px;color:#A0AEC0;">Micro Mastery &middot; a Legacy Lab Academy product</p>
   </div>
 </div>
