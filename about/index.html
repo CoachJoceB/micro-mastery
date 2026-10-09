@@ -3,27 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>About — Micro Mastery by Legacy Lab Academy</title>
-<meta name="description" content="Micro Mastery was built by a homeschool mom who needed mornings to run themselves. Learn the story behind the 15-minute morning routine.">
-<meta property="og:title" content="About Micro Mastery">
-<meta property="og:description" content="Built by a homeschool mom who needed mornings to run themselves.">
+<title>Pricing for Micro Mastery by Legacy Lab Academy</title>
+<meta name="description" content="Micro Mastery pricing: $25/month founding members (locked for life), $35/month regular. One family plan covers up to 8 kids. 7-day free trial, cancel anytime.">
+<meta property="og:title" content="Micro Mastery Pricing">
+<meta property="og:description" content="$25/month founding (locked for life). Up to 8 kids. 7-day free trial.">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Inter',system-ui,sans-serif;background:#FAF6F0;color:#1A202C;line-height:1.65;}
   h1,h2{font-family:'Oswald',sans-serif;}
-  .wrap{max-width:720px;margin:0 auto;padding:24px 20px 60px;}
+  .wrap{max-width:860px;margin:0 auto;padding:24px 20px 60px;}
   .eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#B45309;font-weight:700;margin-bottom:12px;text-align:center;}
-  h1{font-size:clamp(28px,5vw,40px);text-align:center;margin-bottom:20px;line-height:1.2;}
-  .card{background:#fff;border:1.5px solid #E2E8F0;border-radius:16px;padding:32px 28px;margin-bottom:20px;}
-  .card p{margin-bottom:16px;color:#4A5568;font-size:16px;}
-  .card p:last-child{margin-bottom:0;}
-  .card strong{color:#1A202C;}
-  .cta{text-align:center;padding:24px 0;}
-  .btn{display:inline-block;background:#E8622A;color:#fff;font-weight:700;font-size:17px;padding:14px 36px;border-radius:10px;text-decoration:none;}
+  h1{font-size:clamp(28px,5vw,40px);text-align:center;margin-bottom:8px;line-height:1.2;}
+  .sub{text-align:center;color:#718096;font-size:16px;margin-bottom:32px;}
+  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:32px;}
+  .plan{background:#fff;border:1.5px solid #E2E8F0;border-radius:16px;padding:32px 28px;text-align:center;position:relative;}
+  .plan.featured{border:2px solid #E8622A;}
+  .badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#E8622A;color:#fff;font-size:12px;font-weight:700;letter-spacing:.08em;padding:5px 18px;border-radius:20px;white-space:nowrap;}
+  .plan h2{font-size:20px;margin-bottom:4px;}
+  .price{font-size:48px;font-weight:800;line-height:1;margin:12px 0 4px;}
+  .price span{font-size:18px;font-weight:600;color:#718096;}
+  .tag{color:#B45309;font-weight:600;font-size:14px;margin-bottom:16px;}
+  .plan ul{list-style:none;text-align:left;margin:0 0 24px;font-size:15px;color:#4A5568;}
+  .plan li{padding:7px 0;border-bottom:1px solid #EDF2F7;}
+  .plan li:last-child{border-bottom:none;}
+  .btn{display:inline-block;background:#E8622A;color:#fff;font-weight:700;font-size:16px;padding:13px 32px;border-radius:10px;text-decoration:none;border:none;cursor:pointer;}
   .btn:hover{background:#D1541F;}
+  .btn.ghost{background:#fff;color:#1A202C;border:1.5px solid #CBD5E0;}
+  .faq{background:#fff;border:1.5px solid #E2E8F0;border-radius:16px;padding:32px 28px;margin-bottom:20px;}
+  .faq h2{font-size:22px;margin-bottom:16px;text-align:center;}
+  .qa{margin-bottom:16px;}
+  .qa:last-child{margin-bottom:0;}
+  .qa strong{display:block;font-size:15px;margin-bottom:4px;color:#1A202C;}
+  .qa p{font-size:14px;color:#4A5568;}
   .footer{text-align:center;padding:32px 16px 0;border-top:1px solid #E2E8F0;margin-top:36px;font-size:14px;color:#718096;}
   .footer a{color:#4A5568;margin:0 10px;text-decoration:none;}
   .nav{text-align:center;padding:20px 0 8px;}
@@ -34,35 +48,79 @@
 <div class="wrap">
   <div class="nav">
     <a href="/">Home</a>
-    <a href="/pricing">Pricing</a>
+    <a href="/about">About</a>
     <a href="/waitlist/">Waitlist</a>
   </div>
   <div class="eyebrow" style="margin-top:28px;">Micro Mastery &middot; by Legacy Lab Academy</div>
-  <h1>Built by a mom who needed<br>mornings to run themselves.</h1>
+  <h1>Simple family pricing.</h1>
+  <p class="sub">One plan. Up to 8 kids. Zero parent prep.</p>
 
-  <div class="card">
-    <p>Hi, I'm <strong>Coach J</strong> — basketball trainer, homeschool mom, and founder of Legacy Lab Academy.</p>
-    <p>Every morning used to start the same way: me trying to get my kids focused, prepped, and learning — while also running a business. The prep alone was eating my evenings.</p>
-    <p>So I built what I needed: a <strong>15-minute morning routine</strong> that runs itself. Growth mindset to start the day right. Financial literacy because schools don't teach it. Self-grading worksheets so nobody waits on mom to check answers.</p>
-    <p>My kids open it, work through it, and get instant feedback. Three tries per question — the way learning actually works. I get my mornings back.</p>
-    <p>Now I'm sharing it with other families. <strong>Micro Mastery</strong> is the exact system my family uses, packaged for yours.</p>
+  <div class="plans">
+    <div class="plan featured">
+      <div class="badge">FOUNDING MEMBER</div>
+      <h2>Founding</h2>
+      <div class="price">$25<span>/month</span></div>
+      <p class="tag">Locked for life</p>
+      <ul>
+        <li>&#10003; Up to <strong>8 children</strong></li>
+        <li>&#10003; 15-min morning routine</li>
+        <li>&#10003; Growth mindset + current events</li>
+        <li>&#10003; Financial literacy lessons</li>
+        <li>&#10003; Self-grading worksheets</li>
+        <li>&#10003; 7-day free trial</li>
+        <li>&#10003; Cancel anytime</li>
+      </ul>
+      <a class="btn" href="/">Get your invite code</a>
+      <p style="font-size:12px;color:#A0AEC0;margin-top:10px;">Only 10 founding spots</p>
+    </div>
+    <div class="plan">
+      <h2>Regular</h2>
+      <div class="price">$35<span>/month</span></div>
+      <p class="tag" style="color:#718096;">After founding spots fill</p>
+      <ul>
+        <li>&#10003; Up to <strong>8 children</strong></li>
+        <li>&#10003; 15-min morning routine</li>
+        <li>&#10003; Growth mindset + current events</li>
+        <li>&#10003; Financial literacy lessons</li>
+        <li>&#10003; Self-grading worksheets</li>
+        <li>&#10003; 7-day free trial</li>
+        <li>&#10003; Cancel anytime</li>
+      </ul>
+      <a class="btn ghost" href="/waitlist/">Join the waitlist</a>
+    </div>
   </div>
 
-  <div class="card">
-    <h2 style="font-size:22px;margin-bottom:12px;">What we believe</h2>
-    <p><strong>Kids can own their mornings.</strong> With the right structure, children as young as 5th grade can start their day with purpose — no parent hovering required.</p>
-    <p><strong>Financial literacy can't wait.</strong> Interest, budgeting, and smart money habits belong in every child's education, not just the lucky ones.</p>
-    <p><strong>Parents deserve their time back.</strong> Zero prep, zero grading, zero battles. Fifteen calm minutes, then everyone gets on with their day.</p>
-  </div>
-
-  <div class="cta">
-    <a class="btn" href="/">Get your invite code</a>
-    <p style="font-size:13px;color:#718096;margin-top:12px;">7-day free trial &middot; $25/month founding price, locked for life</p>
+  <div class="faq">
+    <h2>Questions, answered</h2>
+    <div class="qa">
+      <strong>How does the 7-day trial work?</strong>
+      <p>Start with your invite code and add a payment method. You won't be charged for 7 days. Cancel anytime before day 7 and pay nothing.</p>
+    </div>
+    <div class="qa">
+      <strong>What ages is this for?</strong>
+      <p>Worksheets cover upper elementary through high school. Vocabulary spans K&ndash;12. Each child works at their own level.</p>
+    </div>
+    <div class="qa">
+      <strong>How many kids are covered?</strong>
+      <p>One family plan covers up to 8 children. Each child gets their own profile, reading level, and progress tracking.</p>
+    </div>
+    <div class="qa">
+      <strong>Do I need to prep or grade anything?</strong>
+      <p>No. Every worksheet is self-grading with 3 tries per question and instant feedback. Zero parent preparation.</p>
+    </div>
+    <div class="qa">
+      <strong>Can I cancel?</strong>
+      <p>Yes, anytime. Founding members keep their $25/month locked rate if they rejoin later.</p>
+    </div>
+    <div class="qa">
+      <strong>What does "locked for life" mean?</strong>
+      <p>Founding members pay $25/month for as long as they stay subscribed. The price never goes up for you, even when the regular price increases.</p>
+    </div>
   </div>
 
   <div class="footer">
-    <p><a href="/">Home</a><a href="/pricing">Pricing</a><a href="/waitlist/">Waitlist</a></p>
-    <p style="margin-top:8px;font-size:13px;color:#A0AEC0;">Micro Mastery &middot; a Legacy Lab Academy product &middot; Pensacola, FL</p>
+    <p><a href="/">Home</a><a href="/about">About</a><a href="/waitlist/">Waitlist</a></p>
+    <p style="margin-top:8px;font-size:13px;color:#A0AEC0;">Micro Mastery &middot; a Legacy Lab Academy product</p>
   </div>
 </div>
 </body>
