@@ -1,127 +1,251 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pricing for Micro Mastery by Legacy Lab Academy</title>
-<meta name="description" content="Micro Mastery pricing: $25/month founding members (locked for life), $35/month regular. One family plan covers up to 8 kids. 7-day free trial, cancel anytime.">
-<meta property="og:title" content="Micro Mastery Pricing">
-<meta property="og:description" content="$25/month founding (locked for life). Up to 8 kids. 7-day free trial.">
-<meta property="og:type" content="website">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Micro Mastery — Founding Member Waitlist</title>
+<meta name="description" content="The 15-minute morning routine that teaches your kid growth mindset, financial literacy, and real-world thinking — while the history and science worksheets grade themselves. Founding members: $25/month locked for life.">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Inter',system-ui,sans-serif;background:#FAF6F0;color:#1A202C;line-height:1.65;}
-  h1,h2{font-family:'Oswald',sans-serif;}
-  .wrap{max-width:860px;margin:0 auto;padding:24px 20px 60px;}
-  .eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#B45309;font-weight:700;margin-bottom:12px;text-align:center;}
-  h1{font-size:clamp(28px,5vw,40px);text-align:center;margin-bottom:8px;line-height:1.2;}
-  .sub{text-align:center;color:#718096;font-size:16px;margin-bottom:32px;}
-  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:32px;}
-  .plan{background:#fff;border:1.5px solid #E2E8F0;border-radius:16px;padding:32px 28px;text-align:center;position:relative;}
-  .plan.featured{border:2px solid #E8622A;}
-  .badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#E8622A;color:#fff;font-size:12px;font-weight:700;letter-spacing:.08em;padding:5px 18px;border-radius:20px;white-space:nowrap;}
-  .plan h2{font-size:20px;margin-bottom:4px;}
-  .price{font-size:48px;font-weight:800;line-height:1;margin:12px 0 4px;}
-  .price span{font-size:18px;font-weight:600;color:#718096;}
-  .tag{color:#B45309;font-weight:600;font-size:14px;margin-bottom:16px;}
-  .plan ul{list-style:none;text-align:left;margin:0 0 24px;font-size:15px;color:#4A5568;}
-  .plan li{padding:7px 0;border-bottom:1px solid #EDF2F7;}
-  .plan li:last-child{border-bottom:none;}
-  .btn{display:inline-block;background:#E8622A;color:#fff;font-weight:700;font-size:16px;padding:13px 32px;border-radius:10px;text-decoration:none;border:none;cursor:pointer;}
-  .btn:hover{background:#D1541F;}
-  .btn.ghost{background:#fff;color:#1A202C;border:1.5px solid #CBD5E0;}
-  .faq{background:#fff;border:1.5px solid #E2E8F0;border-radius:16px;padding:32px 28px;margin-bottom:20px;}
-  .faq h2{font-size:22px;margin-bottom:16px;text-align:center;}
-  .qa{margin-bottom:16px;}
-  .qa:last-child{margin-bottom:0;}
-  .qa strong{display:block;font-size:15px;margin-bottom:4px;color:#1A202C;}
-  .qa p{font-size:14px;color:#4A5568;}
-  .footer{text-align:center;padding:32px 16px 0;border-top:1px solid #E2E8F0;margin-top:36px;font-size:14px;color:#718096;}
-  .footer a{color:#4A5568;margin:0 10px;text-decoration:none;}
-  .nav{text-align:center;padding:20px 0 8px;}
-  .nav a{color:#4A5568;text-decoration:none;font-size:15px;margin:0 12px;font-weight:600;}
+  :root{
+    --navy:#0A0A0A;
+    --navy-2:#1A1A1A;
+    --ink:#111111;
+    --ink-soft:#5B5955;
+    --orange:#E8622A;
+    --orange-deep:#B34A1E;
+    --amber:#F2A93C;
+    --green:#3F8F5F;
+    --chalk:#F7F5EF;
+    --paper:#FFFFFF;
+    --line-dark:rgba(247,245,239,.14);
+    --line:rgba(17,17,17,.14);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; font-family:'Inter',system-ui,sans-serif; background:var(--chalk); color:var(--ink); }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 32px 20px 64px; }
+  .eyebrow { display: inline-block; font-family:'Oswald',sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 2px; color: var(--orange); text-transform: uppercase; margin-bottom: 12px; }
+  h1 { font-family:'Oswald',sans-serif; font-size: 36px; line-height: 1.12; margin: 0 0 12px; letter-spacing: .01em; text-transform: uppercase; font-weight: 600; }
+  h1 .accent { color: var(--orange); }
+  .sub { font-size: 16px; line-height: 1.65; color: var(--ink-soft); margin-bottom: 24px; }
+  .card { background: var(--paper); border:1px solid var(--line); border-radius: 18px; padding: 22px; margin-bottom: 16px; box-shadow:0 2px 12px rgba(0,0,0,.06); }
+  .card h2 { font-family:'Oswald',sans-serif; font-size: 17px; font-weight:600; margin: 0 0 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--orange); }
+  .feat { display: flex; gap: 12px; margin-bottom: 12px; font-size: 15px; line-height: 1.5; color: var(--ink); }
+  .feat:last-child { margin-bottom: 0; }
+  .feat .tick { color: var(--green); font-weight: 800; flex-shrink: 0; }
+  .offer { border: 2px solid var(--orange); background: var(--paper); border-radius: 18px; padding: 22px; margin-bottom: 16px; text-align: center; box-shadow:0 2px 12px rgba(0,0,0,.06); }
+  .offer .price { font-family:'Oswald',sans-serif; font-size: 48px; font-weight: 700; color: var(--orange); }
+  .offer .price small { font-size: 16px; color: var(--ink-soft); font-weight: 600; }
+  .offer .reg { color: var(--ink-soft); text-decoration: line-through; font-size: 15px; }
+  .offer .spots { display: inline-block; margin-top: 10px; background: var(--orange-deep); color: #fff; font-weight: 700; font-size: 14px; padding: 6px 16px; border-radius: 999px; }
+  .bonus { display: flex; gap: 12px; align-items: flex-start; background: rgba(63,143,95,.12); border:1px solid rgba(63,143,95,.3); border-radius: 18px; padding: 18px 22px; margin-bottom: 16px; }
+  .bonus .emoji { font-size: 28px; }
+  .bonus p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink); }
+  .bonus strong { color: var(--ink); }
+  form.card label { display: block; font-size: 13px; font-weight: 700; color: var(--ink-soft); margin: 0 0 6px; text-transform: uppercase; letter-spacing: .5px; }
+  form.card input, form.card select { width: 100%; background: var(--navy); border: 2px solid var(--line-dark); color: #fff; border-radius: 12px; padding: 14px; font-size: 16px; margin-bottom: 14px; }
+  form.card input:focus, form.card select:focus { outline: none; border-color: var(--orange); }
+  .submit { width: 100%; background: var(--orange); color: #fff; border: none; border-radius: 14px; padding: 18px; font-family:'Oswald',sans-serif; font-size: 19px; font-weight: 600; letter-spacing:.04em; text-transform:uppercase; cursor: pointer; }
+  .submit:active { transform: scale(.98); }
+  .submit:disabled { opacity: .6; cursor: default; }
+  .counter { text-align: center; color: var(--ink-soft); font-size: 14px; margin-top: 12px; }
+  .counter strong { color: var(--orange); }
+  #success { display: none; text-align: center; padding: 30px 10px; }
+  #success .big { font-size: 52px; margin-bottom: 8px; }
+  #success h2 { color: var(--green); font-size: 22px; margin: 0 0 8px; }
+  #success p { color: var(--ink-soft); line-height: 1.6; }
+  .err { display: none; background: rgba(220,60,60,.15); color: #fca5a5; border-radius: 10px; padding: 12px; font-size: 14px; margin-bottom: 14px; }
+  .demo { border: 2px solid var(--green); }
+  .demo-read strong { color: #fff; }
+  .demo-q { background: var(--navy); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  .demo-q .q { font-size: 15px; font-weight: 600; margin-bottom: 10px; line-height: 1.5; }
+  .demo-opts { display: flex; flex-direction: column; gap: 8px; }
+  .demo-opt { background: var(--navy-2); border: 2px solid var(--line-dark); color: var(--chalk); border-radius: 10px; padding: 12px; font-size: 15px; text-align: left; cursor: pointer; width: 100%; }
+  .demo-opt.sel { border-color: var(--orange); }
+  .demo-opt.right { border-color: var(--green); background: rgba(63,143,95,.18); }
+  .demo-opt.wrong { border-color: #dc3c3c; background: rgba(220,60,60,.15); }
+  .demo-input { width: 100%; background: var(--navy-2); border: 2px solid var(--line-dark); color: #fff; border-radius: 10px; padding: 12px; font-size: 16px; }
+  .demo-input.right { border-color: var(--green); }
+  .demo-input.wrong { border-color: #dc3c3c; }
+  .demo-check { margin-top: 10px; background: var(--green); color: #fff; border: none; border-radius: 10px; padding: 10px 22px; font-family:'Oswald',sans-serif; font-size: 15px; font-weight: 600; letter-spacing:.03em; text-transform:uppercase; cursor: pointer; }
+  .demo-fb { margin-top: 8px; font-size: 14px; font-weight: 600; min-height: 20px; }
+  .demo-fb.ok { color: var(--green); }
+  .demo-fb.no { color: #fca5a5; }
+  .demo-fb .ans { color: var(--amber); }
+  .demo-score { text-align: center; font-size: 15px; font-weight: 700; color: var(--green); margin-top: 6px; }
+  footer { text-align: center; color: var(--ink-soft); font-size: 13px; margin-top: 32px; line-height: 1.6; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="nav">
-    <a href="/">Home</a>
-    <a href="/about">About</a>
-    <a href="/waitlist/">Waitlist</a>
-  </div>
-  <div class="eyebrow" style="margin-top:28px;">Micro Mastery &middot; by Legacy Lab Academy</div>
-  <h1>Simple family pricing.</h1>
-  <p class="sub">One plan. Up to 8 kids. Zero parent prep.</p>
+  <span class="eyebrow">Micro Mastery · Founding pre-sale</span>
+  <h1>The <span class="accent">15-minute morning routine</span> that teaches itself.</h1>
+  <p class="sub">Growth mindset, financial literacy, and real-world thinking — while the history and science worksheets <strong style="color:var(--ink);">grade themselves</strong>. Your kids complete it independently each morning. No printing, no hovering over shoulders, no grading pile at 9pm. Built by a homeschool mom of four, for families like yours.</p>
 
-  <div class="plans">
-    <div class="plan featured">
-      <div class="badge">FOUNDING MEMBER</div>
-      <h2>Founding</h2>
-      <div class="price">$25<span>/month</span></div>
-      <p class="tag">Locked for life</p>
-      <ul>
-        <li>&#10003; Up to <strong>8 children</strong></li>
-        <li>&#10003; 15-min morning routine</li>
-        <li>&#10003; Growth mindset + current events</li>
-        <li>&#10003; Financial literacy lessons</li>
-        <li>&#10003; Self-grading worksheets</li>
-        <li>&#10003; 7-day free trial</li>
-        <li>&#10003; Cancel anytime</li>
-      </ul>
-      <a class="btn" href="/">Get your invite code</a>
-      <p style="font-size:12px;color:#A0AEC0;margin-top:10px;">Only 25 founding spots</p>
-    </div>
-    <div class="plan">
-      <h2>Regular</h2>
-      <div class="price">$35<span>/month</span></div>
-      <p class="tag" style="color:#718096;">After founding spots fill</p>
-      <ul>
-        <li>&#10003; Up to <strong>8 children</strong></li>
-        <li>&#10003; 15-min morning routine</li>
-        <li>&#10003; Growth mindset + current events</li>
-        <li>&#10003; Financial literacy lessons</li>
-        <li>&#10003; Self-grading worksheets</li>
-        <li>&#10003; 7-day free trial</li>
-        <li>&#10003; Cancel anytime</li>
-      </ul>
-      <a class="btn ghost" href="/waitlist/">Join the waitlist</a>
-    </div>
+  <div class="card">
+    <h2>What your kids get</h2>
+    <div class="feat"><span class="tick">✓</span><span><strong>15-minute morning routine</strong> — financial literacy, real-world scenarios, and vocabulary to start the day thinking.</span></div>
+    <div class="feat"><span class="tick">✓</span><span>Worksheets that <strong>grade themselves instantly</strong> — kids see ✓ or ✗ the moment they answer, with 3 tries to get it right and the answer shown after a miss.</span></div>
+    <div class="feat"><span class="tick">✓</span><span><strong>Interactive, not paper</strong> — tap-to-label diagrams, trace-the-route maps. No printing, no "draw on paper."</span></div>
+    <div class="feat"><span class="tick">✓</span><span><strong>ADHD-friendly by design</strong> — short sections, checklists, reveal cards, and a progress bar that keeps them moving.</span></div>
+    <div class="feat"><span class="tick">✓</span><span><strong>Per-student Light mode</strong> — younger kids get the same lessons with condensed readings and fewer sections per day.</span></div>
+    <div class="feat"><span class="tick">✓</span><span><strong>Zero prep for you</strong> — every day opens with the reading, then the activity. No parent facilitation.</span></div>
   </div>
 
-  <div class="faq">
+  <div class="offer">
+    <div class="price">$25<small>/month</small></div>
+    <div class="reg">Regular $35/month</div>
+    <p style="color:var(--ink-soft);font-size:15px;line-height:1.6;margin:12px 0 0;">Founding members lock in <strong style="color:var(--ink);">$25/month for life</strong>.<br>Help shape v1 with your feedback.</p>
+    <div><span class="spots">Only 25 founding spots</span></div>
+  </div>
+
+  <div class="bonus">
+    <span class="emoji">🎁</span>
+    <p><strong>Waitlist bonus:</strong> join today and get the <strong>School Mode</strong> Chrome extension free — block YouTube, TikTok, Roblox and more during school hours, controlled from your phone.</p>
+  </div>
+
+  <div class="card demo" style="padding:0;overflow:hidden;">
+    <div style="padding:20px 20px 0;"><h2>🎮 Try the real thing</h2>
+    <p style="color:var(--ink-soft);font-size:15px;line-height:1.6;margin:0 0 12px;">This is the actual Micro Mastery worksheet — real questions, real self-checking, real interactive labeling. Click through it right here.</p></div>
+    <iframe src="./demo.html" title="Micro Mastery live demo" style="width:100%;height:1400px;border:0;display:block;background:var(--chalk);" loading="lazy"></iframe>
+  </div>
+
+  <form class="card" id="waitlist-form">
+    <h2>Save my founding spot</h2>
+    <div class="err" id="err"></div>
+    <div id="form-fields">
+      <label for="f-name">Your name</label>
+      <input type="text" id="f-name" placeholder="Jane Doe" autocomplete="name">
+      <label for="f-email">Email</label>
+      <input type="email" id="f-email" placeholder="you@example.com" autocomplete="email">
+      <label for="f-kids">How many kids do you homeschool?</label>
+      <select id="f-kids" required>
+        <option value="" disabled selected>Select...</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5+">5+</option>
+      </select>
+      <button type="submit" class="submit" id="submit-btn">Join the waitlist →</button>
+      <div class="counter" id="counter"></div>
+    </div>
+    <div id="success">
+      <div class="big">🎉</div>
+      <h2>You're on the list!</h2>
+      <p>Check your email in the next minute —<br>your invite code and School Mode gift are on the way.</p>
+    </div>
+  </form>
+
+  <div class="card">
     <h2>Questions, answered</h2>
-    <div class="qa">
-      <strong>How does the 7-day trial work?</strong>
-      <p>Start with your invite code and add a payment method. You won't be charged for 7 days. Cancel anytime before day 7 and pay nothing.</p>
-    </div>
-    <div class="qa">
-      <strong>What ages is this for?</strong>
-      <p>Worksheets cover upper elementary through high school. Vocabulary spans K&ndash;12. Each child works at their own level.</p>
-    </div>
-    <div class="qa">
-      <strong>How many kids are covered?</strong>
-      <p>One family plan covers up to 8 children. Each child gets their own profile, reading level, and progress tracking.</p>
-    </div>
-    <div class="qa">
-      <strong>Do I need to prep or grade anything?</strong>
-      <p>No. Every worksheet is self-grading with 3 tries per question and instant feedback. Zero parent preparation.</p>
-    </div>
-    <div class="qa">
-      <strong>Can I cancel?</strong>
-      <p>Yes, anytime. Founding members keep their $25/month locked rate if they rejoin later.</p>
-    </div>
-    <div class="qa">
-      <strong>What does "locked for life" mean?</strong>
-      <p>Founding members pay $25/month for as long as they stay subscribed. The price never goes up for you, even when the regular price increases.</p>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:4px;">How much does it cost?</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">Founding members pay <strong style="color:var(--ink);">$25/month, locked for life</strong>. After the 25 founding spots fill, the regular price is $35/month. One price covers your whole family.</div>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:4px;">How many kids can I add?</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">Up to <strong style="color:var(--ink);">8 kids per family plan</strong> — no per-child fees. Each kid gets their own login, progress tracking, and reading level.</div>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:4px;">What grade levels?</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">History and science worksheets are built for <strong style="color:var(--ink);">upper elementary through high school</strong>, with a per-student Light mode that simplifies reading for younger or struggling readers. Vocabulary spans grades K–12.</div>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Can I cancel?</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">Yes — <strong style="color:var(--ink);">cancel anytime</strong>. You keep full access through the end of your billing period. Founding members who cancel lose the $25 locked rate if they rejoin later.</div>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:4px;">How does the 7-day trial work?</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">Founding members get an <strong style="color:var(--ink);">exclusive invite code for a 7-day free trial</strong>. Add your payment method up front; you're charged $25/month only after the trial ends. Cancel during the trial and you pay nothing.</div>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Do I have to teach or grade anything?</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">No. Every worksheet <strong style="color:var(--ink);">grades itself</strong> — kids get instant feedback and 3 tries before answers appear. Zero parent prep, zero grading.</div>
+      </div>
     </div>
   </div>
 
-  <div class="footer">
-    <p><a href="/">Home</a><a href="/about">About</a><a href="/waitlist/">Waitlist</a></p>
-    <p style="margin-top:8px;font-size:13px;color:#A0AEC0;">Micro Mastery &middot; a Legacy Lab Academy product</p>
-  </div>
+  <footer>Micro Mastery · a <strong>Legacy Lab Academy</strong> product</footer>
 </div>
+
+
+<script>
+'use strict';
+var SUPABASE_URL = 'https://gwahlqvngjfhslqqprzl.supabase.co';
+var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3YWhscXZuZ2pmaHNscXFwcnpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNDU5NzIsImV4cCI6MjEwMjcyMTk3Mn0.bx2skjuZUNVXVplQNg-OaleXVYQ8D6R2Ej6xr1rBZYk';
+var KEY = 'mmf:waitlist';
+
+function $(id) { return document.getElementById(id); }
+function headers() {
+  return { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + SUPABASE_ANON, 'Content-Type': 'application/json' };
+}
+function showErr(msg) {
+  var e = $('err');
+  e.textContent = msg;
+  e.style.display = 'block';
+}
+
+async function readList() {
+  try {
+    var res = await fetch(SUPABASE_URL + '/rest/v1/command_center?select=value&key=eq.' + encodeURIComponent(KEY), { headers: headers() });
+    var rows = await res.json();
+    return rows.length ? rows[0].value : { signups: [] };
+  } catch (e) { return null; }
+}
+
+async function addSignup(s) {
+  var val = await readList();
+  if (!val) throw new Error('network');
+  val.signups = val.signups || [];
+  var dup = val.signups.some(function (x) { return x.email.toLowerCase() === s.email.toLowerCase(); });
+  if (!dup) {
+    val.signups.push(s);
+    var res = await fetch(SUPABASE_URL + '/rest/v1/command_center?on_conflict=key', {
+      method: 'POST',
+      headers: Object.assign({ Prefer: 'resolution=merge-duplicates' }, headers()),
+      body: JSON.stringify({ key: KEY, value: val })
+    });
+    if (!res.ok) throw new Error('save');
+  }
+  return { dup: dup, count: val.signups.length };
+}
+
+async function refreshCounter() {
+  var val = await readList();
+  if (val && val.signups) {
+    var n = val.signups.length;
+    $('counter').innerHTML = n > 0
+      ? '<strong>' + n + '</strong> famil' + (n === 1 ? 'y' : 'ies') + ' already on the waitlist'
+      : 'Be the first family on the waitlist';
+  }
+}
+
+$('waitlist-form').addEventListener('submit', async function (ev) {
+  ev.preventDefault();
+  $('err').style.display = 'none';
+  var name = $('f-name').value.trim();
+  var email = $('f-email').value.trim().toLowerCase();
+  var kids = $('f-kids').value;
+  if (!name) { showErr('Please enter your name.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('Please enter a valid email address.'); return; }
+  var btn = $('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  try {
+    await addSignup({ name: name, email: email, kids: kids, created_at: new Date().toISOString() });
+    $('form-fields').style.display = 'none';
+    $('success').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) {
+    showErr('Could not save — check your connection and try again.');
+    btn.disabled = false;
+    btn.textContent = 'Join the waitlist →';
+  }
+});
+
+refreshCounter();
+</script>
 </body>
 </html>
