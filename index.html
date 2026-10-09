@@ -8,9 +8,10 @@
 <meta property="og:description" content="Growth mindset, financial literacy, and self-grading worksheets for up to 8 kids. Zero parent prep. $25/month founding members, locked for life.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mymicromastery.com/">
-<meta property="og:image" content="https://mymicromastery.com/og-image.webp">
+<meta property="og:image" content="https://mymicromastery.com/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/jpeg">
 <meta name="theme-color" content="#0A0A0A">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A0A0A'/%3E%3Ctext x='32' y='42' font-family='Arial Black,sans-serif' font-size='24' font-weight='900' fill='%23E8622A' text-anchor='middle'%3EMM%3C/text%3E%3C/svg%3E">
 <title>Micro Mastery — The 15-Minute Morning Routine That Teaches Itself</title>
@@ -1334,8 +1335,8 @@ function showLandingPage(){
     const el = document.getElementById(id);
     if(el) el.addEventListener('click', goToStripe);
   });
-  // "Already a member? Sign in" links go to the code/sign-in flow
-  const goToSignIn = (e)=>{ if(e) e.preventDefault(); if(typeof showCodeWelcomeScreen==='function') showCodeWelcomeScreen(); };
+  // "Already a member? Sign in" links go directly to the login screen
+  const goToSignIn = (e)=>{ if(e) e.preventDefault(); if(typeof showLoginScreen==='function') showLoginScreen(); };
   ['lpSignIn','lpNavSignIn'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.addEventListener('click', goToSignIn);
