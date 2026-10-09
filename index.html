@@ -1329,7 +1329,6 @@ function showLandingPage(){
       <p style="font-size:13px;color:#A0AEC0;margin:0;">Micro Mastery &middot; a Legacy Lab Academy product &middot; <a href="mailto:support@mymicromastery.com" style="color:#A0AEC0;">support@mymicromastery.com</a></p>
     </div>
   </div>`;
-  const stripeUrl = (typeof STRIPE_URL !== 'undefined' && STRIPE_URL) ? STRIPE_URL : 'https://buy.stripe.com/4gM5kDfKx3qD2B40dk3sI00';
   const goToStripe = ()=>{ window.location.href = stripeUrl; };
   ['lpGetCode','lpGetCode2','lpGetCode3'].forEach(id=>{
     const el = document.getElementById(id);
