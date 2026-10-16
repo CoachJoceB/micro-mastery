@@ -13,8 +13,16 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/jpeg">
 <meta name="theme-color" content="#0A0A0A">
+<link rel="canonical" href="https://mymicromastery.com/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Micro Mastery: The 15-Minute Morning Routine That Teaches Itself">
+<meta name="twitter:description" content="Growth mindset, financial literacy, and self-grading worksheets for up to 8 kids. Zero parent prep. $25/month founding members, locked for life.">
+<meta name="twitter:image" content="https://mymicromastery.com/og-image.jpg">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Product","name":"Micro Mastery","description":"The 15-minute morning routine that teaches itself. Growth mindset, financial literacy, and self-grading history and science worksheets for the whole family. Zero parent prep.","brand":{"@type":"Brand","name":"Legacy Lab Academy"},"offers":{"@type":"Offer","price":"25.00","priceCurrency":"USD","availability":"https://schema.org/LimitedAvailability","url":"https://mymicromastery.com/pricing/","description":"Founding member rate, locked for life. Regular price $35/month after 25 founding spots fill."}}
+</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A0A0A'/%3E%3Ctext x='32' y='42' font-family='Arial Black,sans-serif' font-size='24' font-weight='900' fill='%23E8622A' text-anchor='middle'%3EMM%3C/text%3E%3C/svg%3E">
-<title>Micro Mastery — The 15-Minute Morning Routine That Teaches Itself</title>
+<title>Micro Mastery: The 15-Minute Morning Routine That Teaches Itself</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -1219,6 +1227,22 @@ function hasFamily(){
   }catch(e){ return false; }
 }
 const STRIPE_URL = 'https://buy.stripe.com/4gM5kDfKx3qD2B40dk3sI00';
+const STRIPE_URL_REGULAR = ''; // $35/month link — set when created
+// Fetch founding spots remaining; switches CTAs to $35 link when founding is full.
+async function getFoundingSpots(){
+  try{
+    const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/founding_spots_remaining', {
+      method: 'POST',
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' }
+    });
+    const n = await r.json();
+    return typeof n === 'number' ? n : 25;
+  }catch(e){ return 25; } // fail open to founding price
+}
+function foundingCheckoutUrl(spotsLeft){
+  if(spotsLeft > 0 || !STRIPE_URL_REGULAR) return STRIPE_URL;
+  return STRIPE_URL_REGULAR;
+}
 function showLandingPage(){
   document.body.classList.add('locked');
   try{ const t = document.getElementById('toast'); if(t) t.classList.remove('show'); }catch(e){}
@@ -1247,7 +1271,7 @@ function showLandingPage(){
       <h1 style="font-family:Oswald,sans-serif;font-size:clamp(30px,5vw,46px);line-height:1.12;margin:0 0 16px;color:#1A202C;">The 15-minute morning routine<br>that teaches itself.</h1>
       <p style="font-size:18px;color:#4A5568;max-width:620px;margin:0 auto 28px;line-height:1.6;">Growth mindset, financial literacy, and self-grading history &amp; science worksheets for your whole family. Zero parent prep.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <button type="button" class="btn-warmup" id="lpGetCode" style="font-size:18px;padding:16px 40px;font-weight:700;">Sign up</button>
+        <button type="button" class="btn-warmup" id="lpGetCode" style="font-size:18px;padding:16px 40px;font-weight:700;">Start your 7-day trial</button>
       </div>
       <div style="margin-top:16px;">
         <a href="/waitlist/demo.html" id="lpSeeHow" style="display:inline-block;font-size:16px;font-weight:700;color:#1A202C;background:#fff;border:2px solid #1A202C;border-radius:10px;padding:12px 28px;text-decoration:none;">&#9654; See how it works (live demo)</a>
@@ -1273,7 +1297,7 @@ function showLandingPage(){
         <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:20px;">
           <div style="font-size:28px;margin-bottom:8px;">&#129518;</div>
           <div style="font-weight:700;font-size:15px;margin-bottom:6px;color:#1E40AF;">3. Drills</div>
-          <p style="font-size:14px;color:#57534E;margin:0;line-height:1.55;">Self-grading history &amp; science worksheets with 3 tries. Instant feedback, zero red pens.</p>
+          <p style="font-size:14px;color:#57534E;margin:0;line-height:1.55;">Self-grading history &amp; science worksheets. Instant feedback, zero red pens.</p>
         </div>
       </div>
     </div>
@@ -1308,16 +1332,16 @@ function showLandingPage(){
         <div style="padding:7px 0;border-bottom:1px solid #EDF2F7;">&#10003; Up to <strong>8 children</strong> on one plan</div>
         <div style="padding:7px 0;border-bottom:1px solid #EDF2F7;">&#10003; <strong>7-day free trial</strong>. Cancel anytime</div>
         <div style="padding:7px 0;border-bottom:1px solid #EDF2F7;">&#10003; <strong>Zero parent prep</strong>: self-grading everything</div>
-        <div style="padding:7px 0;">&#10003; Only <strong>25 founding spots</strong> at this price</div>
+        <div style="padding:7px 0;" id="lpSpotsLine">&#10003; Only <strong>25 founding spots</strong> at this price</div>
       </div>
-      <button type="button" class="btn-warmup" id="lpGetCode2" style="font-size:17px;padding:14px 36px;">Sign up</button>
+      <button type="button" class="btn-warmup" id="lpGetCode2" style="font-size:17px;padding:14px 36px;">Start your 7-day trial</button>
       <p style="font-size:13px;color:#718096;margin:14px 0 0;"><a href="/pricing" style="color:#E8622A;">See full pricing details</a></p>
     </div>
     <!-- FINAL CTA -->
     <div style="text-align:center;padding:20px 16px 8px;">
       <h2 style="font-family:Oswald,sans-serif;font-size:26px;margin:0 0 10px;color:#1A202C;">Mornings can be calm.</h2>
       <p style="color:#4A5568;font-size:16px;margin:0 0 22px;">Join the founding families and reclaim your mornings.</p>
-      <button type="button" class="btn-warmup" id="lpGetCode3" style="font-size:17px;padding:14px 36px;">Sign up</button>
+      <button type="button" class="btn-warmup" id="lpGetCode3" style="font-size:17px;padding:14px 36px;">Start your 7-day trial</button>
     </div>
     <!-- FOOTER -->
     <div style="text-align:center;padding:32px 16px 0;border-top:1px solid #E2E8F0;margin-top:36px;">
@@ -1330,7 +1354,7 @@ function showLandingPage(){
       <p style="font-size:13px;color:#A0AEC0;margin:0;">Micro Mastery &middot; a Legacy Lab Academy product &middot; <a href="mailto:support@mymicromastery.com" style="color:#A0AEC0;">support@mymicromastery.com</a></p>
     </div>
   </div>`;
-  const goToStripe = ()=>{ window.location.href = stripeUrl; };
+  const goToStripe = async ()=>{ window.location.href = foundingCheckoutUrl(await getFoundingSpots()); };
   ['lpGetCode','lpGetCode2','lpGetCode3'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.addEventListener('click', goToStripe);
@@ -1340,6 +1364,16 @@ function showLandingPage(){
   ['lpSignIn','lpNavSignIn'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.addEventListener('click', goToSignIn);
+  });
+  // Update founding spots display from live counter
+  getFoundingSpots().then(function(n){
+    var line = document.getElementById('lpSpotsLine');
+    if(!line) return;
+    if(n > 0){
+      line.innerHTML = '&#10003; Only <strong>' + n + ' of 25 founding spots</strong> left at this price';
+    } else {
+      line.innerHTML = '&#10003; Founding spots filled &middot; <strong>$35/month</strong>';
+    }
   });
 }
 function showCodeWelcomeScreen(){
