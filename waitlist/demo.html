@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Micro Mastery — Live Demo</title>
+<title>Micro Mastery: Live Demo</title>
+<meta name="description" content="Try Micro Mastery free: answer a real worksheet question, tap the cell diagram, and see instant grading. The 15-minute morning routine for homeschool families.">
+<link rel="canonical" href="https://mymicromastery.com/waitlist/demo.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://mymicromastery.com/og-image.jpg">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -41,6 +45,7 @@
   .tries{font-size:12px;color:var(--ink-soft);margin-top:6px;}
   .btn{border:2px solid var(--line);background:var(--paper);color:var(--ink);border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;}
   .btn-primary{border-color:var(--green);background:rgba(63,143,95,.12);}
+  .btn-ghost{opacity:.85;}
   .btn:disabled{opacity:.4;cursor:default;}
   .vocab{font-size:14px;color:var(--ink-soft);margin-top:8px;}
   .vocab strong{color:var(--orange-deep);}
@@ -132,7 +137,7 @@ function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"
 <script>
 const demoState = JSON.parse(localStorage.getItem('mm-demo2') || '{}');
 function saveDemo(){ localStorage.setItem('mm-demo2', JSON.stringify(demoState)); }
-function normLoose(s){ return (s||'').trim().toLowerCase().replace(/\s+/g,' '); }
+function normLoose(s){ return (s||'').trim().toLowerCase().replace(/\s+/g,' ').replace(/[.,!?;:]+$/,''); }
 function updateTries(id, used, max){
   const el = document.getElementById(id+'-tries');
   el.textContent = used >= max ? 'No tries left.' : `Try ${used+1} of ${max}`;
@@ -321,7 +326,7 @@ function wsActivityHTML(g, it, field, savedJson, locked){
       + `<div style="display:flex;gap:8px;margin-top:8px;"><button type="button" data-wsactundo class="btn btn-ghost"${disBtn} style="font-size:12px;padding:5px 12px;">Undo last dot</button><button type="button" data-wsactclear class="btn btn-ghost"${disBtn} style="font-size:12px;padding:5px 12px;">Clear route</button></div></div>`;
   }
   return `<div data-wsact="${esc(it.activity)}"${locked?' data-wslocked="1"':''} style="margin-bottom:6px;${locked?'opacity:0.75;':''}">${bank}${spec.svg()}`
-    + `<input type="hidden" data-wsfield="${field}" data-wsitem="${it.id}" value="${escAttr(savedJson||'')}">`
+    + `<input type="hidden" data-wsfield="${field}" data-wsitem="${it.id}" value="${esc(savedJson||'')}">`
     + `</div>`;
 }
 
@@ -586,12 +591,12 @@ function checkActivity(){
     st.done = true;
     fb.className = 'fb ok';
     fb.textContent = '✓ All labels correct! Great work.';
-    actEl.setAttribute('data-wslocked','1');
+    if(actEl) actEl.setAttribute('data-wslocked','1');
   } else {
     fb.className = 'fb no';
     if(finalTry){
       fb.innerHTML = '✗ The answers are: <span class="ans">' + esc(wsActivityAnswerText('label-cell')) + '</span>';
-      actEl.setAttribute('data-wslocked','1');
+      if(actEl) actEl.setAttribute('data-wslocked','1');
     } else {
       fb.innerHTML = '✗ Not quite. Look again at: <strong>' + result.wrong.map(esc).join(', ') + '</strong>.';
     }
@@ -601,7 +606,12 @@ function checkActivity(){
 }
 (function(){
   const st = demoState.act;
-  if(st) updateTries('act', st.tries, 3);
+  if(!st) return;
+  updateTries('act', st.tries, 3);
+  if(st.done || st.tries >= 3){
+    const actEl = document.querySelector('#demo-activity [data-wsact]');
+    if(actEl) actEl.setAttribute('data-wslocked','1');
+  }
 })();
 </script>
 </body>
