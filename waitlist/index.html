@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Micro Mastery — Founding Member Waitlist</title>
+<title>Micro Mastery: Founding Member Waitlist</title>
+<link rel="canonical" href="https://mymicromastery.com/waitlist/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://mymicromastery.com/og-image.jpg">
 <meta name="description" content="The 15-minute morning routine that teaches your kid growth mindset, financial literacy, and real-world thinking — while the history and science worksheets grade themselves. Founding members: $25/month locked for life.">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -125,9 +128,12 @@
         <option value="2">2</option>
         <option value="3">3</option>
         <option value="4">4</option>
-        <option value="5+">5+</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
       </select>
-      <button type="submit" class="submit" id="submit-btn">Join the waitlist →</button>
+      <button type="submit" class="submit" id="submit-btn">Save my founding spot →</button>
       <div class="counter" id="counter"></div>
     </div>
     <div id="success">
@@ -142,7 +148,7 @@
     <div style="display:flex;flex-direction:column;gap:16px;">
       <div>
         <div style="font-weight:700;font-size:15px;margin-bottom:4px;">How much does it cost?</div>
-        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">Founding members pay <strong style="color:var(--ink);">$25/month, locked for life</strong>. After the 25 founding spots fill, the regular price is $35/month. One price covers your whole family.</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">After the 25 founding spots fill, the regular price is <strong style="color:var(--ink);">$35/month</strong>. One price covers your whole family, up to 8 kids.</div>
       </div>
       <div>
         <div style="font-weight:700;font-size:15px;margin-bottom:4px;">How many kids can I add?</div>
@@ -158,7 +164,7 @@
       </div>
       <div>
         <div style="font-weight:700;font-size:15px;margin-bottom:4px;">How does the 7-day trial work?</div>
-        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">Founding members get an <strong style="color:var(--ink);">exclusive invite code for a 7-day free trial</strong>. Add your payment method up front; you're charged $25/month only after the trial ends. Cancel during the trial and you pay nothing.</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--ink-soft);">You'll get a checkout link by email to start your <strong style="color:var(--ink);">7-day free trial</strong>. Add your payment method there; you're charged $25/month only after the trial ends. Cancel during the trial and you pay nothing.</div>
       </div>
       <div>
         <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Do I have to teach or grade anything?</div>
@@ -249,7 +255,7 @@ $('waitlist-form').addEventListener('submit', async function (ev) {
   } catch (e) {
     showErr('Could not save — check your connection and try again.');
     btn.disabled = false;
-    btn.textContent = 'Join the waitlist →';
+    btn.textContent = 'Save my founding spot →';
   }
 });
 
