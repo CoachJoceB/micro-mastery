@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Micro Mastery by Legacy Lab Academy: the 15-minute morning routine that teaches itself. Growth mindset, financial literacy, and self-grading history/science worksheets for your whole family. $25/month founding price, locked for life.">
+<meta name="description" content="Micro Mastery by Legacy Lab Academy: the 15-minute morning routine that teaches itself. Growth mindset, financial literacy, and self-grading history/science worksheets for your whole family. $37/month founding price, locked for life.">
 <meta property="og:title" content="Micro Mastery — The 15-Minute Morning Routine That Teaches Itself">
-<meta property="og:description" content="Growth mindset, financial literacy, and self-grading worksheets for up to 8 kids. Zero parent prep. $25/month founding members, locked for life.">
+<meta property="og:description" content="Growth mindset, financial literacy, and self-grading worksheets for up to 8 kids. Zero parent prep. $37/month founding members, locked for life.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mymicromastery.com/">
 <meta property="og:image" content="https://mymicromastery.com/og-image.jpg">
@@ -16,10 +16,10 @@
 <link rel="canonical" href="https://mymicromastery.com/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Micro Mastery: The 15-Minute Morning Routine That Teaches Itself">
-<meta name="twitter:description" content="Growth mindset, financial literacy, and self-grading worksheets for up to 8 kids. Zero parent prep. $25/month founding members, locked for life.">
+<meta name="twitter:description" content="Growth mindset, financial literacy, and self-grading worksheets for up to 8 kids. Zero parent prep. $37/month founding members, locked for life.">
 <meta name="twitter:image" content="https://mymicromastery.com/og-image.jpg">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"Product","name":"Micro Mastery","description":"The 15-minute morning routine that teaches itself. Growth mindset, financial literacy, and self-grading history and science worksheets for the whole family. Zero parent prep.","brand":{"@type":"Brand","name":"Legacy Lab Academy"},"offers":{"@type":"Offer","price":"25.00","priceCurrency":"USD","availability":"https://schema.org/LimitedAvailability","url":"https://mymicromastery.com/pricing/","description":"Founding member rate, locked for life. Regular price $35/month after 25 founding spots fill."}}
+{"@context":"https://schema.org","@type":"Product","name":"Micro Mastery","description":"The 15-minute morning routine that teaches itself. Growth mindset, financial literacy, and self-grading history and science worksheets for the whole family. Zero parent prep.","brand":{"@type":"Brand","name":"Legacy Lab Academy"},"offers":{"@type":"Offer","price":"37.00","priceCurrency":"USD","availability":"https://schema.org/LimitedAvailability","url":"https://mymicromastery.com/pricing/","description":"Founding member rate, locked for life. Regular price $47/month after 25 founding spots fill."}}
 </script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A0A0A'/%3E%3Ctext x='32' y='42' font-family='Arial Black,sans-serif' font-size='24' font-weight='900' fill='%23E8622A' text-anchor='middle'%3EMM%3C/text%3E%3C/svg%3E">
 <title>Micro Mastery: The 15-Minute Morning Routine That Teaches Itself</title>
@@ -1227,8 +1227,8 @@ function hasFamily(){
   }catch(e){ return false; }
 }
 const STRIPE_URL = 'https://buy.stripe.com/4gM5kDfKx3qD2B40dk3sI00';
-const STRIPE_URL_REGULAR = 'https://buy.stripe.com/eVq14n69X3qDb7Ae4a3sI04'; // $35/month regular link
-// Fetch founding spots remaining; switches CTAs to $35 link when founding is full.
+const STRIPE_URL_REGULAR = 'https://buy.stripe.com/eVq14n69X3qDb7Ae4a3sI04'; // $47/month regular link
+// Fetch founding spots remaining; switches CTAs to $47 link when founding is full.
 async function getFoundingSpots(){
   try{
     const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/founding_spots_remaining', {
@@ -1257,53 +1257,53 @@ function showLandingPage(){
   document.getElementById('board').innerHTML = `
   <div style="max-width:860px;margin:0 auto;padding:24px 20px 60px;">
     <!-- NAV -->
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 4px;margin-bottom:8px;">
-      <div style="font-family:Oswald,sans-serif;font-weight:700;font-size:18px;color:#1A202C;">MICRO MASTERY</div>
-      <div style="display:flex;gap:18px;font-size:15px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 4px;margin-bottom:10px;">
+      <div style="font-family:Oswald,sans-serif;font-weight:700;font-size:18px;color:#1A202C;letter-spacing:.05em;">MICRO MASTERY</div>
+      <div style="display:flex;gap:20px;font-size:15px;align-items:center;">
         <a href="/about" style="color:#4A5568;text-decoration:none;font-weight:600;">About</a>
         <a href="/pricing" style="color:#4A5568;text-decoration:none;font-weight:600;">Pricing</a>
         <a href="#" id="lpNavSignIn" style="color:#E8622A;text-decoration:none;font-weight:700;">Sign in</a>
       </div>
     </div>
     <!-- HERO -->
-    <div style="text-align:center;padding:48px 16px 36px;">
-      <div style="font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#B45309;font-weight:700;margin-bottom:14px;">Micro Mastery &middot; by Legacy Lab Academy</div>
-      <h1 style="font-family:Oswald,sans-serif;font-size:clamp(30px,5vw,46px);line-height:1.12;margin:0 0 16px;color:#1A202C;">The 15-minute morning routine<br>that teaches itself.</h1>
-      <p style="font-size:18px;color:#4A5568;max-width:620px;margin:0 auto 28px;line-height:1.6;">Growth mindset, financial literacy, and self-grading history &amp; science worksheets for your whole family. Zero parent prep.</p>
-      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <button type="button" class="btn-warmup" id="lpGetCode" style="font-size:18px;padding:16px 40px;font-weight:700;">Start your 7-day trial</button>
+    <div style="background:linear-gradient(180deg,#0A0A0A 0%,#1C1C1C 100%);border-radius:20px;padding:68px 32px 60px;text-align:center;margin-bottom:28px;border-bottom:4px solid #E8622A;">
+      <div style="display:inline-block;font-family:Oswald,sans-serif;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#F2A93C;font-weight:600;border:1.5px solid rgba(242,169,60,.5);border-radius:999px;padding:6px 18px;margin-bottom:22px;">Micro Mastery &middot; by Legacy Lab Academy</div>
+      <h1 style="font-family:Oswald,sans-serif;font-size:clamp(34px,5.5vw,56px);line-height:1.08;margin:0 0 18px;color:#F7F5EF;font-weight:700;">The 15-minute morning routine<br>that <span style="color:#F2A93C;">teaches itself.</span></h1>
+      <p style="font-size:18px;color:rgba(247,245,239,.78);max-width:620px;margin:0 auto 32px;line-height:1.6;">Growth mindset, financial literacy, and self-grading history &amp; science worksheets for your whole family. Zero parent prep.</p>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;align-items:center;">
+        <button type="button" class="btn-warmup" id="lpGetCode" style="font-size:18px;padding:17px 44px;font-weight:700;box-shadow:0 8px 24px rgba(232,98,42,.35);">Start your 5-day trial</button>
+        <a href="/waitlist/demo.html" id="lpSeeHow" style="display:inline-block;font-size:16px;font-weight:700;color:#F7F5EF;background:transparent;border:2px solid rgba(247,245,239,.35);border-radius:10px;padding:14px 30px;text-decoration:none;">&#9654; See how it works</a>
       </div>
-      <div style="margin-top:16px;">
-        <a href="/waitlist/demo.html" id="lpSeeHow" style="display:inline-block;font-size:16px;font-weight:700;color:#1A202C;background:#fff;border:2px solid #1A202C;border-radius:10px;padding:12px 28px;text-decoration:none;">&#9654; See how it works (live demo)</a>
-      </div>
-      <p style="font-size:13px;color:#718096;margin-top:14px;">7-day free trial &middot; Founding members lock in $25/month for life</p>
-      <p style="font-size:14px;color:#4A5568;margin-top:10px;">Already a member? <a href="#" id="lpSignIn" style="color:#E8622A;font-weight:700;">Sign in</a></p>
+      <p style="font-size:13px;color:rgba(247,245,239,.55);margin:20px 0 0;">5-day free trial &middot; Founding members lock in $37/month for life</p>
+      <p style="font-size:14px;color:rgba(247,245,239,.65);margin:10px 0 0;">Already a member? <a href="#" id="lpSignIn" style="color:#F2A93C;font-weight:700;">Sign in</a></p>
     </div>
     <!-- WHAT IT IS -->
-    <div id="lpHow" style="background:#fff;border:1.5px solid #E2E8F0;border-radius:16px;padding:32px 28px;margin-bottom:24px;">
-      <h2 style="font-family:Oswald,sans-serif;font-size:24px;margin:0 0 8px;color:#1A202C;text-align:center;">What your kids get every morning</h2>
-      <p style="text-align:center;color:#718096;font-size:15px;margin:0 0 24px;">Three blocks. Fifteen minutes. Done before breakfast gets cold.</p>
+    <div id="lpHow" style="background:#F7F5EF;border:1.5px solid rgba(17,17,17,.14);border-radius:16px;padding:36px 30px;margin-bottom:24px;">
+      <div style="text-align:center;font-family:Oswald,sans-serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#E8622A;font-weight:600;margin-bottom:10px;">How it works</div>
+      <h2 style="font-family:Oswald,sans-serif;font-size:26px;margin:0 0 8px;color:#1A202C;text-align:center;">What your kids get every morning</h2>
+      <p style="text-align:center;color:#718096;font-size:15px;margin:0 0 26px;">Three blocks. Fifteen minutes. Done before breakfast gets cold.</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
-        <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:20px;">
-          <div style="font-size:28px;margin-bottom:8px;">&#9728;&#65039;</div>
-          <div style="font-weight:700;font-size:15px;margin-bottom:6px;color:#92400E;">1. Warm Up</div>
-          <p style="font-size:14px;color:#57534E;margin:0;line-height:1.55;">Growth mindset prompt plus a real current event, rewritten at your child&rsquo;s reading level.</p>
+        <div style="background:#fff;border:1.5px solid rgba(17,17,17,.1);border-radius:14px;padding:24px 20px;">
+          <div style="display:inline-block;font-family:Oswald,sans-serif;font-size:12px;font-weight:700;color:#E8622A;border:1.5px solid #E8622A;border-radius:999px;padding:3px 12px;letter-spacing:.1em;margin-bottom:12px;">01</div>
+          <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:17px;margin-bottom:8px;color:#1A202C;text-transform:uppercase;letter-spacing:.02em;">Warm Up</div>
+          <p style="font-size:14px;color:#57534E;margin:0;line-height:1.6;">Growth mindset prompt plus a real current event, rewritten at your child&rsquo;s reading level.</p>
         </div>
-        <div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:12px;padding:20px;">
-          <div style="font-size:28px;margin-bottom:8px;">&#128176;</div>
-          <div style="font-weight:700;font-size:15px;margin-bottom:6px;color:#065F46;">2. Life Skills</div>
-          <p style="font-size:14px;color:#57534E;margin:0;line-height:1.55;">Financial literacy in bite-size lessons: interest, budgeting, and smart money habits.</p>
+        <div style="background:#fff;border:1.5px solid rgba(17,17,17,.1);border-radius:14px;padding:24px 20px;">
+          <div style="display:inline-block;font-family:Oswald,sans-serif;font-size:12px;font-weight:700;color:#E8622A;border:1.5px solid #E8622A;border-radius:999px;padding:3px 12px;letter-spacing:.1em;margin-bottom:12px;">02</div>
+          <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:17px;margin-bottom:8px;color:#1A202C;text-transform:uppercase;letter-spacing:.02em;">Life Skills</div>
+          <p style="font-size:14px;color:#57534E;margin:0;line-height:1.6;">Financial literacy in bite-size lessons: interest, budgeting, and smart money habits.</p>
         </div>
-        <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:20px;">
-          <div style="font-size:28px;margin-bottom:8px;">&#129518;</div>
-          <div style="font-weight:700;font-size:15px;margin-bottom:6px;color:#1E40AF;">3. Drills</div>
-          <p style="font-size:14px;color:#57534E;margin:0;line-height:1.55;">Self-grading history &amp; science worksheets. Instant feedback, zero red pens.</p>
+        <div style="background:#fff;border:1.5px solid rgba(17,17,17,.1);border-radius:14px;padding:24px 20px;">
+          <div style="display:inline-block;font-family:Oswald,sans-serif;font-size:12px;font-weight:700;color:#E8622A;border:1.5px solid #E8622A;border-radius:999px;padding:3px 12px;letter-spacing:.1em;margin-bottom:12px;">03</div>
+          <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:17px;margin-bottom:8px;color:#1A202C;text-transform:uppercase;letter-spacing:.02em;">Drills</div>
+          <p style="font-size:14px;color:#57534E;margin:0;line-height:1.6;">Self-grading history &amp; science worksheets. Instant feedback, zero red pens.</p>
         </div>
       </div>
     </div>
     <!-- WHO IT'S FOR -->
-    <div style="background:#fff;border:1.5px solid #E2E8F0;border-radius:16px;padding:32px 28px;margin-bottom:24px;">
-      <h2 style="font-family:Oswald,sans-serif;font-size:24px;margin:0 0 16px;color:#1A202C;text-align:center;">Built for busy homeschool families</h2>
+    <div style="background:#F7F5EF;border:1.5px solid rgba(17,17,17,.14);border-radius:16px;padding:36px 30px;margin-bottom:24px;">
+      <div style="text-align:center;font-family:Oswald,sans-serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#E8622A;font-weight:600;margin-bottom:10px;">Who it serves</div>
+      <h2 style="font-family:Oswald,sans-serif;font-size:26px;margin:0 0 20px;color:#1A202C;text-align:center;">Built for busy homeschool families</h2>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;font-size:15px;color:#4A5568;">
         <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:#2F7D4F;font-weight:700;">&#10003;</span><span><strong>Homeschool parents</strong> who want independent morning work without the prep</span></div>
         <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:#2F7D4F;font-weight:700;">&#10003;</span><span><strong>After-school families</strong> adding 15 focused minutes to the day</span></div>
@@ -1312,8 +1312,9 @@ function showLandingPage(){
       </div>
     </div>
     <!-- SCREENSHOT / DEMO -->
-    <div style="background:#1A202C;border-radius:16px;padding:32px 28px;margin-bottom:24px;text-align:center;">
-      <h2 style="font-family:Oswald,sans-serif;font-size:24px;margin:0 0 8px;color:#fff;">See it in action</h2>
+    <div style="background:linear-gradient(180deg,#1A202C 0%,#0A0A0A 100%);border-radius:16px;padding:40px 28px;margin-bottom:24px;text-align:center;border-top:3px solid #E8622A;">
+      <div style="font-family:Oswald,sans-serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#F2A93C;font-weight:600;margin-bottom:10px;">No signup needed</div>
+      <h2 style="font-family:Oswald,sans-serif;font-size:26px;margin:0 0 8px;color:#fff;">See it in action</h2>
       <p style="color:#A0AEC0;font-size:15px;margin:0 0 20px;">Try the real interactive demo. No signup needed.</p>
       <a href="/waitlist/demo.html" style="display:inline-block;background:#E8622A;color:#fff;font-weight:700;font-size:16px;padding:13px 30px;border-radius:10px;text-decoration:none;">&#127918; Try the live demo</a>
       <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
@@ -1326,22 +1327,22 @@ function showLandingPage(){
     <div style="background:#fff;border:2px solid #E8622A;border-radius:16px;padding:32px 28px;margin-bottom:24px;text-align:center;position:relative;">
       <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#E8622A;color:#fff;font-size:12px;font-weight:700;letter-spacing:.08em;padding:5px 18px;border-radius:20px;">FOUNDING MEMBER</div>
       <h2 style="font-family:Oswald,sans-serif;font-size:24px;margin:0 0 8px;color:#1A202C;">Simple family pricing</h2>
-      <div style="font-size:52px;font-weight:800;color:#1A202C;line-height:1;margin:12px 0 4px;">$25<span style="font-size:20px;font-weight:600;color:#718096;">/month</span></div>
-      <p style="color:#B45309;font-weight:600;font-size:15px;margin:0 0 16px;">Locked for life. Regular price $35/month</p>
+      <div style="font-size:52px;font-weight:800;color:#1A202C;line-height:1;margin:12px 0 4px;">$37<span style="font-size:20px;font-weight:600;color:#718096;">/month</span></div>
+      <p style="color:#B45309;font-weight:600;font-size:15px;margin:0 0 16px;">Locked for life. Regular price $47/month</p>
       <div style="text-align:left;max-width:420px;margin:0 auto 24px;font-size:15px;color:#4A5568;">
         <div style="padding:7px 0;border-bottom:1px solid #EDF2F7;">&#10003; Up to <strong>8 children</strong> on one plan</div>
-        <div style="padding:7px 0;border-bottom:1px solid #EDF2F7;">&#10003; <strong>7-day free trial</strong>. Cancel anytime</div>
+        <div style="padding:7px 0;border-bottom:1px solid #EDF2F7;">&#10003; <strong>5-day free trial</strong>. Cancel anytime</div>
         <div style="padding:7px 0;border-bottom:1px solid #EDF2F7;">&#10003; <strong>Zero parent prep</strong>: self-grading everything</div>
         <div style="padding:7px 0;" id="lpSpotsLine">&#10003; Only <strong>25 founding spots</strong> at this price</div>
       </div>
-      <button type="button" class="btn-warmup" id="lpGetCode2" style="font-size:17px;padding:14px 36px;">Start your 7-day trial</button>
+      <button type="button" class="btn-warmup" id="lpGetCode2" style="font-size:17px;padding:14px 36px;">Start your 5-day trial</button>
       <p style="font-size:13px;color:#718096;margin:14px 0 0;"><a href="/pricing" style="color:#E8622A;">See full pricing details</a></p>
     </div>
     <!-- FINAL CTA -->
-    <div style="text-align:center;padding:20px 16px 8px;">
-      <h2 style="font-family:Oswald,sans-serif;font-size:26px;margin:0 0 10px;color:#1A202C;">Mornings can be calm.</h2>
-      <p style="color:#4A5568;font-size:16px;margin:0 0 22px;">Join the founding families and reclaim your mornings.</p>
-      <button type="button" class="btn-warmup" id="lpGetCode3" style="font-size:17px;padding:14px 36px;">Start your 7-day trial</button>
+    <div style="background:linear-gradient(180deg,#0A0A0A 0%,#1C1C1C 100%);border-radius:20px;padding:52px 28px;margin-bottom:8px;text-align:center;border-top:3px solid #E8622A;">
+      <h2 style="font-family:Oswald,sans-serif;font-size:30px;margin:0 0 10px;color:#F7F5EF;">Mornings can be calm.</h2>
+      <p style="color:rgba(247,245,239,.7);font-size:16px;margin:0 0 26px;">Join the founding families and reclaim your mornings.</p>
+      <button type="button" class="btn-warmup" id="lpGetCode3" style="font-size:17px;padding:15px 40px;box-shadow:0 8px 24px rgba(232,98,42,.35);">Start your 5-day trial</button>
     </div>
     <!-- FOOTER -->
     <div style="text-align:center;padding:32px 16px 0;border-top:1px solid #E2E8F0;margin-top:36px;">
@@ -1372,7 +1373,7 @@ function showLandingPage(){
     if(n > 0){
       line.innerHTML = '&#10003; Only <strong>' + n + ' of 25 founding spots</strong> left at this price';
     } else {
-      line.innerHTML = '&#10003; Founding spots filled &middot; <strong>$35/month</strong>';
+      line.innerHTML = '&#10003; Founding spots filled &middot; <strong>$47/month</strong>';
     }
   });
 }
