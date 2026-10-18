@@ -99,6 +99,25 @@
     .intention-card{padding:16px;}
     .qtr-hint{margin-left:0;width:100%;}
   }
+  /* ---- vocab box (mirrors the app) ---- */
+  .vocab-box{margin-top:14px;background:var(--board-2);border-radius:10px;padding:12px 14px;border:1.5px solid var(--line-light);}
+  .vocab-word{font-family:'Oswald',sans-serif;font-size:19px;text-transform:uppercase;text-decoration:underline;text-decoration-color:var(--orange);text-decoration-thickness:2.5px;text-underline-offset:4px;}
+  .vocab-row{font-size:13px;margin-top:6px;line-height:1.4;}
+  .vocab-row b{color:var(--ink-soft);font-weight:700;}
+  .syn-ant{display:flex;gap:14px;margin-top:8px;font-size:12.5px;}
+  .syn-ant span b{color:var(--green);}
+  .syn-ant span.ant b{color:var(--orange);}
+  /* ---- states & capitals (mirrors the app) ---- */
+  .info-line{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;padding:8px 0;border-bottom:1px dashed var(--line-light);}
+  .info-line span:first-child{color:var(--ink-soft);font-weight:600;}
+  .reveal-pill{font-weight:700;display:inline-block;border:2px solid var(--orange);border-radius:20px;padding:4px 14px;font-size:12.5px;cursor:pointer;background:#fff;color:var(--ink);}
+  .funfact{font-size:13px;color:var(--ink-soft);margin:6px 0 4px;line-height:1.5;}
+  .funfact b{color:var(--orange-deep);}
+  /* ---- today's plan checklist (mirrors the app) ---- */
+  .demo-check{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;margin-bottom:10px;cursor:pointer;line-height:1.5;}
+  .demo-check input{margin-top:3px;transform:scale(1.25);accent-color:var(--orange);cursor:pointer;}
+  .demo-check.done span{text-decoration:line-through;color:var(--ink-soft);}
+  .demo-done{font-size:13px;font-weight:700;margin-top:6px;color:var(--orange-deep);}
 </style>
 </head>
 <body>
@@ -128,6 +147,19 @@
     <button type="button" class="btn-warmup" id="demoWarmup" style="font-size:16px;padding:13px 34px;">Start today's warm-up</button>
   </div>
 
+  <div class="card" style="margin-bottom:34px;">
+    <div class="word-badge">Today's Plan</div>
+    <div id="demoPlan">
+      <label class="demo-check"><input type="checkbox" data-plan="devo"><span>Q1: Devotional and intention</span></label>
+      <label class="demo-check"><input type="checkbox" data-plan="event"><span>Current event</span></label>
+      <label class="demo-check"><input type="checkbox" data-plan="finlit"><span>Financial literacy</span></label>
+      <label class="demo-check"><input type="checkbox" data-plan="states"><span>States and capitals</span></label>
+      <label class="demo-check"><input type="checkbox" data-plan="science"><span>Science worksheet</span></label>
+      <label class="demo-check"><input type="checkbox" data-plan="history"><span>History worksheet</span></label>
+    </div>
+    <div class="demo-done" id="demoPlanDone"></div>
+  </div>
+
   <!-- Q1 : Warm-Up / Devotional (mirrors the dashboard) -->
   <section class="qtr" id="q1">
     <div class="qtr-head">
@@ -144,7 +176,12 @@
       <div class="card">
         <div class="word-badge">Word of the Day</div>
         <div class="devo-word">Perseverance</div>
-        <p class="devo-scripture" data-faith>Let us not become weary in doing good, for at the proper time we will reap a harvest if we do not give up. (Galatians 6:9)</p>
+        <div class="vocab-box" style="margin-top:4px;">
+          <div class="vocab-row"><b>Define:</b> Continuing to try even when something is difficult.</div>
+          <div class="vocab-row"><b>Use it:</b> She showed perseverance by practicing free throws every day until she made ten in a row.</div>
+          <div class="syn-ant"><span><b>Synonym:</b> determination</span><span class="ant"><b>Antonym:</b> giving up</span></div>
+        </div>
+        <p class="devo-scripture" data-faith style="margin-top:12px;">Let us not become weary in doing good, for at the proper time we will reap a harvest if we do not give up. (Galatians 6:9)</p>
         <div class="devo-row"><div class="lbl">Reflection Question</div><div class="val">When is a time you kept going even though something was hard?</div></div>
         <div class="devo-row" data-faith><div class="lbl">Prayer</div><div class="val">God, give me strength to keep going when things get tough. Amen.</div></div>
       </div>
@@ -186,6 +223,23 @@
       </div>
     </div>
 
+    <div class="card" style="margin-bottom:16px;">
+      <div class="word-badge">States &amp; Capitals</div>
+      <div style="display:flex;flex-direction:column;margin-top:8px;">
+        <div class="info-line" style="cursor:pointer;" data-dstate="0" role="button" tabindex="0" aria-label="Tap to reveal the capital of Florida">
+          <span>Florida</span>
+          <span class="reveal-pill" data-dstate-answer="0">Tap to reveal</span>
+        </div>
+        <div class="funfact" data-dstate-fact="0" style="display:none;"><b>Fun fact:</b> Florida is home to the Kennedy Space Center, where astronauts have launched into space since 1968.</div>
+        <div class="info-line" style="cursor:pointer;" data-dstate="1" role="button" tabindex="0" aria-label="Tap to reveal the capital of Texas">
+          <span>Texas</span>
+          <span class="reveal-pill" data-dstate-answer="1">Tap to reveal</span>
+        </div>
+        <div class="funfact" data-dstate-fact="1" style="display:none;"><b>Fun fact:</b> The Texas state capitol in Austin stands taller than the US Capitol in Washington, DC.</div>
+      </div>
+      <p style="font-size:12px;color:var(--ink-soft);margin:10px 0 0;">Bonus: share one fun fact about either state.</p>
+    </div>
+
     <div class="card">
       <div class="word-badge">Science Worksheet</div>
       <div class="cols">
@@ -198,6 +252,21 @@
           <button class="check-btn" onclick="checkActivity()">Check labels</button>
           <div class="fb" id="act-fb"></div>
           <div class="tries" id="act-tries"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div class="word-badge">History Worksheet</div>
+      <div class="cols">
+        <div>
+          <div class="reading"><strong>French explorers</strong> mapped North America in the 1500s and 1600s. <strong>Jacques Cartier</strong> claimed Canada for France. <strong>Samuel de Champlain</strong> founded Quebec. <strong>Marquette and Jolliet</strong> traveled the Mississippi River. <strong>La Salle</strong> followed it all the way to the Gulf of Mexico and claimed Louisiana.</div>
+        </div>
+        <div>
+          <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">First place each city on its dot, then trace each explorer's route in travel order.</p>
+          <div id="demo-history-activity"></div>
+          <button class="check-btn" onclick="checkHistory()">Check map</button>
+          <div class="fb" id="hist-fb"></div>
+          <div class="tries" id="hist-tries"></div>
         </div>
       </div>
     </div>
@@ -714,6 +783,107 @@ function checkActivity(){
   updateTries('act', st.tries, 3);
   if(st.done || st.tries >= 3){
     const actEl = document.querySelector('#demo-activity [data-wsact]');
+    if(actEl) actEl.setAttribute('data-wslocked','1');
+  }
+})();
+</script>
+<script>
+/* ---- Demo additions: history map activity, states reveal, plan checklist ----
+   Unified wsActSave routes by container so the cell and map activities each
+   persist to their own demoState key. Installed after both inits. */
+(function(){
+  wsActSave = function(el, st){
+    const key = el.closest('#demo-history-activity') ? 'histmap' : 'cell';
+    demoState[key] = JSON.stringify(st);
+    saveDemo();
+    const inp = el.querySelector('input[data-wsfield]');
+    if(inp) inp.value = JSON.stringify(st);
+  };
+
+  /* History map activity (French explorers) */
+  const hcontainer = document.getElementById('demo-history-activity');
+  if(hcontainer){
+    hcontainer.innerHTML = wsActivityHTML({type:'interactive'}, {id:'demo-hist', activity:'map-explorers', prompt:'Place the cities and trace each explorer route.'}, 'demo_hist', demoState.histmap || '', false);
+    wsWireActivity(hcontainer.querySelector('[data-wsact]'));
+  }
+
+  /* States & capitals tap-to-reveal + fun facts */
+  const DEMO_STATES = [{capital:'Tallahassee'}, {capital:'Austin'}];
+  document.querySelectorAll('[data-dstate]').forEach(row=>{
+    const reveal = ()=>{
+      const i = row.getAttribute('data-dstate');
+      const ans = row.querySelector('[data-dstate-answer]');
+      ans.textContent = DEMO_STATES[+i].capital;
+      ans.style.color = 'var(--green)';
+      ans.style.borderColor = 'var(--green)';
+      const fact = document.querySelector('[data-dstate-fact="'+i+'"]');
+      if(fact) fact.style.display = 'block';
+    };
+    row.addEventListener('click', reveal);
+    row.addEventListener('keydown', e=>{
+      if(e.key===' '||e.key==='Enter'){ e.preventDefault(); reveal(); }
+    });
+  });
+
+  /* Today's plan checklist (persists per device) */
+  const planState = demoState.plan || (demoState.plan = {});
+  const boxes = Array.prototype.slice.call(document.querySelectorAll('#demoPlan input[type=checkbox]'));
+  function renderPlan(){
+    let done = 0;
+    boxes.forEach(b=>{
+      const id = b.getAttribute('data-plan');
+      b.checked = !!planState[id];
+      b.closest('.demo-check').classList.toggle('done', b.checked);
+      if(b.checked) done++;
+    });
+    document.getElementById('demoPlanDone').textContent =
+      done === boxes.length ? 'All done for today. Great work!' : done + ' of ' + boxes.length + ' done';
+  }
+  boxes.forEach(b=>{
+    b.addEventListener('change', ()=>{
+      planState[b.getAttribute('data-plan')] = b.checked;
+      saveDemo();
+      renderPlan();
+    });
+  });
+  renderPlan();
+})();
+
+function checkHistory(){
+  const maxTries = 3;
+  const st = demoState.hist || (demoState.hist = {tries:0, done:false});
+  if(st.done || st.tries >= maxTries) return;
+  const actEl = document.querySelector('#demo-history-activity [data-wsact]');
+  const spec = WS_ACTIVITIES['map-explorers'];
+  let placements = {};
+  try{ placements = JSON.parse(demoState.histmap || '{}'); }catch(e){}
+  const result = wsGradeActivity(spec, placements);
+  st.tries++;
+  const fb = document.getElementById('hist-fb');
+  const finalTry = st.tries >= maxTries;
+  if(result.ok){
+    st.done = true;
+    fb.className = 'fb ok';
+    fb.textContent = '✓ Map complete! Great work.';
+    if(actEl) actEl.setAttribute('data-wslocked','1');
+  } else {
+    fb.className = 'fb no';
+    if(finalTry){
+      fb.innerHTML = '✗ The answers are: <span class="ans">' + esc(wsActivityAnswerText('map-explorers')) + '</span>';
+      if(actEl) actEl.setAttribute('data-wslocked','1');
+    } else {
+      fb.innerHTML = '✗ Not quite. Look again at: <strong>' + result.wrong.map(esc).join(', ') + '</strong>.';
+    }
+  }
+  updateTries('hist', st.tries, maxTries);
+  saveDemo();
+}
+(function(){
+  const st = demoState.hist;
+  if(!st) return;
+  updateTries('hist', st.tries, 3);
+  if(st.done || st.tries >= 3){
+    const actEl = document.querySelector('#demo-history-activity [data-wsact]');
     if(actEl) actEl.setAttribute('data-wslocked','1');
   }
 })();
