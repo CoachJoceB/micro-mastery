@@ -13,20 +13,35 @@
   :root{
     --chalk:#F7F5EF; --paper:#FFFFFF; --ink:#111111; --ink-soft:#5B5955;
     --orange:#E8622A; --orange-deep:#B34A1E; --amber:#F2A93C; --green:#3F8F5F;
-    --line:rgba(17,17,17,.14); --navy:#0A0A0A;
+    --line:rgba(17,17,17,.14); --navy:#0A0A0A; --navy-2:#1A1A1A;
+    --board:#EEE7D6; --board-2:#E6DDC8;
+    --line-light:rgba(17,17,17,.14); --line-dark:rgba(247,245,239,.14);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  body{margin:0;font-family:'Inter',system-ui,sans-serif;background:var(--chalk);color:var(--ink);min-height:100vh;}
-  .demo-banner{background:var(--green);color:#fff;text-align:center;padding:10px 16px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.08em;text-transform:uppercase;}
+  body{margin:0;font-family:'Inter',system-ui,sans-serif;background:linear-gradient(var(--line-light) 1px, transparent 1px) 0 0/100% 42px, var(--board);color:var(--ink);min-height:100vh;}
+  header.scoreboard{
+    background:linear-gradient(180deg,var(--navy) 0%, var(--navy-2) 100%);
+    color:var(--chalk);padding:18px 28px;display:flex;align-items:center;justify-content:space-between;
+    gap:16px;border-bottom:3px solid var(--orange);flex-wrap:wrap;
+  }
+  .sb-left{display:flex;flex-direction:column;gap:2px;}
+  .sb-brand{font-family:'Oswald',sans-serif;font-size:13px;color:var(--amber);font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
+  .sb-date{font-family:'Oswald',sans-serif;font-size:clamp(20px,2.6vw,30px);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+  .sb-sub{font-family:'Oswald',sans-serif;font-size:12px;color:rgba(247,245,239,.7);}
+  .sb-center{display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .live-clock{font-family:'Oswald',sans-serif;font-size:clamp(26px,3.4vw,40px);font-weight:700;color:var(--chalk);letter-spacing:.02em;}
+  .live-clock-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(247,245,239,.5);}
+  .word-badge{display:inline-block;font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);border:1.5px solid var(--orange);padding:3px 10px;border-radius:999px;margin-bottom:10px;}
+  @media(max-width:700px){header.scoreboard{padding:12px 18px;}}
   .wrap{max-width:1100px;margin:0 auto;padding:24px 20px 64px;}
   h1{font-family:'Oswald',sans-serif;font-size:30px;text-transform:uppercase;letter-spacing:.02em;margin:0 0 8px;}
   .sub{color:var(--ink-soft);font-size:15px;line-height:1.6;margin-bottom:24px;max-width:700px;}
   .phase{margin-bottom:28px;}
   .phase-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
-  .phase-num{font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;background:var(--orange);color:#fff;border-radius:20px;padding:4px 14px;letter-spacing:.06em;text-transform:uppercase;}
+  .phase-num{display:inline-block;font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);border:1.5px solid var(--orange);padding:3px 10px;border-radius:999px;}
   .phase-title{font-family:'Oswald',sans-serif;font-size:20px;text-transform:uppercase;letter-spacing:.03em;margin:0;}
   .phase-time{font-size:13px;color:var(--ink-soft);margin-left:auto;}
-  .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.06);}
+  .card{background:var(--chalk);border:1.5px solid var(--line-light);border-radius:14px;padding:24px;}
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
   @media(max-width:800px){.cols{grid-template-columns:1fr;}}
   .reading{font-size:15px;line-height:1.7;color:#333;}
@@ -34,7 +49,7 @@
   .q{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--line);}
   .q:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
   .q-text{font-size:15.5px;font-weight:600;margin-bottom:10px;line-height:1.5;}
-  .q input[type=text]{width:100%;background:var(--chalk);border:2px solid var(--line);color:var(--ink);border-radius:10px;padding:12px;font-size:16px;font-family:'Inter',sans-serif;}
+  .q input[type=text]{width:100%;background:var(--paper);border:2px solid var(--line);color:var(--ink);border-radius:10px;padding:12px;font-size:16px;font-family:'Inter',sans-serif;}
   .q input[type=text]:focus{outline:none;border-color:var(--orange);}
   .check-btn{margin-top:10px;background:var(--orange);color:#fff;border:none;border-radius:10px;padding:10px 24px;font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;}
   .check-btn:disabled{opacity:.4;cursor:default;}
@@ -52,10 +67,21 @@
 </style>
 </head>
 <body>
-<div class="demo-banner">🎮 Live demo — the actual Micro Mastery morning routine</div>
+<header class="scoreboard">
+  <div class="sb-left">
+    <div class="sb-brand">Legacy Lab Academy</div>
+    <div class="sb-date">Micro Mastery &middot; Live Demo</div>
+    <div class="sb-sub">The actual morning routine, try it yourself</div>
+  </div>
+  <div class="sb-center">
+    <div class="live-clock">9:00 AM</div>
+    <div class="live-clock-label">Demo Mode</div>
+  </div>
+</header>
 <div class="wrap">
+  <span class="word-badge">Live demo</span>
   <h1>The 15-minute morning routine</h1>
-  <p class="sub">This is exactly what your kid sees every morning. Warm up with a current event, build life skills, then drill the worksheet — all self-checking. Try it below.</p>
+  <p class="sub">This is exactly what your kid sees every morning. Warm up with a current event, build life skills, then drill the worksheet, all self-checking. Try it below.</p>
 
   <!-- WARM UP -->
   <div class="phase">
@@ -69,7 +95,7 @@
       <div class="q" style="margin-top:16px;border:none;padding:0;">
         <div class="q-text">What's something you're excited about that you think will be a big deal in the future?</div>
         <input type="text" id="wu-input" placeholder="Type your thought..." autocomplete="off">
-        <div class="vocab">No wrong answers here — this is thinking practice.</div>
+        <div class="vocab">No wrong answers here: this is thinking practice.</div>
       </div>
     </div>
   </div>
@@ -84,8 +110,8 @@
     <div class="card">
       <div class="cols">
         <div>
-          <div class="reading"><strong>Interest</strong> is extra money a bank pays you for keeping your savings with them. If you put $100 in a savings account that pays 5% interest per year, after one year you'll have $105 — the bank pays you $5 just for keeping your money there. That's your money making money.</div>
-          <div class="vocab" style="margin-top:12px;"><strong>Word:</strong> Interest — extra money earned on savings.</div>
+          <div class="reading"><strong>Interest</strong> is extra money a bank pays you for keeping your savings with them. If you put $100 in a savings account that pays 5% interest per year, after one year you'll have $105. The bank pays you $5 just for keeping your money there. That's your money making money.</div>
+          <div class="vocab" style="margin-top:12px;"><strong>Word:</strong> Interest: extra money earned on savings.</div>
         </div>
         <div>
           <div class="q" id="ls1">
@@ -125,8 +151,8 @@
 
   <div class="card" style="text-align:center;background:var(--navy);color:var(--chalk);border:none;">
     <h2 style="font-family:'Oswald',sans-serif;font-size:20px;text-transform:uppercase;margin:0 0 12px;color:#fff;">Want the full system?</h2>
-    <p style="color:rgba(247,245,239,.7);font-size:15px;line-height:1.6;">A full year of self-checking history and science, plus the 15-minute morning routine. Founding members lock in $25/month for life.</p>
-    <a href="https://buy.stripe.com/4gM5kDfKx3qD2B40dk3sI00" style="display:inline-block;background:var(--orange);color:#fff;text-decoration:none;border-radius:12px;padding:14px 32px;font-family:'Oswald',sans-serif;font-size:17px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Start your 7-day trial</a>
+    <p style="color:rgba(247,245,239,.7);font-size:15px;line-height:1.6;">A full year of self-checking history and science, plus the 15-minute morning routine. Founding members lock in $37/month for life.</p>
+    <a href="https://buy.stripe.com/4gM5kDfKx3qD2B40dk3sI00" style="display:inline-block;background:var(--orange);color:#fff;text-decoration:none;border-radius:12px;padding:14px 32px;font-family:'Oswald',sans-serif;font-size:17px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Start your 5-day trial</a>
   </div>
 </div>
 
@@ -315,11 +341,11 @@ function wsActivityHTML(g, it, field, savedJson, locked){
       + spec.labels.map(l=>`<button type="button" data-wsactlabel="${l.id}" class="btn btn-ghost"${disBtn} style="font-size:13px;padding:6px 14px;">${esc(l.text)}</button>`).join('')
       + `</div><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 8px;">Tap a label, then tap the part of the diagram it names. Tap a placed label to take it back.</p>`;
   } else if(spec.kind === 'map'){
-    bank = `<div style="margin-bottom:8px;"><div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:6px;">1 &middot; PLACE THE CITIES — tap a city, then tap its dot</div>`
+    bank = `<div style="margin-bottom:8px;"><div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:6px;">1 &middot; PLACE THE CITIES: tap a city, then tap its dot</div>`
       + `<div style="display:flex;flex-wrap:wrap;gap:8px;" data-wsactbank>`
       + spec.cities.map(c=>`<button type="button" data-wsactcity="${c.id}" class="btn btn-ghost"${disBtn} style="font-size:13px;padding:6px 14px;">${esc(c.text)}</button>`).join('')
       + `</div></div>`
-      + `<div style="margin-bottom:10px;"><div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:6px;">2 &middot; TRACE EACH ROUTE — tap an explorer, then tap the dots in travel order</div>`
+      + `<div style="margin-bottom:10px;"><div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:6px;">2 &middot; TRACE EACH ROUTE: tap an explorer, then tap the dots in travel order</div>`
       + `<div style="display:flex;flex-wrap:wrap;gap:8px;" data-wsactexplorers>`
       + spec.explorers.map(e=>`<button type="button" data-wsactexplorer="${e.id}" class="btn btn-ghost"${disBtn} style="font-size:13px;padding:6px 14px;border-left:5px solid ${e.color};">${esc(e.text)}</button>`).join('')
       + `</div>`
