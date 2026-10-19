@@ -182,7 +182,7 @@
   }
   .buzzer-strip .msg{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.03em;font-size:15px;}
   .buzzer-strip .msg b{color:var(--amber);}
-  .link-btn{background:none;border:none;color:var(--amber);text-decoration:underline;cursor:pointer;font-family:'Oswald';font-size:13px;}
+  .link-btn{background:var(--orange);border:none;color:#fff;border-radius:9px;padding:10px 18px;cursor:pointer;font-family:'Oswald';font-size:13px;text-transform:uppercase;letter-spacing:.04em;}
 
   .modal-overlay{
     display:none;position:fixed;inset:0;background:rgba(16,22,29,.72);align-items:flex-start;justify-content:center;
@@ -231,7 +231,7 @@
   .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;flex-wrap:wrap;}
   .btn{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.04em;font-size:13px;padding:10px 18px;border-radius:9px;border:none;cursor:pointer;}
   .btn-primary{background:var(--orange);color:#fff;}
-  .btn-ghost{background:transparent;color:var(--ink-soft);border:1.5px solid var(--line-light);}
+  .btn-ghost{background:var(--orange);color:#fff;}
   .divider{border:none;border-top:1.5px solid var(--line-light);margin:18px 0;}
   .save-toast{
     position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 20px;
@@ -323,7 +323,6 @@
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
   .icon-btn.labeled{width:auto;min-height:38px;padding:0 13px;gap:7px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;}
   .icon-btn.labeled .lbl{font-size:12px;}
-  @media (max-width:640px){.icon-btn.labeled .lbl{display:none;}.icon-btn.labeled{padding:0;width:38px;}}
   button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--amber);outline-offset:2px;}
   .check{width:24px;height:24px;}
   .check-mini{width:24px;height:24px;}
@@ -62452,6 +62451,13 @@ async function renderBoard(){
   const wd = state.weekdayNum;
   window.__pendingLessonPdf = null;
   window.__pendingWorksheet = null;
+  // Preload today's activity records for the status lines.
+  state.todayActivities = {};
+  for(const s of state.students){
+    for(const subj of ['history','science','friday','mathsprint','appliedmath']){
+      state.todayActivities[s.id+':'+subj] = await getActivity(state.dateStr, s.id, subj);
+    }
+  }
 
   if(!SCHOOL_DAYS.includes(wd)){
     const tzLabel = (TIMEZONE_OPTIONS.find(o=>o.value===state.timezone)||{}).label || state.timezone;
@@ -62545,6 +62551,8 @@ async function renderBoard(){
       <div class="word-badge">${esc(lessonType)} &middot; Week ${state.mmWeek} &middot; Grades ${esc(mmBandLabel(lesson._band))}</div>
       <div style="font-size:15px;font-weight:600;line-height:1.4;margin:6px 0;">${esc(lesson.topic)}</div>
       ${wsBtn}${extra}
+      ${(()=>{ const act = (state.todayActivities||{})[studentId+':'+lesson.subject]; const line = activityStatusLine(act);
+        return line ? `<div style="font-size:11.5px;color:var(--ink-soft);margin-top:8px;">&#x1F552; ${esc(line)}</div>` : ''; })()}
     </div>`;
   }
   function buildSprintCardHTML(studentId){
@@ -62552,10 +62560,13 @@ async function renderBoard(){
     if(!stu || isFriday) return '';
     const lesson = mmStudentSprint(stu);
     const key = mmRegisterWs(studentId+':sprint', 'mathsprint', lesson, studentId);
+    const act = (state.todayActivities||{})[studentId+':mathsprint'];
+    const line = activityStatusLine(act);
     return `<div class="card" style="margin-top:12px;">
       <div class="word-badge">Math Facts Sprint</div>
       <div style="font-size:13.5px;margin:6px 0;color:var(--ink-soft);">${esc(lesson.topic)}, 10 quick problems.</div>
       ${mmWorksheetBtn(key, '&#x26A1; Start Sprint', false)}
+      ${line ? `<div style="font-size:11.5px;color:var(--ink-soft);margin-top:8px;">&#x1F552; ${esc(line)}</div>` : ''}
     </div>`;
   }
   function buildVocabHTML(stu){
@@ -63234,6 +63245,7 @@ function defaultWorksheetAnswers(worksheet){
 }
 
 let worksheetCache = {}; // studentId -> {worksheet, answers}
+let wsActivityOpen = {}; // studentId -> timestamp when their tab was shown
 let currentWorksheetCtx = null; // {subject, lesson, dateStr}
 
 /* ========================= WORKSHEET SELF-CHECKING ENGINE =========================
@@ -63726,6 +63738,62 @@ function wsActivityAnswerText(activityId){
   return parts.join('; ');
 }
 
+/* ========================= ACTIVITY TRACKING =========================
+   Per student per day per subject: when the lesson was viewed, started,
+   and completed, plus total time spent. Stored in Supabase so parents
+   see it on any device. */
+function activityKey(dateStr, studentId, subject){ return 'activity:'+dateStr+':'+studentId+':'+subject; }
+async function getActivity(dateStr, studentId, subject){
+  return (await storageGet(activityKey(dateStr, studentId, subject))) || {};
+}
+async function saveActivity(dateStr, studentId, subject, patch){
+  const cur = await getActivity(dateStr, studentId, subject);
+  const next = Object.assign({}, cur, patch);
+  await storageSet(activityKey(dateStr, studentId, subject), next);
+  return next;
+}
+async function markActivityViewed(dateStr, studentId, subject){
+  const cur = await getActivity(dateStr, studentId, subject);
+  if(!cur.v) await saveActivity(dateStr, studentId, subject, {v: Date.now()});
+}
+async function markActivityStarted(dateStr, studentId, subject){
+  const cur = await getActivity(dateStr, studentId, subject);
+  if(!cur.s) await saveActivity(dateStr, studentId, subject, {s: Date.now()});
+}
+async function markActivityCompleted(dateStr, studentId, subject){
+  const cur = await getActivity(dateStr, studentId, subject);
+  if(!cur.c) await saveActivity(dateStr, studentId, subject, {c: Date.now()});
+}
+async function addActivityTime(dateStr, studentId, subject, ms){
+  if(!ms || ms < 1000) return;
+  const cur = await getActivity(dateStr, studentId, subject);
+  await saveActivity(dateStr, studentId, subject, {ms: (cur.ms||0) + Math.round(ms)});
+}
+function fmtTime(ts){
+  if(!ts) return '';
+  const d = new Date(ts);
+  let h = d.getHours(), m = d.getMinutes();
+  const ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return h + ':' + String(m).padStart(2,'0') + ' ' + ap;
+}
+function fmtDuration(ms){
+  if(!ms) return '';
+  const mins = Math.round(ms / 60000);
+  if(mins < 1) return 'under a minute';
+  if(mins < 60) return mins + ' min';
+  const h = Math.floor(mins/60), m = mins%60;
+  return h + 'h ' + (m ? m + 'm' : '');
+}
+function activityStatusLine(act){
+  if(!act || !act.v) return '';
+  const parts = ['Viewed ' + fmtTime(act.v)];
+  if(act.s) parts.push('Started ' + fmtTime(act.s));
+  if(act.c) parts.push('Completed ' + fmtTime(act.c));
+  if(act.ms) parts.push(fmtDuration(act.ms) + ' total');
+  return parts.join(' · ');
+}
+
 function wsUpdateProgress(container, worksheet, entry, checks){
   // In Light mode only the required (non-bonus) groups count toward progress.
   const groups = entry._requiredGroups || worksheet.groups || [];
@@ -63736,6 +63804,10 @@ function wsUpdateProgress(container, worksheet, entry, checks){
   const bEl = container.querySelector('[data-wsbar]');
   if(pEl) pEl.textContent = done + ' of ' + total + ' parts done' + (done===total && total ? ' 🎉' : '');
   if(bEl) bEl.style.width = pct + '%';
+  // Activity: all parts done = completed.
+  if(done===total && total>0 && currentWorksheetCtx && entry.studentId){
+    markActivityCompleted(currentWorksheetCtx.dateStr, entry.studentId, currentWorksheetCtx.subject);
+  }
 }
 
 function renderWorksheetFormHTML(entry, checks){
@@ -64066,6 +64138,8 @@ function wsRefreshWordBank(groupEl){
 }
 function wsRunGroupCheck(container, studentId, gi){
   const entry = worksheetCache[studentId];
+  // Activity: student started working.
+  if(currentWorksheetCtx) markActivityStarted(currentWorksheetCtx.dateStr, studentId, currentWorksheetCtx.subject);
   const checks = wsChecksCache[studentId] || (wsChecksCache[studentId] = {});
   const worksheet = entry.worksheet;
   const g = worksheet.groups[gi];
@@ -64205,6 +64279,8 @@ function wireWorksheetFormInputs(container, studentId){
   container.querySelectorAll('[data-wsfield]').forEach(el=>{
     if(el.type==='checkbox') return; // handled above
     el.addEventListener('input', ()=>{
+      // Activity: student started working (first keystroke counts).
+      if(currentWorksheetCtx) markActivityStarted(currentWorksheetCtx.dateStr, studentId, currentWorksheetCtx.subject);
       if(el.hasAttribute('data-wsmatchletter')) wsRefreshMatchBanks(container);
       const ge = el.closest('[data-wsgroup]');
       if(ge) wsRefreshWordBank(ge);
@@ -64390,7 +64466,8 @@ async function openWorksheetModal(subject, lesson, preferredStudentId, weekdayNu
     }
   });
   currentWorksheetCtx = { subject, lesson, dateStr: state.dateStr };
-  document.getElementById('worksheetTitle').textContent = materialSubjectLabel(subject) + (forceDayNum ? ' Self Test' : ' Worksheet');
+  const wsDayTitle = lesson.title || lesson.topic;
+  document.getElementById('worksheetTitle').textContent = materialSubjectLabel(subject) + ': ' + wsDayTitle;
   document.getElementById('worksheetSub').textContent = (forceDayNum && dayPart.title ? dayPart.title + ' · ' : '') + lesson.topic;
 
   const readingEl = document.getElementById('worksheetReading');
@@ -64425,7 +64502,15 @@ async function openWorksheetModal(subject, lesson, preferredStudentId, weekdayNu
   }
 
   function showStudent(id){
+    // Save the previous student's open time before switching.
+    const now = Date.now();
+    if(wsActiveStudent && wsActivityOpen[wsActiveStudent]){
+      addActivityTime(state.dateStr, wsActiveStudent, subject, now - wsActivityOpen[wsActiveStudent]);
+    }
     wsActiveStudent = id;
+    // Activity: viewing the worksheet.
+    markActivityViewed(state.dateStr, id, subject);
+    wsActivityOpen[id] = now;
     paintReading(id);
     tabsWrap.querySelectorAll('.modal-tab').forEach(t=>t.classList.toggle('active', t.dataset.wstab===id));
     const formArea = document.getElementById('worksheetFormArea');
@@ -64941,7 +65026,19 @@ function switchModalTab(overlay, tabId){
   overlay.querySelectorAll('.modal-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tabId));
   overlay.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.id===tabId));
 }
-function closeAllModals(){ document.querySelectorAll('.modal-overlay').forEach(o=>o.classList.remove('open')); }
+function closeAllModals(){
+  // Save worksheet time before closing: accumulate open duration per student.
+  const wsOverlay = document.getElementById('worksheetOverlay');
+  if(wsOverlay && wsOverlay.classList.contains('open') && currentWorksheetCtx){
+    const now = Date.now();
+    for(const sid of Object.keys(wsActivityOpen)){
+      const openTs = wsActivityOpen[sid];
+      if(openTs) addActivityTime(currentWorksheetCtx.dateStr, sid, currentWorksheetCtx.subject, now - openTs);
+    }
+    wsActivityOpen = {};
+  }
+  document.querySelectorAll('.modal-overlay').forEach(o=>o.classList.remove('open'));
+}
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
@@ -65219,6 +65316,19 @@ async function loadGradingContent(){
   }
 
   let html = '';
+  // Activity timestamps: when viewed, started, completed + total time.
+  const act = await getActivity(dateStr, studentId, subject);
+  if(act && act.v){
+    const rows = [];
+    rows.push(['Viewed', fmtTime(act.v)]);
+    rows.push(['Started', act.s ? fmtTime(act.s) : '— not yet']);
+    rows.push(['Completed', act.c ? fmtTime(act.c) : '— not yet']);
+    rows.push(['Time spent', act.ms ? fmtDuration(act.ms) : '—']);
+    html += `<div class="card" style="margin-bottom:10px;">
+      <div class="mini-lbl" style="margin-top:0;">&#x1F552; Activity</div>
+      ${rows.map(r=>`<div class="info-line"><span>${r[0]}</span><span style="font-weight:600;">${esc(r[1])}</span></div>`).join('')}
+    </div>`;
+  }
   worksheet.groups.forEach((g, gi)=>{
     const fp = 'ws-g'+gi+'-';
     if(g.type==='shortanswer'){
