@@ -1459,6 +1459,7 @@ function studentsKey(){ return famKey('student-profiles'); }
 function labelsKey(){ return famKey('field-labels'); }
 const MM_WEEK_KEY = 'mm-week';
 const HOME_STATE_KEY = 'home-state';
+const DAY_OFFSET_KEY = 'day-offset';
 // Snapshot schema version. Bumped whenever the snapshot format or the code
 // that builds it changes incompatibly. A day snapshot stamped with an older
 // (or missing) version is treated as stale: for the current school day it is
@@ -59160,7 +59161,7 @@ const MM_WEEKS_912 = [
 let state = {
   contentWeeks:null, students:null, fieldLabels:null, cycleStartMonday:null, buzzerTime:null, timezone:null, subjectOrders:null,
   subjectDefaults:null, devoOpts:null,
-  mmWeek:1, homeState:'Florida',
+  mmWeek:1, homeState:'Florida', dayOffset:0,
   schoolDate:null, weekdayNum:null, dateStr:null,
   todayOverride:null, weekWords:{}, checks:{}
 };
@@ -59184,6 +59185,9 @@ async function loadAll(){
   state.mmWeek = (await storageGet(famKey(MM_WEEK_KEY))) || 1;
   if(state.mmWeek < 1 || state.mmWeek > 52) state.mmWeek = 1;
   state.homeState = (await storageGet(famKey(HOME_STATE_KEY))) || 'Florida';
+  // Day offset: parents can preview future days. 0 = today.
+  state.dayOffset = (await storageGet(famKey(DAY_OFFSET_KEY))) || 0;
+  if(typeof state.dayOffset !== 'number' || state.dayOffset < 0) state.dayOffset = 0;
   state.buzzerTime = (await storageGet(buzzerKey())) || defaultBuzzerTime();
   state.maxTries = (await storageGet(maxTriesKey())) || defaultMaxTries();
   // Each student's subject order is independent, keyed by student id.
@@ -59194,6 +59198,8 @@ async function loadAll(){
 
   const now = new Date();
   state.schoolDate = getSchoolDate(now);
+  // Parent preview offset: the dashboard can show a future day.
+  if(state.dayOffset > 0) state.schoolDate.setDate(state.schoolDate.getDate() + state.dayOffset);
   const dow = state.schoolDate.getDay();
   state.weekdayNum = dow;
   const dstr = toDateStr(state.schoolDate);
@@ -59666,6 +59672,11 @@ async function renderBoard(){
 
   board.innerHTML = `
     <h1 class="sr-only">Micro Mastery by Legacy Lab Academy — today's family learning plan</h1>
+    ${state.dayOffset > 0 ? `<div class="card" style="margin-bottom:14px;border:2px solid var(--orange);text-align:center;">
+      <div style="font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:.05em;text-transform:uppercase;">Previewing ${esc(state.schoolDate.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}))}</div>
+      <div class="sub" style="margin:4px 0 8px;">Answers stay hidden while previewing. Worksheet work saves to this date.</div>
+      <button type="button" class="btn btn-ghost" id="previewBackToday">Back to today</button>
+    </div>` : ''}
     <div class="warmup-row">
       <button type="button" class="btn-warmup" id="startWarmup">Start today's warm-up</button>
     </div>
@@ -59699,6 +59710,10 @@ async function renderBoard(){
       <div class="msg">Final buzzer <b>${formatBuzzerTime()}</b> — afternoon activities begin</div>
       <button class="link-btn" id="openTodayFooter">Edit today's plan</button>
     </footer>
+    <div style="display:flex;gap:10px;justify-content:center;margin:18px 0 8px;flex-wrap:wrap;">
+      <button type="button" class="btn btn-ghost" id="skipDayBtn">Skip forward one day →</button>
+      ${state.dayOffset > 0 ? `<button type="button" class="btn btn-ghost" id="backTodayBtn">← Back to today</button>` : ''}
+    </div>
   `;
 
   if(isTestDay) afterTestSectionRender();
@@ -59833,6 +59848,19 @@ async function renderBoard(){
   });
   const footerBtn = document.getElementById('openTodayFooter');
   if(footerBtn) footerBtn.addEventListener('click', ()=> requireEditAccess(openTodayModal));
+  // Day navigation: parents can preview tomorrow (PIN-guarded); anyone can jump back.
+  async function setDayOffset(n){
+    state.dayOffset = Math.max(0, n|0);
+    await storageSet(famKey(DAY_OFFSET_KEY), state.dayOffset);
+    await loadAndRender();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  const skipBtn = document.getElementById('skipDayBtn');
+  if(skipBtn) skipBtn.addEventListener('click', ()=> requireEditAccess(()=> setDayOffset(state.dayOffset + 1)));
+  const backBtn = document.getElementById('backTodayBtn');
+  if(backBtn) backBtn.addEventListener('click', ()=> setDayOffset(0));
+  const previewBackBtn = document.getElementById('previewBackToday');
+  if(previewBackBtn) previewBackBtn.addEventListener('click', ()=> setDayOffset(0));
 }
 let allSectionsCollapsed = false;
 
@@ -60717,7 +60745,8 @@ function renderWorksheetFormHTML(entry, checks){
       body = (g.items||[]).map(it=>{
         const field = p + it.id;
         const st = checks[it.id];
-        const model = it.answer ? `<div data-wsmodel="${it.id}" style="display:${st?'block':'none'};margin-top:6px;padding:8px;border:1.5px dashed var(--line-light);border-radius:8px;background:var(--bg-soft,#fbf9f4);">
+        const showModel = st && !(state.dayOffset > 0);
+        const model = it.answer ? `<div data-wsmodel="${it.id}" style="display:${showModel?'block':'none'};margin-top:6px;padding:8px;border:1.5px dashed var(--line-light);border-radius:8px;background:var(--bg-soft,#fbf9f4);">
             <div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);">MODEL ANSWER — compare yours honestly:</div>
             <div style="font-size:13px;margin:4px 0 8px;white-space:pre-wrap;">${esc(it.answer)}</div>
             <div style="display:flex;gap:8px;">
@@ -60996,8 +61025,9 @@ function wsRunGroupCheck(container, studentId, gi){
   (g.items||[]).forEach(it=>{
     wsCheckSeq[it.id] = ++wsSeq;
     if(g.type==='shortanswer'){
+      // Preview mode: keep the model answer hidden so students never see the key early.
       const model = container.querySelector('[data-wsmodel="'+it.id+'"]');
-      if(model) model.style.display = 'block';
+      if(model && !(state.dayOffset > 0)) model.style.display = 'block';
       const v = wsItemValue(g, it, container, entry);
       if(v && v.trim()){ wsNoteHTML(it.id, '<span style="color:var(--ink-soft);">Compare with the model answer, then mark yourself honestly.</span>'); }
       else { wsNoteHTML(it.id, '<span style="color:var(--ink-soft);">Write your answer first, then compare.</span>'); }
@@ -61010,8 +61040,9 @@ function wsRunGroupCheck(container, studentId, gi){
     else {
       badCount++; checks[it.id]='bad'; wsMarkHTML(it.id,'bad');
       let fb;
-      if(finalTry){
+      if(finalTry && !(state.dayOffset > 0)){
         // Last try: reveal the correct answer, then lock the section below.
+        // (Suppressed while previewing a future day so students never see the key early.)
         fb = '<span style="color:var(--red);">✗ The answer is: <strong>'+esc(wsCorrectText(g,it))+'</strong></span>';
         if(g.type==='truefalse' && it.correction) fb += '<div style="color:var(--ink-soft);margin-top:2px;">'+esc(it.correction)+'</div>';
         else if(g.type==='truefalse' && it.note) fb += '<div style="color:var(--ink-soft);margin-top:2px;">'+esc(it.note)+'</div>';
@@ -61765,118 +61796,54 @@ async function loadArchiveTab(){
 
 /* ---- Upcoming (future, computed from the content-week + history/science model) ---- */
 async function loadUpcomingTab(){
-  const weeksEl = document.getElementById('upcomingWeeks');
+  // 52-week plan: show the next 10 school days. Tapping a day jumps the
+  // dashboard to that date so families see the COMPLETE dashboard for it
+  // (preview mode: answers stay hidden).
   const daysEl = document.getElementById('upcomingDays');
+  const weeksEl = document.getElementById('upcomingWeeks');
+  weeksEl.innerHTML = '';
   const bands = [...new Set(state.students.map(s=>mmBandForGrade(s.grade)))];
-  const weeks = [];
-  for(let i=0;i<6;i++){ const w = state.mmWeek + i; if(w<=52) weeks.push(w); }
-  if(!weeks.length){ daysEl.innerHTML = `<div class="archive-empty">The 52-week plan is complete.</div>`; return; }
-
-  weeksEl.innerHTML = weeks.map((w,i)=>
-    `<button type="button" class="archive-week-btn ${i===0?'active':''}" data-idx="${i}">${i===0?'This Week':'Week '+w}</button>`
-  ).join('');
-
-  function lessonTitleFor(band, week, wd){
-    const w = mmWeekData(band, week);
+  const st = mmStateByName(state.homeState);
+  const days = [];
+  const d = new Date(state.schoolDate);
+  while(days.length < 10){
+    d.setDate(d.getDate() + 1);
+    const wd = d.getDay();
+    if(wd === 0 || wd === 6) continue;
+    days.push({ date:new Date(d), wd, offset:Math.round((d - state.schoolDate)/86400000) });
+  }
+  function topicFor(band, wd){
+    const w = mmWeekData(band, state.mmWeek);
     if(!w) return '';
-    const st = mmStateByName(state.homeState);
     if(wd===5) return 'Show What You Know';
     return wd<=2 ? mmFillState(w.historyTopic, st) : mmFillState(w.scienceTopic, st);
   }
-  const dayLabel = (wd)=> wd===5 ? 'Friday Review' : (wd<=2 ? 'History' : 'Science');
   const dayName = (wd)=> ['Monday','Tuesday','Wednesday','Thursday','Friday'][wd-1];
-
-  function showUpcomingWeek(idx){
-    weeksEl.querySelectorAll('.archive-week-btn').forEach(b=>b.classList.toggle('active', +b.dataset.idx===idx));
-    const week = weeks[idx];
-    const rows = [];
-    const dayData = {};
-    for(let wd=1; wd<=5; wd++){
-      const titles = bands.map(b=>`<div style="font-size:12.5px;line-height:1.5;"><strong>Grades ${mmBandLabel(b)}:</strong> ${esc(lessonTitleFor(b, week, wd))}</div>`).join('');
-      const rowId = 'up-'+week+'-'+wd;
-      dayData[rowId] = {week, wd};
-      rows.push(`<div class="archive-day-card day-row-clickable" data-rowid="${rowId}" style="padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+  daysEl.innerHTML = `<div class="archive-empty" style="padding:8px 4px 14px;text-align:left;">Tap a day to see its complete dashboard. Answers stay hidden while previewing.</div>` +
+    days.map((dy,i)=>{
+      const titles = bands.map(b=>`<div style="font-size:12.5px;line-height:1.5;"><strong>Grades ${esc(mmBandLabel(b))}:</strong> ${esc(topicFor(b, dy.wd))}</div>`).join('');
+      const dateLabel = dy.date.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      return `<div class="archive-day-card day-row-clickable" data-offset="${dy.offset}" style="padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;">
         <div>
-          <div class="archive-day-title" style="margin:0 0 4px;">${dayName(wd)} · ${dayLabel(wd)}</div>
+          <div class="archive-day-title" style="margin:0 0 4px;">${dayName(dy.wd)}, ${dateLabel}</div>
           ${titles}
         </div>
         <div style="color:var(--orange);font-size:20px;flex-shrink:0;">›</div>
-      </div>`);
-    }
-    daysEl.innerHTML = `<div class="archive-empty" style="padding:8px 4px 14px;text-align:left;">Week ${week} of 52 — tap a day to preview its lessons.</div>` + rows.join('');
-    daysEl.querySelectorAll('[data-rowid]').forEach(row=>{
-      row.addEventListener('click', ()=>{
-        const d = dayData[row.dataset.rowid];
-        openLessonPreview(d.week, d.wd, bands[0], bands);
-      });
+      </div>`;
+    }).join('');
+  daysEl.querySelectorAll('[data-offset]').forEach(card=>{
+    card.addEventListener('click', async ()=>{
+      const offset = +card.dataset.offset;
+      closeAllModals();
+      state.dayOffset = offset;
+      await storageSet(famKey(DAY_OFFSET_KEY), state.dayOffset);
+      await loadAndRender();
+      window.scrollTo({top:0, behavior:'smooth'});
     });
-  }
-  weeksEl.querySelectorAll('.archive-week-btn').forEach(b=>{ b.addEventListener('click', ()=> showUpcomingWeek(+b.dataset.idx)); });
-  showUpcomingWeek(0);
+  });
 }
 
-/* ---- Lesson preview lightbox (upcoming tab): reading + questions, read-only ---- */
-function mmPreviewLessonFor(band, week, wd){
-  const st = mmStateByName(state.homeState);
-  const w = mmWeekData(band, week);
-  if(!w) return null;
-  const D = (d)=>({ title:mmFillState(d.title||'',st), reading:mmFillState(d.reading||'',st),
-    groups:JSON.parse(mmFillState(JSON.stringify(d.groups||[]),st)) });
-  if(wd===5){ const f = D(w.friday); return {topic:'Show What You Know: Week '+week, label:'Friday Review', day:f}; }
-  if(wd<=2) return {topic:mmFillState(w.historyTopic,st), label:'History', day:D(w.history[wd-1])};
-  return {topic:mmFillState(w.scienceTopic,st), label:'Science', day:D(w.science[wd-3])};
-}
-function mmPreviewGroupsHTML(groups){
-  const ansKey = (t)=>`<details style="margin-top:4px;font-size:12px;color:var(--ink-soft);"><summary style="cursor:pointer;">Answer key</summary><div style="margin-top:2px;font-weight:600;color:var(--ink);">${t}</div></details>`;
-  return (groups||[]).map((g,gi)=>{
-    const items = (g.items||[]).map(it=>{
-      if(g.type==='choice')
-        return `<div style="margin:8px 0;"><strong>${esc(it.prompt)}</strong><div style="margin-top:4px;">${(it.options||[]).map(o=>`<span style="display:inline-block;border:1.5px solid var(--line-light);border-radius:8px;padding:3px 10px;margin:2px 4px 2px 0;font-size:12.5px;">${esc(o)}</span>`).join('')}</div>${ansKey(esc(it.answer))}</div>`;
-      if(g.type==='truefalse')
-        return `<div style="margin:8px 0;">${esc(it.text)} <span style="color:var(--ink-soft);font-size:12.5px;">(True / False)</span>${ansKey(it.answer==='true'?'True':'False')}${it.note?`<div style="font-size:12px;color:var(--ink-soft);">${esc(it.note)}</div>`:''}</div>`;
-      if(g.type==='matching')
-        return `<div style="margin:8px 0;"><strong>${esc(it.term)}</strong> &rarr; <span style="color:var(--ink-soft);">letter ___</span>${ansKey('Letter '+String(it.answer).toUpperCase())}</div>`;
-      if(g.type==='fillblank')
-        return `<div style="margin:8px 0;">${esc(it.text||it.prompt||'').replace(/___/g,'______')}${ansKey(esc(it.answer))}</div>`;
-      if(g.type==='order')
-        return `<div style="margin:8px 0;">${esc(it.event||it.text||'')} <span style="color:var(--ink-soft);font-size:12.5px;">(order #___)</span>${ansKey('#'+it.answer)}</div>`;
-      if(g.type==='reveal')
-        return `<div style="margin:8px 0;"><strong>${esc(it.label)}</strong><div style="font-size:13px;margin-top:2px;">${esc(it.content)}</div></div>`;
-      if(g.type==='shortanswer')
-        return `<div style="margin:8px 0;"><strong>${esc(it.prompt)}</strong>${it.answer?`<div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px;">Model answer: ${esc(it.answer)}</div>`:''}</div>`;
-      if(g.type==='checklist')
-        return `<div style="margin:4px 0;font-size:13px;">&square; ${esc(it.text)}</div>`;
-      return '';
-    }).join('');
-    return `<div class="card" style="margin-bottom:10px;"><div class="mini-lbl" style="margin-top:0;">${esc(g.instructions||('Part '+(gi+1)))}</div>${items}</div>`;
-  }).join('');
-}
-function openLessonPreview(week, wd, band, bands){
-  const dayName = ['Monday','Tuesday','Wednesday','Thursday','Friday'][wd-1];
-  const render = (b)=>{
-    const lesson = mmPreviewLessonFor(b, week, wd);
-    document.getElementById('lightboxTitle').textContent = `${dayName} · Week ${week} · ${lesson ? lesson.label : ''}`;
-    document.getElementById('lightboxSub').textContent = 'Preview — this hasn\u2019t happened yet.';
-    const chips = bands.map(x=>`<button type="button" class="btn ${x===b?'btn-primary':'btn-ghost'}" data-mmprevband="${x}" style="font-size:12.5px;padding:6px 14px;">Grades ${mmBandLabel(x)}</button>`).join('');
-    let body = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">${chips}</div>`;
-    if(!lesson || !lesson.day){
-      body += `<div class="card"><p style="color:var(--ink-soft);">No lesson for this band yet.</p></div>`;
-    } else {
-      body += `<div class="card" style="margin-bottom:10px;">
-          <div class="word-badge">${esc(lesson.label)} Lesson</div>
-          <div style="font-size:15px;font-weight:600;margin:6px 0;">${esc(lesson.day.title)}</div>
-          <div style="font-size:13.5px;line-height:1.6;white-space:pre-wrap;">${esc(lesson.day.reading)}</div>
-        </div>`;
-      body += mmPreviewGroupsHTML(lesson.day.groups);
-    }
-    document.getElementById('lightboxContent').innerHTML = body;
-    document.getElementById('lightboxContent').querySelectorAll('[data-mmprevband]').forEach(btn=>{
-      btn.addEventListener('click', ()=> render(btn.dataset.mmprevband));
-    });
-    document.getElementById('dayLightboxOverlay').classList.add('open');
-  };
-  render(band);
-}
+
 
 /* ---- Day detail lightbox + image download ---- */
 function openDayLightbox(dateObj, content, checks, weekWords, isUpcoming){
