@@ -1465,7 +1465,7 @@ const DAY_OFFSET_KEY = 'day-offset';
 // rebuilt from live data instead of trusted. This stops a stale cached copy
 // of the app (old code on a kid's device) from permanently clobbering today
 // with a bad frozen snapshot.
-const SNAP_V = 2;
+const SNAP_V = 3;
 function stampSnap(o){ if(o && typeof o==='object') o._snapV = SNAP_V; return o; }
 // localStorage keys for sticky fallbacks when a backend read fails
 // transiently (storageGet swallows errors and returns null, which the old
@@ -62333,7 +62333,7 @@ function synthTodayContent(){
   const devo = mmDevotional(state.mmWeek, state.weekdayNum);
   const money = mmMoneyMinute(state.mmWeek, state.weekdayNum);
   return {
-    devotional:{ wordOfDay:devo.word, scripture:devo.scripture, reflection:devo.reflection, prayer:devo.prayer, intention:devo.intention },
+    devotional:{ wordOfDay:devo.word, def:devo.def, syn:devo.syn, ant:devo.ant, scripture:devo.scripture, reflection:devo.reflection, prayer:devo.prayer, intention:devo.intention },
     financialLit:{ concept:money.concept, blank:money.blank, answer:money.answer },
     vocab:{}, subjects:{}, currentEvent:null, realWorldScenario:'', statesCapitals:[]
   };
@@ -62549,7 +62549,8 @@ async function renderBoard(){
     }
     return `<div class="card">
       <div class="word-badge">${esc(lessonType)} &middot; Week ${state.mmWeek} &middot; Grades ${esc(mmBandLabel(lesson._band))}</div>
-      <div style="font-size:15px;font-weight:600;line-height:1.4;margin:6px 0;">${esc(lesson.topic)}</div>
+      <div style="font-size:15px;font-weight:600;line-height:1.4;margin:6px 0;">${esc(dayPart.title || lesson.topic)}</div>
+      <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:6px;">${esc(lesson.topic)}</div>
       ${wsBtn}${extra}
       ${(()=>{ const act = (state.todayActivities||{})[studentId+':'+lesson.subject]; const line = activityStatusLine(act);
         return line ? `<div style="font-size:11.5px;color:var(--ink-soft);margin-top:8px;">&#x1F552; ${esc(line)}</div>` : ''; })()}
@@ -62607,6 +62608,14 @@ async function renderBoard(){
     <div class="word-badge">Money Minute</div>
     <div style="font-size:15px;font-weight:600;margin:6px 0 8px;">${esc(flData.headline || flData.concept)}</div>
     <p style="font-size:14px;line-height:1.5;">${esc(flData.blank)}</p>
+    ${state.students.map(s=>`
+    <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line-light);">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:6px;">${esc(firstName(s.name))}</div>
+      <label style="font-size:12px;font-weight:600;color:var(--ink-soft);">Fill in the blank:</label>
+      <input type="text" data-flblank="${s.id}" style="width:100%;padding:8px;border:1.5px solid var(--line-light);border-radius:8px;font-family:'Oswald',sans-serif;font-size:13.5px;margin-top:4px;" placeholder="Type the missing word...">
+      <label style="font-size:12px;font-weight:600;color:var(--ink-soft);margin-top:8px;display:block;">Rewrite the whole statement:</label>
+      <textarea data-flrewrite="${s.id}" rows="2" style="width:100%;padding:8px;border:1.5px solid var(--line-light);border-radius:8px;font-family:'Oswald',sans-serif;font-size:13.5px;margin-top:4px;" placeholder="Write the complete sentence..."></textarea>
+    </div>`).join('')}
   </div>` : (!isTestDay ? missingCard('Financial Lit') : '');
 
   // ---- Real World Scenario ----
@@ -62635,18 +62644,24 @@ async function renderBoard(){
     <div style="font-size:15px;font-weight:600;margin:6px 0 8px;">${esc(newsItem.headline)}</div>
     <p style="font-size:14px;line-height:1.55;">${esc(newsItem.summary)}</p>
     <div style="font-size:13px;font-weight:600;margin-top:10px;color:var(--ink-soft);">Think about it: ${esc(newsItem.question)}</div>
+    ${state.students.map(s=>`
+    <div style="margin-top:10px;">
+      <label style="font-size:12px;font-weight:600;color:var(--ink-soft);">${esc(firstName(s.name))}'s answer:</label>
+      <textarea data-newsanswer="${s.id}" rows="2" style="width:100%;padding:8px;border:1.5px solid var(--line-light);border-radius:8px;font-family:'Oswald',sans-serif;font-size:13.5px;margin-top:4px;" placeholder="Type your answer here..."></textarea>
+    </div>`).join('')}
   </div>` : '';
 
-  // ---- My State (home state from the 52-week plan) ----
+  // ---- My State (home state): only during the states weeks (46-47) ----
   const myState = mmStateByName(state.homeState);
-  const statesHTML = `<div class="card">
+  const showMyState = (state.mmWeek === 46 || state.mmWeek === 47);
+  const statesHTML = showMyState ? `<div class="card">
     <div class="word-badge">My State</div>
     <div class="info-line" style="cursor:pointer;margin-top:8px;" data-mystaterev>
       <span>${esc(myState.n)} <span style="color:var(--ink-soft);">(${esc(myState.k)})</span></span>
       <span data-mystaterev-answer style="font-weight:700;display:inline-block;border:2px solid var(--orange);border-radius:20px;padding:4px 14px;font-size:12.5px;cursor:pointer;background:#fff;">Tap to reveal capital</span>
     </div>
     <p data-mystatefact style="display:none;font-size:13px;line-height:1.55;margin:8px 0 0;">${esc(myState.f)}</p>
-  </div>`;
+  </div>` : '';
 
   const studentsHTML = state.students.map((s)=>{
     const vocabHTML = buildVocabHTML(s);
@@ -62670,15 +62685,6 @@ async function renderBoard(){
         <textarea data-reflection="${s.id}" rows="2" style="width:100%;padding:8px;border:1.5px solid var(--line-light);border-radius:8px;font-family:'Oswald',sans-serif;font-size:13.5px;" placeholder="Type your answer here..."></textarea>
         <div style="margin-top:12px;">${studentLessonHTML}</div>
         ${sprintHTML}
-        <div class="mini-lbl" style="margin-top:12px;">Money Minute</div>
-        <div style="margin-bottom:8px;">
-          <label style="font-size:12px;font-weight:600;color:var(--ink-soft);">Fill in the blank:</label>
-          <input type="text" data-flblank="${s.id}" style="width:100%;padding:8px;border:1.5px solid var(--line-light);border-radius:8px;font-family:'Oswald',sans-serif;font-size:13.5px;margin-top:4px;" placeholder="Type the missing word...">
-        </div>
-        <div style="margin-bottom:4px;">
-          <label style="font-size:12px;font-weight:600;color:var(--ink-soft);">Rewrite the whole statement:</label>
-          <textarea data-flrewrite="${s.id}" rows="2" style="width:100%;padding:8px;border:1.5px solid var(--line-light);border-radius:8px;font-family:'Oswald',sans-serif;font-size:13.5px;margin-top:4px;" placeholder="Write the complete sentence..."></textarea>
-        </div>
         <div class="mini-lbl" style="margin-top:12px;">Today's check-off</div>
         ${checksHTML}
       </div>
@@ -62912,6 +62918,17 @@ async function renderBoard(){
   board.querySelectorAll('[data-flrewrite]').forEach(async (ta)=>{
     const sid = ta.dataset.flrewrite;
     const key = 'flrewrite:'+state.dateStr+':'+sid;
+    ta.value = (await storageGet(key)) || '';
+    let t = null;
+    ta.addEventListener('input', ()=>{
+      clearTimeout(t);
+      t = setTimeout(async ()=>{ await storageSet(key, ta.value); }, 600);
+    });
+  });
+  // Current Event answers: per student per day, autosaved.
+  board.querySelectorAll('[data-newsanswer]').forEach(async (ta)=>{
+    const sid = ta.dataset.newsanswer;
+    const key = 'newsanswer:'+state.dateStr+':'+sid;
     ta.value = (await storageGet(key)) || '';
     let t = null;
     ta.addEventListener('input', ()=>{
