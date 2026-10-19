@@ -62220,7 +62220,10 @@ async function loadAll(){
   // today; past days are left alone as historical record.
   const isTodayView = dstr === toDateStr(getSchoolDate(new Date()));
   const snapStale = !!(state.todayOverride && state.todayOverride._snapV !== SNAP_V);
-  if(SCHOOL_DAYS.includes(state.weekdayNum) && (!state.todayOverride || (isTodayView && snapStale))){
+  // Rebuild if missing, or if stale and viewing today or a future preview day.
+  // Past days stay frozen as historical record.
+  const isPastView = dstr < toDateStr(getSchoolDate(new Date()));
+  if(SCHOOL_DAYS.includes(state.weekdayNum) && (!state.todayOverride || (snapStale && !isPastView))){
     // 52-week plan snapshot: the shared day content plus each student's
     // resolved lesson (title + reading), frozen so the archive is immutable.
     const base = todayContent();
@@ -62680,9 +62683,6 @@ async function renderBoard(){
       <div class="student-body">
         <div class="mini-lbl" style="margin-top:4px;">Word of the Day</div>
         ${vocabHTML}
-        <div class="mini-lbl" style="margin-top:12px;">Reflection</div>
-        <div style="font-size:13px;color:var(--ink-soft);margin-bottom:6px;">${esc(devo.reflection)}</div>
-        <textarea data-reflection="${s.id}" rows="2" style="width:100%;padding:8px;border:1.5px solid var(--line-light);border-radius:8px;font-family:'Oswald',sans-serif;font-size:13.5px;" placeholder="Type your answer here..."></textarea>
         <div style="margin-top:12px;">${studentLessonHTML}</div>
         ${sprintHTML}
         <div class="mini-lbl" style="margin-top:12px;">Today's check-off</div>
@@ -62714,6 +62714,11 @@ async function renderBoard(){
           </div>` : ''}
           ${mmShowDevo('scripture') ? `<p class="devo-scripture">${esc(devo.scripture)}</p>` : ''}
           <div class="devo-row"><div class="lbl">Reflection Question</div><div class="val">${esc(devo.reflection)}</div></div>
+          ${state.students.map(s=>`
+          <div class="devo-row">
+            <div class="lbl">${esc(firstName(s.name))}'s Answer</div>
+            <textarea data-reflection="${s.id}" rows="2" style="width:100%;padding:8px;border:1.5px solid var(--line-light);border-radius:8px;font-family:'Oswald',sans-serif;font-size:14px;" placeholder="Type your answer here..."></textarea>
+          </div>`).join('')}
           ${mmShowDevo('prayer') ? `<div class="devo-row"><div class="lbl">Prayer</div><div class="val">${esc(devo.prayer)}</div></div>` : ''}
         </div>
         <div class="intention-card">
@@ -64857,6 +64862,10 @@ function buildFullDayHTML(dateObj, content, checks, weekWords){
         <div class="card">
           <div class="word-badge">Word of the Day</div>
           <div class="devo-word">${esc(devo.wordOfDay)}</div>
+          ${devo.def ? `<div class="vocab-box" style="margin:0 0 12px;">
+            <div class="vocab-row"><b>Define:</b> ${esc(devo.def)}</div>
+            <div class="syn-ant"><span><b>Syn</b> ${esc(devo.syn||'')}</span><span class="ant"><b>Ant</b> ${esc(devo.ant||'')}</span></div>
+          </div>` : ''}
           ${mmShowDevo('scripture') ? `<p class="devo-scripture">${esc(devo.scripture)}</p>` : ''}
           <div class="devo-row"><div class="lbl">Reflection Question</div><div class="val">${esc(devo.reflection)}</div></div>
           ${mmShowDevo('prayer') ? `<div class="devo-row"><div class="lbl">Prayer</div><div class="val">${esc(devo.prayer)}</div></div>` : ''}
